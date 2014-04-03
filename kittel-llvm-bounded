@@ -1,0 +1,31 @@
+FULLNAME=$1
+BASENAME=`basename $1 .c`
+BBASENAME=$BASENAME-bounded
+
+shift
+
+echo "Calling clang"
+clang-3.4 -Wall -Wextra -c -emit-llvm -O0 $FULLNAME -o $BASENAME.bc
+if [ $? != 0 ]
+then
+  exit 1
+fi
+
+echo "Calling llvm2kittel"
+./llvm2kittel $BASENAME.bc --bounded-integers $* > $BBASENAME.kittel
+if [ $? != 0 ]
+then
+  rm -f $BBASENAME.kittel
+  exit 2
+fi
+
+echo "Calling kittel"
+echo -ne $BBASENAME.kittel": "
+./kittel $BBASENAME.kittel > $BBASENAME.kittel.proof
+if [ $? != 0 ]
+then
+  echo "failed"
+  exit 3
+else
+  echo "shown"
+fi
