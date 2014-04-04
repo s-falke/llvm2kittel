@@ -132,7 +132,7 @@ void Hoister::HoistRegion(llvm::Loop *L, llvm::DomTreeNode *N, llvm::AliasAnalys
         }
 
         const std::vector<llvm::DomTreeNode*> &children = N->getChildren();
-        for (unsigned int i = 0, e = children.size(); i != e; ++i) {
+        for (unsigned int i = 0, e = static_cast<unsigned int>(children.size()); i != e; ++i) {
             HoistRegion(L, children[i], AA);
         }
     }

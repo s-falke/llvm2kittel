@@ -79,7 +79,7 @@ public:
 
     std::set<std::string> *getVariables();
 
-    int normStepsNeeded();
+    long int normStepsNeeded();
 
     bool equals(Polynomial *p);
     static mpz_t _null;

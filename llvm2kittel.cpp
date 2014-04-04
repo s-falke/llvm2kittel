@@ -525,7 +525,7 @@ int main(int argc, char *argv[])
     }
 
     // convert sccs separately
-    unsigned int num = dependsOnSccs.size();
+    unsigned int num = static_cast<unsigned int>(dependsOnSccs.size());
     unsigned int currNum = 0;
     for (std::list<std::list<llvm::Function*> >::iterator scci = dependsOnSccs.begin(), scce = dependsOnSccs.end(); scci != scce; ++scci) {
         std::list<llvm::Function*> scc = *scci;

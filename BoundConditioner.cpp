@@ -254,11 +254,11 @@ static std::list<Rule*> getChainedNormRules(Rule *rule, std::list<Rule*> &rules)
             Rule *toChain = *ir;
             // no chaining
             tmp.push_back(toChain);
-            int normStepsNeeded = p->normStepsNeeded();
+            long int normStepsNeeded = p->normStepsNeeded();
             std::pair<Rule*, Rule*> theNormRules = getTheNormRules(rhsFun, argCount, rules);
             Rule *rule1 = toChain;
             Rule *rule2 = toChain;
-            for (int c = 1; c <= normStepsNeeded; ++c) {
+            for (long int c = 1; c <= normStepsNeeded; ++c) {
                 rule1 = chainRules(rule1, theNormRules.first);
                 rule2 = chainRules(rule2, theNormRules.second);
                 tmp.push_back(rule1);

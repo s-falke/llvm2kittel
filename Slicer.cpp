@@ -85,7 +85,7 @@ std::list<Rule*> Slicer::sliceUsage(std::list<Rule*> rules)
         Polynomial *tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
-    unsigned int arity = vars.size();
+    unsigned int arity = static_cast<unsigned int>(vars.size());
     std::set<unsigned int> notNeeded = getSet(arity);
     for (std::list<Rule*>::iterator it = rules.begin(), et = rules.end(); it != et; ++it) {
         Rule *tmp = *it;
@@ -170,7 +170,7 @@ std::list<Rule*> Slicer::sliceConstraint(std::list<Rule*> rules)
         Polynomial *tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
-    m_numVars = vars.size();
+    m_numVars = static_cast<unsigned int>(vars.size());
     std::set<unsigned int> notNeeded = getSet(m_numVars);
     // Keep all inputs of integer type
     unsigned int intarg = 0;
@@ -288,7 +288,7 @@ void Slicer::setUpPreceeds(std::list<Rule*> rules)
         m_functions.insert((*i)->getLeft()->getFunctionSymbol());
         m_functions.insert((*i)->getRight()->getFunctionSymbol());
     }
-    m_numFunctions = m_functions.size();
+    m_numFunctions = static_cast<unsigned int>(m_functions.size());
     unsigned int idx = 0;
     for (std::set<std::string>::iterator i = m_functions.begin(), e = m_functions.end(); i != e; ++i) {
         std::string f = *i;
@@ -481,7 +481,7 @@ std::list<Rule*> Slicer::sliceDefined(std::list<Rule*> rules)
         std::set<unsigned int> lnotneeded = getNotNeeded(rule->getLeft()->getFunctionSymbol(), vars);
         std::set<unsigned int> rnotneeded;
         if (rule->getRight()->getFunctionSymbol() == getEval("stop")) {
-            rnotneeded = getSet(rule->getRight()->getArgs().size());
+            rnotneeded = getSet(static_cast<unsigned int>(rule->getRight()->getArgs().size()));
         } else if (isRecursiveCall(rule->getRight()->getFunctionSymbol())) {
             // keep everything
         } else {
@@ -530,7 +530,7 @@ void Slicer::setUpCalls(std::list<Rule*> rules)
         m_functions.insert((*i)->getLeft()->getFunctionSymbol());
         m_functions.insert((*i)->getRight()->getFunctionSymbol());
     }
-    m_numFunctions = m_functions.size();
+    m_numFunctions = static_cast<unsigned int>(m_functions.size());
     unsigned int idx = 0;
     for (std::set<std::string>::iterator i = m_functions.begin(), e = m_functions.end(); i != e; ++i) {
         std::string f = *i;
@@ -894,7 +894,7 @@ bool Slicer::isRecursiveCall(std::string f)
 
 bool Slicer::isNondef(std::string v)
 {
-    unsigned int len = v.length();
+    unsigned int len = static_cast<unsigned int>(v.length());
     if (len < 6) {
         return false;
     }

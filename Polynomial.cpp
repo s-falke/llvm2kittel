@@ -511,12 +511,12 @@ std::set<std::string> *Polynomial::getVariables()
     return res;
 }
 
-int Polynomial::normStepsNeeded()
+long int Polynomial::normStepsNeeded()
 {
     if (isConst() || isVar()) {
         return 0;
     }
-    int res = 0;
+    long int res = 0;
     for (std::list<std::pair<mpz_class, Monomial*> >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
         std::pair<mpz_class, Monomial*> tmp = *i;
         if (!tmp.second->isUnivariateLinear()) {
