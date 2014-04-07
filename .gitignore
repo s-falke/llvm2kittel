@@ -1,7 +1,5 @@
 llvm2kittel
 llvm2kittel.static
-splitter
-*.cmi
-*.cmx
 *.o
 *.cpp.depends
+*~
