@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(llvm2kittel)
 
+set(WARN_FLAGS "-Wall -Wextra -Wold-style-cast -Wshadow -Wconversion -Wsign-conversion -Weffc++ -Wswitch-default -Wswitch-enum -Wno-long-long -pedantic")
+
 find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
 if(LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
   message(FATAL_ERROR "llvm-config could not be found!")
@@ -119,7 +121,7 @@ add_executable(llvm2kittel
 )
 
 set_target_properties(llvm2kittel llvm2kittelLibrary
-    PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
+    PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${WARN_FLAGS}")
 
 target_link_libraries(llvm2kittelLibrary ${LLVM_LIBS} ${LLVM_LDFLAGS})
 target_link_libraries(llvm2kittel llvm2kittelLibrary)
