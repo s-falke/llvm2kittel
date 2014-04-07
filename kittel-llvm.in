@@ -4,7 +4,7 @@ BASENAME=`basename $1 .c`
 shift
 
 echo "Calling clang"
-clang-3.4 -Wall -Wextra -c -emit-llvm -O0 $FULLNAME -o $BASENAME.bc
+@CLANG@ -Wall -Wextra -c -emit-llvm -O0 $FULLNAME -o $BASENAME.bc
 if [ $? != 0 ]
 then
   exit 1
@@ -28,3 +28,4 @@ then
 else
   echo "shown"
 fi
+

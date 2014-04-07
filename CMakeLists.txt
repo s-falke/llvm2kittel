@@ -59,6 +59,13 @@ execute_process(
 
 include(FindGMP)
 
+execute_process(
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
+  OUTPUT_VARIABLE LLVM_BINDIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+set(CLANG "${LLVM_BINDIR}/clang")
 configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm.in ${CMAKE_BINARY_DIR}/kittel-llvm @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm-bounded.in ${CMAKE_BINARY_DIR}/kittel-llvm-bounded @ONLY)
 
