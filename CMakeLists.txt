@@ -59,6 +59,9 @@ execute_process(
 
 include(FindGMP)
 
+configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm.in ${CMAKE_BINARY_DIR}/kittel-llvm @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm-bounded.in ${CMAKE_BINARY_DIR}/kittel-llvm-bounded @ONLY)
+
 add_library(llvm2kittelLibrary STATIC
   BasicBlockSorter.cpp
   BitcastCallEliminator.cpp
