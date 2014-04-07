@@ -8,7 +8,9 @@ Requirements:
 Build instructions:
 -------------------
   You will need to modify the Makefile and set the following variables:
-  LLVM_MAJOR, LLVM_MINOR, LLVM_LIB_DIR, LLVM_INCLUDE_DIR.
+  LLVM_MAJOR, LLVM_MINOR, LLVM_LIB_DIR, LLVM_INCLUDE_DIR.  You might
+  need to add "-fno-rtti" to COMPILEFLAGS (if your installation of
+  LLVM was built using this flag).
 
   "make llvm2kittel" builds the termination analysis frontend "llvm2kittel"
 
