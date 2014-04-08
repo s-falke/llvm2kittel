@@ -11,7 +11,12 @@
 
 // llvm includes
 #include "WARN_OFF.h"
-#include <llvm/Support/CallSite.h>
+#include "WARN_OFF.h"
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/CallSite.h>
+#else
+  #include <llvm/IR/CallSite.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 3)
   #include <llvm/Constants.h>
 #else

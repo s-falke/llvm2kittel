@@ -19,7 +19,11 @@
   #include <llvm/IR/Constants.h>
 #endif
 #include <llvm/ADT/SmallVector.h>
-#include <llvm/Support/CallSite.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/CallSite.h>
+#else
+  #include <llvm/IR/CallSite.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 4)
   #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #else
@@ -1876,7 +1880,11 @@ bool Converter::isAssumeArg(llvm::ZExtInst &I)
         if (I.getNumUses() != 1) {
             return false;
         }
+#if LLVM_VERSION < VERSION(3, 5)
         llvm::User *user = *I.use_begin();
+#else
+        llvm::User *user = *I.user_begin();
+#endif
         if (!llvm::isa<llvm::CallInst>(user)) {
             return false;
         }
