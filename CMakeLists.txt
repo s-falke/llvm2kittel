@@ -80,11 +80,20 @@ add_library(llvm2kittelAnalysis STATIC
   lib/Analysis/LoopConditionBlocksCollector.cpp
   lib/Analysis/LoopConditionExplicitizer.cpp
   lib/Analysis/MemoryAnalyzer.cpp
+  include/llvm2kittel/Analysis/ConditionPropagator.h
+  include/llvm2kittel/Analysis/HierarchyBuilder.h
+  include/llvm2kittel/Analysis/InstChecker.h
+  include/llvm2kittel/Analysis/LoopConditionBlocksCollector.h
+  include/llvm2kittel/Analysis/LoopConditionExplicitizer.h
+  include/llvm2kittel/Analysis/MemoryAnalyzer.h
+  include/llvm2kittel/Analysis/quadruple.h
 )
 
 add_library(llvm2kittelComplexity STATIC
   lib/Complexity/ComplexityTuplePrinter.cpp
   lib/Complexity/UniformComplexityTuplePrinter.cpp
+  include/llvm2kittel/Complexity/ComplexityTuplePrinter.h
+  include/llvm2kittel/Complexity/UniformComplexityTuplePrinter.h
 )
 
 add_library(llvm2kittelCore STATIC
@@ -93,6 +102,13 @@ add_library(llvm2kittelCore STATIC
   lib/Core/Kittelizer.cpp
   lib/Core/Slicer.cpp
   lib/Core/ConditionSimplifier.cpp
+  include/llvm2kittel/BoundConditioner.h
+  include/llvm2kittel/ConditionSimplifier.h
+  include/llvm2kittel/Converter.h
+  include/llvm2kittel/DivConstraintStore.h
+  include/llvm2kittel/Kittelizer.h
+  include/llvm2kittel/RemConstraintStore.h
+  include/llvm2kittel/Slicer.h
 )
 
 add_library(llvm2kittelIntTRS STATIC
@@ -100,6 +116,10 @@ add_library(llvm2kittelIntTRS STATIC
   lib/IntTRS/Polynomial.cpp
   lib/IntTRS/Rule.cpp
   lib/IntTRS/Term.cpp
+  include/llvm2kittel/IntTRS/Constraint.h
+  include/llvm2kittel/IntTRS/Polynomial.h
+  include/llvm2kittel/IntTRS/Rule.h
+  include/llvm2kittel/IntTRS/Term.h
 )
 
 add_library(llvm2kittelTransform STATIC
@@ -112,11 +132,26 @@ add_library(llvm2kittelTransform STATIC
   lib/Transform/InstNamer.cpp
   lib/Transform/Mem2Reg.cpp
   lib/Transform/StrengthIncreaser.cpp
+  include/llvm2kittel/Transform/BasicBlockSorter.h
+  include/llvm2kittel/Transform/BitcastCallEliminator.h
+  include/llvm2kittel/Transform/ConstantExprEliminator.h
+  include/llvm2kittel/Transform/EagerInliner.h
+  include/llvm2kittel/Transform/ExtremeInliner.h
+  include/llvm2kittel/Transform/Hoister.h
+  include/llvm2kittel/Transform/InstNamer.h
+  include/llvm2kittel/Transform/Mem2Reg.h
+  include/llvm2kittel/Transform/NondefFactory.h
+  include/llvm2kittel/Transform/StrengthIncreaser.h
 )
 
 add_library(llvm2kittelUtil STATIC
   lib/Util/CommandLine.cpp
   lib/Util/gmp_kittel.cpp
+  include/llvm2kittel/Util/CommandLine.h
+  include/llvm2kittel/Util/gmp_kittel.h
+  include/llvm2kittel/Util/Version.h
+  include/WARN_OFF.h
+  include/WARN_ON.h
 )
 
 add_executable(llvm2kittel
