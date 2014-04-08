@@ -6,7 +6,7 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/RewriteSystem/Polynomial.h"
-#include "llvm2kittel/RewriteSystem/gmp_kittel.h"
+#include "llvm2kittel/Util/gmp_kittel.h"
 
 // C++ includes
 #include <sstream>

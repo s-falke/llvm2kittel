@@ -101,7 +101,6 @@ add_library(llvm2kittelRewriteSystem STATIC
   lib/RewriteSystem/Polynomial.cpp
   lib/RewriteSystem/Rule.cpp
   lib/RewriteSystem/Term.cpp
-  lib/RewriteSystem/gmp_kittel.cpp
 )
 
 add_library(llvm2kittelTransform STATIC
@@ -117,6 +116,7 @@ add_library(llvm2kittelTransform STATIC
 
 add_library(llvm2kittelUtil STATIC
   lib/Util/CommandLine.cpp
+  lib/Util/gmp_kittel.cpp
 )
 
 add_executable(llvm2kittel
