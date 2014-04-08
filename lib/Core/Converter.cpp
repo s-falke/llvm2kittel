@@ -8,8 +8,8 @@
 #include "llvm2kittel/Util/Version.h"
 
 #include "llvm2kittel/Converter.h"
-#include "llvm2kittel/RewriteSystem/Polynomial.h"
-#include "llvm2kittel/RewriteSystem/Term.h"
+#include "llvm2kittel/IntTRS/Polynomial.h"
+#include "llvm2kittel/IntTRS/Term.h"
 
 // llvm includes
 #include "WARN_OFF.h"

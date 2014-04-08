@@ -10,7 +10,7 @@
 
 #include "llvm2kittel/Util/Version.h"
 
-#include "llvm2kittel/RewriteSystem/Rule.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"

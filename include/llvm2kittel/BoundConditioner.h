@@ -8,7 +8,7 @@
 #ifndef BOUND_CONDITIONER_H
 #define BOUND_CONDITIONER_H
 
-#include "llvm2kittel/RewriteSystem/Rule.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 
 // C++ includes
 #include <list>

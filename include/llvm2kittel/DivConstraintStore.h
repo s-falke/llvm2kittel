@@ -8,7 +8,7 @@
 #ifndef DIV_CONSTRAINT_STORE
 #define DIV_CONSTRAINT_STORE
 
-#include "llvm2kittel/RewriteSystem/Constraint.h"
+#include "llvm2kittel/IntTRS/Constraint.h"
 
 struct DivConstraintStore
 {

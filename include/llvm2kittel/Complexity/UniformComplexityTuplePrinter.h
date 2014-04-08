@@ -8,7 +8,7 @@
 #ifndef UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 #define UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 
-#include "llvm2kittel/RewriteSystem/Rule.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 
 // C++ includes
 #include <list>

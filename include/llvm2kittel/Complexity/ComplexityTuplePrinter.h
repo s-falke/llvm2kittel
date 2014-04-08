@@ -8,7 +8,7 @@
 #ifndef COMPLEXITY_TUPLE_PRINTER_H
 #define COMPLEXITY_TUPLE_PRINTER_H
 
-#include "llvm2kittel/RewriteSystem/Rule.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 
 // C++ includes
 #include <list>

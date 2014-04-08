@@ -95,11 +95,11 @@ add_library(llvm2kittelCore STATIC
   lib/Core/ConditionSimplifier.cpp
 )
 
-add_library(llvm2kittelRewriteSystem STATIC
-  lib/RewriteSystem/Constraint.cpp
-  lib/RewriteSystem/Polynomial.cpp
-  lib/RewriteSystem/Rule.cpp
-  lib/RewriteSystem/Term.cpp
+add_library(llvm2kittelIntTRS STATIC
+  lib/IntTRS/Constraint.cpp
+  lib/IntTRS/Polynomial.cpp
+  lib/IntTRS/Rule.cpp
+  lib/IntTRS/Term.cpp
 )
 
 add_library(llvm2kittelTransform STATIC
@@ -125,7 +125,7 @@ add_executable(llvm2kittel
 
 set_target_properties(
   llvm2kittel llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
-  llvm2kittelRewriteSystem llvm2kittelTransform llvm2kittelUtil
+  llvm2kittelIntTRS llvm2kittelTransform llvm2kittelUtil
   PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${GMP_CXXFLAGS}" ${WARN_FLAGS}
 )
 
@@ -139,7 +139,7 @@ target_link_libraries(llvm2kittelCore
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
   ${GMP_LIBS} ${GMP_LDFLAGS}
 )
-target_link_libraries(llvm2kittelRewriteSystem
+target_link_libraries(llvm2kittelIntTRS
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
   ${GMP_LIBS} ${GMP_LDFLAGS}
 )
@@ -152,5 +152,5 @@ target_link_libraries(llvm2kittelUtil
 
 target_link_libraries(llvm2kittel
   llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
-  llvm2kittelRewriteSystem llvm2kittelTransform llvm2kittelUtil
+  llvm2kittelIntTRS llvm2kittelTransform llvm2kittelUtil
 )
