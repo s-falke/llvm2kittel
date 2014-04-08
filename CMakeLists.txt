@@ -4,16 +4,18 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-  )
+)
 
 set(WARN_FLAGS
-    "-Wall -Wextra -Wold-style-cast -Wshadow -Wconversion -Wsign-conversion"
-    " -Weffc++ -Wswitch-default -Wswitch-enum -Wno-long-long -pedantic"
-   )
+  "-Wall -Wextra -Wold-style-cast -Wshadow -Wconversion -Wsign-conversion"
+  " -Weffc++ -Wswitch-default -Wswitch-enum -Wno-long-long -pedantic"
+)
 
-find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config
-             DOC "llvm-config executable"
-            )
+find_program(LLVM_CONFIG_EXECUTABLE
+  NAMES llvm-config
+  DOC "llvm-config executable"
+)
+
 if(LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
   message(FATAL_ERROR "llvm-config could not be found!")
 endif()
@@ -33,7 +35,7 @@ execute_process(
 string(REGEX MATCHALL "[0-9]+" LLVM_VERSION_LIST "${LLVM_VERSION}")
 
 list(LENGTH LLVM_VERSION_LIST LLVM_VERSION_LIST_LENGTH)
-if (NOT ${LLVM_VERSION_LIST_LENGTH} EQUAL 2)
+if(NOT ${LLVM_VERSION_LIST_LENGTH} EQUAL 2)
   message(FATAL_ERROR "Could not parse version number")
 endif()
 
@@ -103,9 +105,11 @@ add_executable(llvm2kittel
 )
 
 set_target_properties(llvm2kittel llvm2kittelLibrary
-    PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${GMP_CXXFLAGS}" ${WARN_FLAGS})
+  PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${GMP_CXXFLAGS}" ${WARN_FLAGS}
+)
 
 target_link_libraries(llvm2kittelLibrary
-                      ${LLVM_LIBS} ${LLVM_LDFLAGS}
-                      ${GMP_LIBS} ${GMP_LDFLAGS})
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+  ${GMP_LIBS} ${GMP_LDFLAGS}
+)
 target_link_libraries(llvm2kittel llvm2kittelLibrary)
