@@ -9,7 +9,6 @@
 #define NONDEF_FACTORY_H
 
 #include "Version.h"
-#include "Macros.h"
 
 // llvm includes
 #include "WARN_OFF.h"
@@ -24,6 +23,12 @@
 
 // STL includes
 #include <map>
+
+#if LLVM_VERSION <= VERSION(2, 9)
+  #define LLVM2_CONST const
+#else
+  #define LLVM2_CONST
+#endif
 
 class NondefFactory
 {
