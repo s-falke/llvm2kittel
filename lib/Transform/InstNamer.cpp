@@ -5,7 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/InstNamer.h"
+#include "llvm2kittel/Transform/InstNamer.h"
 
 // C++ includes
 #include <sstream>

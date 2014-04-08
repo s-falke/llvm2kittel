@@ -19,7 +19,7 @@
 #include "llvm2kittel/Analysis/HierarchyBuilder.h"
 #include "llvm2kittel/Transform/Hoister.h"
 #include "llvm2kittel/Analysis/InstChecker.h"
-#include "llvm2kittel/InstNamer.h"
+#include "llvm2kittel/Transform/InstNamer.h"
 #include "llvm2kittel/Kittelizer.h"
 #include "llvm2kittel/Analysis/LoopConditionBlocksCollector.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"

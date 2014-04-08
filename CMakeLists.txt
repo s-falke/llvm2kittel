@@ -90,7 +90,6 @@ add_library(llvm2kittelComplexity STATIC
 add_library(llvm2kittelCore STATIC
   lib/Core/BoundConditioner.cpp
   lib/Core/Converter.cpp
-  lib/Core/InstNamer.cpp
   lib/Core/Kittelizer.cpp
   lib/Core/Slicer.cpp
   lib/Core/ConditionSimplifier.cpp
@@ -110,6 +109,7 @@ add_library(llvm2kittelTransform STATIC
   lib/Transform/EagerInliner.cpp
   lib/Transform/ExtremeInliner.cpp
   lib/Transform/Hoister.cpp
+  lib/Transform/InstNamer.cpp
   lib/Transform/Mem2Reg.cpp
   lib/Transform/StrengthIncreaser.cpp
 )
