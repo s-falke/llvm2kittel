@@ -71,47 +71,86 @@ set(CLANG "${LLVM_BINDIR}/clang")
 configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm.in ${CMAKE_BINARY_DIR}/kittel-llvm @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm-bounded.in ${CMAKE_BINARY_DIR}/kittel-llvm-bounded @ONLY)
 
-add_library(llvm2kittelLibrary STATIC
-  BasicBlockSorter.cpp
-  BitcastCallEliminator.cpp
-  BoundConditioner.cpp
-  CommandLine.cpp
-  ComplexityTuplePrinter.cpp
-  ConditionPropagator.cpp
-  ConditionSimplifier.cpp
-  ConstantExprEliminator.cpp
-  Constraint.cpp
-  Converter.cpp
-  EagerInliner.cpp
-  ExtremeInliner.cpp
-  HierarchyBuilder.cpp
-  Hoister.cpp
-  InstChecker.cpp
-  InstNamer.cpp
-  Kittelizer.cpp
-  LoopConditionBlocksCollector.cpp
-  LoopConditionExplicitizer.cpp
-  Mem2Reg.cpp
-  MemoryAnalyzer.cpp
-  Polynomial.cpp
-  Rule.cpp
-  Slicer.cpp
-  StrengthIncreaser.cpp
-  Term.cpp
-  UniformComplexityTuplePrinter.cpp
-  gmp_kittel.cpp
+include_directories(include)
+
+add_library(llvm2kittelAnalysis STATIC
+  lib/Analysis/ConditionPropagator.cpp
+  lib/Analysis/HierarchyBuilder.cpp
+  lib/Analysis/InstChecker.cpp
+  lib/Analysis/LoopConditionBlocksCollector.cpp
+  lib/Analysis/LoopConditionExplicitizer.cpp
+  lib/Analysis/MemoryAnalyzer.cpp
+)
+
+add_library(llvm2kittelComplexity STATIC
+  lib/Complexity/ComplexityTuplePrinter.cpp
+  lib/Complexity/UniformComplexityTuplePrinter.cpp
+)
+
+add_library(llvm2kittelCore STATIC
+  lib/Core/BoundConditioner.cpp
+  lib/Core/Converter.cpp
+  lib/Core/InstNamer.cpp
+  lib/Core/Kittelizer.cpp
+  lib/Core/Slicer.cpp
+  lib/Core/ConditionSimplifier.cpp
+)
+
+add_library(llvm2kittelRewriteSystem STATIC
+  lib/RewriteSystem/Constraint.cpp
+  lib/RewriteSystem/Polynomial.cpp
+  lib/RewriteSystem/Rule.cpp
+  lib/RewriteSystem/Term.cpp
+  lib/RewriteSystem/gmp_kittel.cpp
+)
+
+add_library(llvm2kittelTransform STATIC
+  lib/Transform/BasicBlockSorter.cpp
+  lib/Transform/BitcastCallEliminator.cpp
+  lib/Transform/ConstantExprEliminator.cpp
+  lib/Transform/EagerInliner.cpp
+  lib/Transform/ExtremeInliner.cpp
+  lib/Transform/Hoister.cpp
+  lib/Transform/Mem2Reg.cpp
+  lib/Transform/StrengthIncreaser.cpp
+)
+
+add_library(llvm2kittelUtil STATIC
+  lib/Util/CommandLine.cpp
 )
 
 add_executable(llvm2kittel
-  llvm2kittel.cpp
+  tools/llvm2kittel.cpp
 )
 
-set_target_properties(llvm2kittel llvm2kittelLibrary
+set_target_properties(
+  llvm2kittel llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
+  llvm2kittelRewriteSystem llvm2kittelTransform llvm2kittelUtil
   PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${GMP_CXXFLAGS}" ${WARN_FLAGS}
 )
 
-target_link_libraries(llvm2kittelLibrary
+target_link_libraries(llvm2kittelAnalysis
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+)
+target_link_libraries(llvm2kittelComplexity
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+)
+target_link_libraries(llvm2kittelCore
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
   ${GMP_LIBS} ${GMP_LDFLAGS}
 )
-target_link_libraries(llvm2kittel llvm2kittelLibrary)
+target_link_libraries(llvm2kittelRewriteSystem
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+  ${GMP_LIBS} ${GMP_LDFLAGS}
+)
+target_link_libraries(llvm2kittelTransform
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+)
+target_link_libraries(llvm2kittelUtil
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+)
+
+target_link_libraries(llvm2kittel
+  llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
+  llvm2kittelRewriteSystem llvm2kittelTransform llvm2kittelUtil
+)
