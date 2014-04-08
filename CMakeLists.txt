@@ -98,42 +98,6 @@ add_library(llvm2kittelLibrary STATIC
   Term.cpp
   UniformComplexityTuplePrinter.cpp
   gmp_kittel.cpp
-  BasicBlockSorter.h
-  BitcastCallEliminator.h
-  BoundConditioner.h
-  CommandLine.h
-  ComplexityTuplePrinter.h
-  ConditionPropagator.h
-  ConditionSimplifier.h
-  ConstantExprEliminator.h
-  Constraint.h
-  Converter.h
-  DivConstraintStore.h
-  EagerInliner.h
-  ExtremeInliner.h
-  HierarchyBuilder.h
-  Hoister.h
-  InstChecker.h
-  InstNamer.h
-  Kittelizer.h
-  LoopConditionBlocksCollector.h
-  LoopConditionExplicitizer.h
-  Macros.h
-  Mem2Reg.h
-  MemoryAnalyzer.h
-  NondefFactory.h
-  Polynomial.h
-  RemConstraintStore.h
-  Rule.h
-  Slicer.h
-  StrengthIncreaser.h
-  Term.h
-  UniformComplexityTuplePrinter.h
-  Version.h
-  WARN_OFF.h
-  WARN_ON.h
-  gmp_kittel.h
-  quadruple.h
 )
 
 add_executable(llvm2kittel
