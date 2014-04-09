@@ -1,5 +1,3 @@
-llvm2kittel
-llvm2kittel.static
 *.o
 *.cpp.depends
 *~
