@@ -32,6 +32,18 @@
 
 #include "llvm2kittel/Util/Version.h"
 
+#if LLVM_VERSION < VERSION(3, 2)
+  #define LLVM_OVERRIDE
+#elif LLVM_VERSION >= VERSION(3, 5)
+  #define LLVM_OVERRIDE override
+#endif
+
+#if LLVM_VERSION < VERSION(3, 5)
+  #define IS_CLASS is_class
+#else
+  #define IS_CLASS std::is_class
+#endif
+
 #include <llvm/Support/type_traits.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/ErrorHandling.h>
@@ -396,7 +408,7 @@ struct OptionValueBase<DataType, false> : OptionValueCopy<DataType> {
 
 // Top-level option class.
 template<class DataType>
-struct OptionValue : OptionValueBase<DataType, std::is_class<DataType>::value> {
+struct OptionValue : OptionValueBase<DataType, IS_CLASS<DataType>::value> {
   OptionValue() {}
 
   OptionValue(const DataType& V) {
@@ -1132,7 +1144,7 @@ template <class DataType, bool ExternalStorage = false,
           class ParserClass = parser<DataType> >
 class opt : public Option,
             public opt_storage<DataType, ExternalStorage,
-                               std::is_class<DataType>::value> {
+                               IS_CLASS<DataType>::value> {
   ParserClass Parser;
 
   virtual bool handleOccurrence(unsigned pos, StringRef ArgName,
@@ -1619,16 +1631,16 @@ public:
 class alias : public Option {
   Option *AliasFor;
   virtual bool handleOccurrence(unsigned pos, StringRef /*ArgName*/,
-                                StringRef Arg) {
+                                StringRef Arg) LLVM_OVERRIDE {
     return AliasFor->handleOccurrence(pos, AliasFor->ArgStr, Arg);
   }
   // Handle printing stuff...
-  virtual size_t getOptionWidth() const;
+  virtual size_t getOptionWidth() const LLVM_OVERRIDE;
   virtual void printOptionInfo(size_t GlobalWidth) const;
 
   // Aliases do not need to print their values.
   virtual void printOptionValue(size_t /*GlobalWidth*/,
-                                bool /*Force*/) const {}
+                                bool /*Force*/) const LLVM_OVERRIDE {}
 
   void done() {
     if (!hasArgStr())
