@@ -8,7 +8,7 @@
 #ifndef LOOP_CONDITION_EXPLICITIZER_H
 #define LOOP_CONDITION_EXPLICITIZER_H
 
-#include "llvm2kittel/Analysis/quadruple.h"
+#include "llvm2kittel/Util/quadruple.h"
 #include "llvm2kittel/Util/Version.h"
 
 // llvm includes
