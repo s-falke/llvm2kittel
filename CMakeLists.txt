@@ -96,7 +96,6 @@ add_library(llvm2kittelAnalysis STATIC
   include/llvm2kittel/Analysis/LoopConditionBlocksCollector.h
   include/llvm2kittel/Analysis/LoopConditionExplicitizer.h
   include/llvm2kittel/Analysis/MemoryAnalyzer.h
-  include/llvm2kittel/Analysis/quadruple.h
 )
 
 add_library(llvm2kittelComplexity STATIC
@@ -159,6 +158,7 @@ add_library(llvm2kittelUtil STATIC
   lib/Util/gmp_kittel.cpp
   include/llvm2kittel/Util/CommandLine.h
   include/llvm2kittel/Util/gmp_kittel.h
+  include/llvm2kittel/Util/quadruple.h
   include/llvm2kittel/Util/Version.h
   include/WARN_OFF.h
   include/WARN_ON.h
