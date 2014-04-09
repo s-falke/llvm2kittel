@@ -242,7 +242,7 @@ Polynomial::Polynomial(std::string x)
   : m_monos()
 {
     mpz_init(m_constant);
-    m_monos.push_back(std::make_pair(mpz_class(Polynomial::_one), new Monomial(x)));
+    m_monos.push_back(std::make_pair(Polynomial::_one, new Monomial(x)));
 }
 
 Polynomial::Polynomial(mpz_t c)
@@ -256,7 +256,7 @@ Polynomial::Polynomial(Monomial *mono)
   : m_monos()
 {
     mpz_init(m_constant);
-    m_monos.push_back(std::make_pair(mpz_class(Polynomial::_one), mono));
+    m_monos.push_back(std::make_pair(Polynomial::_one, mono));
 }
 
 Polynomial::~Polynomial()
@@ -391,7 +391,7 @@ Polynomial *Polynomial::add(Polynomial *poly)
         mpz_init(newCoeff);
         mpz_add(newCoeff, tmp.first.get_mpz_t(), otherCoeff);
         if (mpz_cmp(newCoeff, Polynomial::_null) != 0) {
-            res->m_monos.push_back(std::make_pair(mpz_class(newCoeff), tmp.second));
+            res->m_monos.push_back(std::make_pair(newCoeff, tmp.second));
         }
     }
     for (std::list<std::pair<mpz_class, Monomial*> >::iterator i = poly->m_monos.begin(), e = poly->m_monos.end(); i != e; ++i) {
@@ -426,7 +426,7 @@ Polynomial *Polynomial::constMult(mpz_t d)
             mpz_t newCoeff;
             mpz_init_set(newCoeff, tmp.first.get_mpz_t());
             mpz_mul(newCoeff, newCoeff, d);
-            res->m_monos.push_back(std::make_pair(mpz_class(newCoeff), tmp.second));
+            res->m_monos.push_back(std::make_pair(newCoeff, tmp.second));
         }
         return res;
     }
