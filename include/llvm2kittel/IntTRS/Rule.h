@@ -10,6 +10,7 @@
 
 // C++ includes
 #include <set>
+#include <string>
 
 class Constraint;
 class Term;

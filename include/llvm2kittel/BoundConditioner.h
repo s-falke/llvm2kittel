@@ -11,6 +11,7 @@
 // C++ includes
 #include <list>
 #include <map>
+#include <string>
 
 class Rule;
 
