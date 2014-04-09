@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 #if LLVM_VERSION < VERSION(3, 5)
     llvm::OwningPtr<llvm::MemoryBuffer> owningBuffer;
 #else
-     std::unique_ptr<llvm::MemoryBuffer> owningBuffer;
+    std::unique_ptr<llvm::MemoryBuffer> owningBuffer;
 #endif
     llvm::MemoryBuffer::getFileOrSTDIN(filename, owningBuffer);
     llvm::MemoryBuffer *buffer = owningBuffer.get();
