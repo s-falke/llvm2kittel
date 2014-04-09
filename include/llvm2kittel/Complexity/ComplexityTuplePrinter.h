@@ -8,13 +8,13 @@
 #ifndef COMPLEXITY_TUPLE_PRINTER_H
 #define COMPLEXITY_TUPLE_PRINTER_H
 
-#include "llvm2kittel/IntTRS/Rule.h"
-
 // C++ includes
 #include <list>
 #include <set>
 #include <string>
 #include <iostream>
+
+class Rule;
 
 void printComplexityTuples(std::list<Rule*> &rules, std::set<std::string> &complexityLHSs, std::ostream &stream);
 

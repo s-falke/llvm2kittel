@@ -6,6 +6,10 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/BoundConditioner.h"
+#include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/IntTRS/Polynomial.h"
+#include "llvm2kittel/IntTRS/Rule.h"
+#include "llvm2kittel/IntTRS/Term.h"
 
 // C++ includes
 #include <iostream>

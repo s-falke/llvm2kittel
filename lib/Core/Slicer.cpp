@@ -5,16 +5,12 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/Util/Version.h"
-
 #include "llvm2kittel/Slicer.h"
-
-// C++ includes
-#include <iostream>
-#include <sstream>
-#include <cstdlib>
-#include <queue>
-#include <vector>
+#include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/IntTRS/Polynomial.h"
+#include "llvm2kittel/IntTRS/Rule.h"
+#include "llvm2kittel/IntTRS/Term.h"
+#include "llvm2kittel/Util/Version.h"
 
 // llvm includes
 #include "WARN_OFF.h"
@@ -26,6 +22,13 @@
   #include <llvm/IR/Module.h>
 #endif
 #include "WARN_ON.h"
+
+// C++ includes
+#include <iostream>
+#include <sstream>
+#include <cstdlib>
+#include <queue>
+#include <vector>
 
 Slicer::Slicer(llvm::Function *F, std::set<std::string> phiVars)
   : m_F(F),

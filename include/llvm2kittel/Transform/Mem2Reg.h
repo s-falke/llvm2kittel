@@ -8,8 +8,8 @@
 #ifndef MEM_2_REG_H
 #define MEM_2_REG_H
 
+#include "llvm2kittel/Transform/NondefFactory.h"
 #include "llvm2kittel/Util/Version.h"
-#include "NondefFactory.h"
 
 // llvm includes
 #include "WARN_OFF.h"

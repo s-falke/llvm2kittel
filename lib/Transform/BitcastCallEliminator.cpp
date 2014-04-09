@@ -6,7 +6,6 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/Transform/BitcastCallEliminator.h"
-
 #include "llvm2kittel/Util/Version.h"
 
 char BitcastCallEliminator::ID = 0;

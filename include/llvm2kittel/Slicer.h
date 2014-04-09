@@ -9,7 +9,6 @@
 #define SLICER_H
 
 #include "llvm2kittel/Util/Version.h"
-#include "llvm2kittel/IntTRS/Rule.h"
 
 // llvm includes
 #include "WARN_OFF.h"
@@ -22,7 +21,10 @@
 
 // C++ includes
 #include <list>
+#include <map>
 #include <set>
+
+class Rule;
 
 class Slicer
 {

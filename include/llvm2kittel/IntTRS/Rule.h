@@ -8,8 +8,11 @@
 #ifndef RULE_H
 #define RULE_H
 
-#include "Term.h"
-#include "Constraint.h"
+// C++ includes
+#include <set>
+
+class Constraint;
+class Term;
 
 class Rule
 {

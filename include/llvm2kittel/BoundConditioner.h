@@ -8,11 +8,11 @@
 #ifndef BOUND_CONDITIONER_H
 #define BOUND_CONDITIONER_H
 
-#include "llvm2kittel/IntTRS/Rule.h"
-
 // C++ includes
 #include <list>
 #include <map>
+
+class Rule;
 
 std::list<Rule*> addBoundConditions(std::list<Rule*> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding);
 

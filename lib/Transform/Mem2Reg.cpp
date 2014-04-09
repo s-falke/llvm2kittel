@@ -9,6 +9,7 @@
 
 #include "llvm2kittel/Transform/Mem2Reg.h"
 
+// llvm includes
 #include <llvm/Transforms/Utils/PromoteMemToReg.h>
 
 void Mem2RegPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const

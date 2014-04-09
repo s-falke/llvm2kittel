@@ -5,9 +5,8 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/Util/Version.h"
-
 #include "llvm2kittel/Transform/EagerInliner.h"
+#include "llvm2kittel/Util/Version.h"
 
 // llvm includes
 #include <llvm/InitializePasses.h>

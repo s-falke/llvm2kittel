@@ -6,6 +6,7 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/IntTRS/Term.h"
+#include "llvm2kittel/IntTRS/Polynomial.h"
 
 // C++ includes
 #include <sstream>

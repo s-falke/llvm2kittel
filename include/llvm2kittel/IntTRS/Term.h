@@ -8,10 +8,14 @@
 #ifndef TERM_H
 #define TERM_H
 
-#include "Polynomial.h"
-
 // C++ includes
+#include <list>
+#include <map>
+#include <set>
+#include <string>
 #include <vector>
+
+class Polynomial;
 
 class Term
 {

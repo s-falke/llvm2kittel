@@ -8,10 +8,12 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
-#include "Polynomial.h"
-
 // C++ includes
 #include <list>
+#include <map>
+#include <set>
+
+class Polynomial;
 
 class Constraint
 {

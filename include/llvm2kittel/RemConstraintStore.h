@@ -8,7 +8,7 @@
 #ifndef REM_CONSTRAINT_STORE
 #define REM_CONSTRAINT_STORE
 
-#include "llvm2kittel/IntTRS/Constraint.h"
+class Constraint;
 
 struct RemConstraintStore
 {

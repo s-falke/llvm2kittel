@@ -6,6 +6,9 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/Kittelizer.h"
+#include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/IntTRS/Term.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 
 // C++ includes
 #include <iostream>

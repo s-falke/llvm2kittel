@@ -7,9 +7,8 @@
 
 // Contains code from LLVM's LICM.cpp
 
-#include "llvm2kittel/Util/Version.h"
-
 #include "llvm2kittel/Transform/Hoister.h"
+#include "llvm2kittel/Util/Version.h"
 
 // llvm includes
 #include <llvm/InitializePasses.h>

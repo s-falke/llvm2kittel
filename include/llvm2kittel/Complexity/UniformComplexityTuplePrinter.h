@@ -8,13 +8,13 @@
 #ifndef UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 #define UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 
-#include "llvm2kittel/IntTRS/Rule.h"
-
 // C++ includes
 #include <list>
 #include <set>
 #include <string>
 #include <iostream>
+
+class Rule;
 
 void printUniformComplexityTuples(std::list<Rule*> &rules, std::set<std::string> &complexityLHSs, std::string &startFun, std::ostream &stream);
 
