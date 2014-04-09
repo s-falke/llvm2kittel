@@ -18,6 +18,7 @@
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Complexity/ComplexityTuplePrinter.h"
 #include "llvm2kittel/Complexity/UniformComplexityTuplePrinter.h"
+#include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Transform/BasicBlockSorter.h"
 #include "llvm2kittel/Transform/BitcastCallEliminator.h"
 #include "llvm2kittel/Transform/ConstantExprEliminator.h"

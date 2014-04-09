@@ -10,10 +10,10 @@
 
 #include "llvm2kittel/DivConstraintStore.h"
 #include "llvm2kittel/RemConstraintStore.h"
-#include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"
+#include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/Util/Version.h"
 
 // llvm includes
@@ -38,6 +38,9 @@
 #include <set>
 
 #include "WARN_OFF.h"
+
+class Polynomial;
+class Rule;
 
 class Converter : public llvm::InstVisitor<Converter>
 {

@@ -8,8 +8,11 @@
 #ifndef RULE_H
 #define RULE_H
 
-#include "llvm2kittel/IntTRS/Term.h"
-#include "llvm2kittel/IntTRS/Constraint.h"
+// C++ includes
+#include <set>
+
+class Constraint;
+class Term;
 
 class Rule
 {

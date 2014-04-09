@@ -5,9 +5,12 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
+#include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Rule.h"
+#include "llvm2kittel/IntTRS/Term.h"
 
 // C++ includes
+#include <list>
 #include <sstream>
 
 Rule::Rule(Term *lhs, Term *rhs, Constraint *c)

@@ -8,10 +8,10 @@
 #ifndef KITTELIZER_H
 #define KITTELIZER_H
 
-#include "llvm2kittel/IntTRS/Rule.h"
-
 // C++ includes
 #include <list>
+
+class Rule;
 
 std::list<Rule*> kittelize(std::list<Rule*> rules);
 

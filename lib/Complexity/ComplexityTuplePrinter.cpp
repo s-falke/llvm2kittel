@@ -7,6 +7,8 @@
 
 #include "llvm2kittel/Complexity/ComplexityTuplePrinter.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/IntTRS/Rule.h"
+#include "llvm2kittel/IntTRS/Term.h"
 
 #include <sstream>
 #include <cstdlib>
