@@ -5,6 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
+#include "llvm2kittel/Util/gmp_kittel.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
 
 void mpz_kittel_set_simax(mpz_t rop, unsigned int bitwidth)
