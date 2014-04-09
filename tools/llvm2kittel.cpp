@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
     cl::ParseCommandLineOptions(argc, argv, "llvm2kittel\n");
 
     if (boundedIntegers && exactDivision) {
-        std::cerr << "Cannot use \"-exact-divion\" in combination with \"-bounded-integers\"" << std::endl;
+        std::cerr << "Cannot use \"-exact-division\" in combination with \"-bounded-integers\"" << std::endl;
         return 333;
     }
     if (!boundedIntegers && unsignedEncoding) {
