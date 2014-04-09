@@ -1636,7 +1636,7 @@ class alias : public Option {
   }
   // Handle printing stuff...
   virtual size_t getOptionWidth() const LLVM_OVERRIDE;
-  virtual void printOptionInfo(size_t GlobalWidth) const;
+  virtual void printOptionInfo(size_t GlobalWidth) const LLVM_OVERRIDE;
 
   // Aliases do not need to print their values.
   virtual void printOptionValue(size_t /*GlobalWidth*/,
