@@ -60,6 +60,7 @@ if(NOT (${LLVM_MAJOR_VALUE} LESS 3 OR ${LLVM_MINOR_VALUE} LESS 5))
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
   set(LLVM_LIBS "${LLVM_LIBS} ${LLVM_SYSTEM_LIBS}")
+  add_definitions("--std=c++11")
 endif()
 
 execute_process(
