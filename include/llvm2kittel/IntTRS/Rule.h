@@ -8,8 +8,8 @@
 #ifndef RULE_H
 #define RULE_H
 
-#include "Term.h"
-#include "Constraint.h"
+#include "llvm2kittel/IntTRS/Term.h"
+#include "llvm2kittel/IntTRS/Constraint.h"
 
 class Rule
 {

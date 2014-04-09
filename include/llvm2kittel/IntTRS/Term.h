@@ -8,7 +8,7 @@
 #ifndef TERM_H
 #define TERM_H
 
-#include "Polynomial.h"
+#include "llvm2kittel/IntTRS/Polynomial.h"
 
 // C++ includes
 #include <vector>

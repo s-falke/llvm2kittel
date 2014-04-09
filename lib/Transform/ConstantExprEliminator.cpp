@@ -6,7 +6,6 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/Transform/ConstantExprEliminator.h"
-
 #include "llvm2kittel/Util/Version.h"
 
 char ConstantExprEliminator::ID = 0;

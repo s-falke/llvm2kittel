@@ -8,14 +8,13 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
 
-#include "llvm2kittel/Util/Version.h"
-
+#include "llvm2kittel/DivConstraintStore.h"
+#include "llvm2kittel/RemConstraintStore.h"
 #include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"
-#include "DivConstraintStore.h"
-#include "RemConstraintStore.h"
+#include "llvm2kittel/Util/Version.h"
 
 // llvm includes
 #include "WARN_OFF.h"
