@@ -14,12 +14,17 @@
 #include "WARN_OFF.h"
 #if LLVM_VERSION < VERSION(3, 3)
   #include <llvm/Support/InstVisitor.h>
+#elif LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/InstVisitor.h>
+#else
+  #include <llvm/IR/InstVisitor.h>
+#endif
+#if LLVM_VERSION < VERSION(3, 3)
   #include <llvm/GlobalVariable.h>
   #include <llvm/InstrTypes.h>
   #include <llvm/Function.h>
   #include <llvm/Instructions.h>
 #else
-  #include <llvm/InstVisitor.h>
   #include <llvm/IR/GlobalVariable.h>
   #include <llvm/IR/InstrTypes.h>
   #include <llvm/IR/Function.h>

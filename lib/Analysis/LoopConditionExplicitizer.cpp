@@ -16,8 +16,16 @@
 #else
   #include <llvm/IR/Instructions.h>
 #endif
-#include <llvm/Support/CallSite.h>
-#include <llvm/Support/CFG.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/CallSite.h>
+#else
+  #include <llvm/IR/CallSite.h>
+#endif
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/CFG.h>
+#else
+  #include <llvm/IR/CFG.h>
+#endif
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include "WARN_ON.h"
 

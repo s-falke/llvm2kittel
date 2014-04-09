@@ -16,7 +16,11 @@
 #else
   #include <llvm/IR/Instructions.h>
 #endif
-#include <llvm/Support/CallSite.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/CallSite.h>
+#else
+  #include <llvm/IR/CallSite.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 4)
   #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #else

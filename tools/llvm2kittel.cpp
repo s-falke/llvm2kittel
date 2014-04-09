@@ -109,15 +109,23 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
 {
 #if LLVM_VERSION < VERSION(3, 2)
     llvm::TargetData *TD = NULL;
-#else
+#elif LLVM_VERSION < VERSION(3, 5)
     llvm::DataLayout *TD = NULL;
+#else
+    llvm::DataLayoutPass *TD = NULL;
 #endif
+#if LLVM_VERSION < VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout();
+#else
+    const std::string &ModuleDataLayout = module->getDataLayout()->getStringRepresentation();
+#endif
     if (!ModuleDataLayout.empty()) {
 #if LLVM_VERSION < VERSION(3, 2)
         TD = new llvm::TargetData(ModuleDataLayout);
-#else
+#elif LLVM_VERSION < VERSION(3, 5)
         TD = new llvm::DataLayout(ModuleDataLayout);
+#else
+        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
 #endif
     }
 
@@ -188,15 +196,23 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
 
 #if LLVM_VERSION < VERSION(3, 2)
     llvm::TargetData *TD = NULL;
-#else
+#elif LLVM_VERSION < VERSION(3, 5)
     llvm::DataLayout *TD = NULL;
+#else
+    llvm::DataLayoutPass *TD = NULL;
 #endif
+#if LLVM_VERSION < VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout();
+#else
+    const std::string &ModuleDataLayout = module->getDataLayout()->getStringRepresentation();
+#endif
     if (!ModuleDataLayout.empty()) {
 #if LLVM_VERSION < VERSION(3, 2)
         TD = new llvm::TargetData(ModuleDataLayout);
-#else
+#elif LLVM_VERSION < VERSION(3, 5)
         TD = new llvm::DataLayout(ModuleDataLayout);
+#else
+        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
 #endif
     }
 
@@ -312,7 +328,11 @@ int main(int argc, char *argv[])
         return 333;
     }
 
+#if LLVM_VERSION < VERSION(3, 5)
     llvm::OwningPtr<llvm::MemoryBuffer> owningBuffer;
+#else
+     std::unique_ptr<llvm::MemoryBuffer> owningBuffer;
+#endif
     llvm::MemoryBuffer::getFileOrSTDIN(filename, owningBuffer);
     llvm::MemoryBuffer *buffer = owningBuffer.get();
 
@@ -428,7 +448,11 @@ int main(int argc, char *argv[])
     if (dumpLL) {
         std::string errorInfo;
         std::string outFile = filename.substr(0, filename.length() - 3) + ".ll";
+#if LLVM_VERSION < VERSION(3, 5)
         llvm::raw_fd_ostream stream(outFile.data(), errorInfo);
+#else
+        llvm::raw_fd_ostream stream(outFile.data(), errorInfo, llvm::sys::fs::F_Text);
+#endif
         if (errorInfo.empty()) {
 #if LLVM_VERSION < VERSION(3, 5)
             llvm::PassManager dumpPass;
