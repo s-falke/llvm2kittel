@@ -132,10 +132,6 @@ void InstChecker::visitICmpInst(llvm::ICmpInst &I)
 
 void InstChecker::visitCallInst(llvm::CallInst &I)
 {
-    if (I.getType() == m_boolType) {
-        addUnsuitable(I);
-        return;
-    }
     llvm::CallSite callSite(&I);
     llvm::Function *calledFunction = callSite.getCalledFunction();
     if (calledFunction == NULL) {
