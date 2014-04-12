@@ -25,19 +25,19 @@ public:
     unsigned refCount;
 
 protected:
-    Term(std::string f, std::list<Polynomial*> args);
+    Term(std::string f, std::list<ref<Polynomial>> args);
 
 public:
-    static ref<Term> create(std::string f, std::list<Polynomial*> args);
+    static ref<Term> create(std::string f, std::list<ref<Polynomial>> args);
     ~Term();
 
     std::string toString();
 
     std::string getFunctionSymbol();
-    std::list<Polynomial*> getArgs();
-    Polynomial *getArg(unsigned int argpos);
+    std::list<ref<Polynomial>> getArgs();
+    ref<Polynomial> getArg(unsigned int argpos);
 
-    ref<Term> instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Term> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     std::set<std::string> *getVariables();
 
@@ -50,7 +50,7 @@ private:
     Term &operator=(const Term&);
 
     std::string m_f;
-    std::list<Polynomial*> m_args;
+    std::list<ref<Polynomial>> m_args;
     std::vector<std::set<std::string>* > m_vars;
 
     void setupVars(void);

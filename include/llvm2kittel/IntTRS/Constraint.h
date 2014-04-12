@@ -8,6 +8,8 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <map>
@@ -37,7 +39,7 @@ public:
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
 
-    virtual Constraint *instantiate(std::map<std::string, Polynomial*> *bindings) = 0;
+    virtual Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings) = 0;
 
     virtual Constraint *toNNF(bool negate) = 0;
     virtual Constraint *toDNF() = 0; // formula needs to be in NNF!
@@ -75,7 +77,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();
@@ -103,7 +105,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();
@@ -131,7 +133,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();
@@ -163,7 +165,7 @@ public:
         Lss
     };
 
-    Atom(Polynomial *lhs, Polynomial *rhs, AType type);
+    Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type);
     ~Atom();
 
     AType getAType();
@@ -174,7 +176,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();
@@ -187,15 +189,15 @@ public:
 
     std::set<std::string> *getVariables();
 
-    Polynomial *getLeft();
-    Polynomial *getRight();
+    ref<Polynomial> getLeft();
+    ref<Polynomial> getRight();
 
 protected:
     bool equalsInternal(Constraint *c);
 
 private:
-    Polynomial *m_lhs;
-    Polynomial *m_rhs;
+    ref<Polynomial> m_lhs;
+    ref<Polynomial> m_rhs;
     AType m_type;
 
     std::string typeToString(AType type);
@@ -222,7 +224,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();
@@ -268,7 +270,7 @@ public:
 
     CType getCType();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    Constraint *instantiate(std::map<std::string, ref<Polynomial>> *bindings);
 
     Constraint *toNNF(bool negate);
     Constraint *toDNF();

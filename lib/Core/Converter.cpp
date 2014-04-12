@@ -158,7 +158,7 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
     }
 
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i) {
-        m_lhs.push_back(new Polynomial(*i));
+        m_lhs.push_back(Polynomial::create(*i));
     }
 }
 
@@ -225,9 +225,9 @@ std::list<ref<Rule>> Converter::getCondensedRules()
                 for (std::list<ref<Rule>>::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
                     ref<Rule> junkrule = *ii;
                     if (junkrule->getLeft()->getFunctionSymbol() == f) {
-                        std::map<std::string, Polynomial*> subby;
-                        std::list<Polynomial*> rhsargs = rhs->getArgs();
-                        std::list<Polynomial*>::iterator ai = rhsargs.begin();
+                        std::map<std::string, ref<Polynomial>> subby;
+                        std::list<ref<Polynomial>> rhsargs = rhs->getArgs();
+                        std::list<ref<Polynomial>>::iterator ai = rhsargs.begin();
                         for (std::list<std::string>::iterator vi = m_vars.begin(), ve = m_vars.end(); vi != ve; ++vi, ++ai) {
                             subby.insert(std::make_pair(*vi, *ai));
                         }
@@ -279,7 +279,7 @@ std::string Converter::getEval(llvm::Function *func, std::string startstop)
     return tmp.str();
 }
 
-Polynomial *Converter::getPolynomial(llvm::Value *V)
+ref<Polynomial> Converter::getPolynomial(llvm::Value *V)
 {
     if (llvm::isa<llvm::ConstantInt>(V)) {
         mpz_t value;
@@ -295,21 +295,21 @@ Polynomial *Converter::getPolynomial(llvm::Value *V)
             tmp << cv;
             gmp_sscanf(tmp.str().data(), "%Zd", value);
         }
-        Polynomial *res = new Polynomial(value);
+        ref<Polynomial> res = Polynomial::create(value);
         mpz_clear(value);
         return res;
     } else if (llvm::isa<llvm::Instruction>(V) || llvm::isa<llvm::Argument>(V) || llvm::isa<llvm::GlobalVariable>(V)) {
-        return new Polynomial(getVar(V));
+        return Polynomial::create(getVar(V));
     } else {
-        return new Polynomial(getNondef(V));
+        return Polynomial::create(getNondef(V));
     }
 }
 
-std::list<Polynomial*> Converter::getNewArgs(llvm::Value &V, Polynomial *p)
+std::list<ref<Polynomial>> Converter::getNewArgs(llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<Polynomial*> res;
+    std::list<ref<Polynomial>> res;
     std::string Vname = getVar(&V);
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         if (Vname == *i) {
             res.push_back(p);
@@ -320,10 +320,10 @@ std::list<Polynomial*> Converter::getNewArgs(llvm::Value &V, Polynomial *p)
     return res;
 }
 
-std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
+std::list<ref<Polynomial>> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
 {
-    std::list<Polynomial*> res;
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial>> res;
+    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -339,7 +339,7 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
             if (m_boundedIntegers) {
                 m_bitwidthMap.insert(std::make_pair(nondef, llvm::cast<llvm::IntegerType>(zapType)->getBitWidth()));
             }
-            res.push_back(new Polynomial(nondef));
+            res.push_back(Polynomial::create(nondef));
         } else {
             res.push_back(*pp);
         }
@@ -347,11 +347,11 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
     return res;
 }
 
-std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, Polynomial *p)
+std::list<ref<Polynomial>> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<Polynomial*> res;
+    std::list<ref<Polynomial>> res;
     std::string Vname = getVar(&V);
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -367,7 +367,7 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
             if (m_boundedIntegers) {
                 m_bitwidthMap.insert(std::make_pair(nondef, llvm::cast<llvm::IntegerType>(zapType)->getBitWidth()));
             }
-            res.push_back(new Polynomial(nondef));
+            res.push_back(Polynomial::create(nondef));
         } else if (Vname == *i) {
             res.push_back(p);
         } else {
@@ -460,7 +460,7 @@ Constraint *Converter::getConditionFromInstruction(llvm::Instruction *I)
     }
 }
 
-Constraint *Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y)
+Constraint *Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y)
 {
     switch (pred) {
     case llvm::CmpInst::ICMP_UGT:
@@ -512,9 +512,9 @@ Constraint *Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Pred
     }
 }
 
-Constraint *Converter::getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y, unsigned int bitwidth)
+Constraint *Converter::getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y, unsigned int bitwidth)
 {
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
     switch (pred) {
     case llvm::CmpInst::ICMP_SGT:
     case llvm::CmpInst::ICMP_SGE: {
@@ -626,9 +626,9 @@ Constraint *Converter::buildBoundConjunction(std::set<quadruple<llvm::Value*, ll
 {
     Constraint *res = Constraint::_true;
     for (std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> >::iterator i = bounds.begin(), e = bounds.end(); i != e; ++i) {
-        Polynomial *p = getPolynomial(i->first);
-        Polynomial *q1 = getPolynomial(i->third);
-        Polynomial *q2 = getPolynomial(i->fourth);
+        ref<Polynomial> p = getPolynomial(i->first);
+        ref<Polynomial> q1 = getPolynomial(i->third);
+        ref<Polynomial> q2 = getPolynomial(i->fourth);
         Constraint *c = new Atom(p, q1->add(q2), getAtomType(i->second));
         res = new Operator(res, c, Operator::And);
     }
@@ -746,10 +746,10 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     }
 }
 
-std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
+std::list<ref<Polynomial>> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
 {
-    std::list<Polynomial*> res;
-    std::map<std::string, Polynomial*> phiValues;
+    std::list<ref<Polynomial>> res;
+    std::map<std::string, ref<Polynomial>> phiValues;
     for (llvm::BasicBlock::iterator i = to->begin(), e = to->end(); i != e; ++i) {
         if (!llvm::isa<llvm::PHINode>(*i)) {
             break;
@@ -761,9 +761,9 @@ std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::
         std::string PHIName = getVar(phi);
         phiValues.insert(std::make_pair(PHIName, getPolynomial(phi->getIncomingValueForBlock(from))));
     }
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
-        std::map<std::string, Polynomial*>::iterator found = phiValues.find(*i);
+        std::map<std::string, ref<Polynomial>>::iterator found = phiValues.find(*i);
         if (found == phiValues.end()) {
             res.push_back(*pp);
         } else {
@@ -776,7 +776,7 @@ std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::
 void Converter::visitTerminatorInst(llvm::TerminatorInst&)
 {}
 
-void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<Polynomial*> newArgs, Constraint *c)
+void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial>> newArgs, Constraint *c)
 {
     m_idMap.insert(std::make_pair(&I, m_counter));
     ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
@@ -786,7 +786,7 @@ void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<Polynomi
     m_blockRules.push_back(rule);
 }
 
-void Converter::visitGenericInstruction(llvm::Instruction &I, Polynomial *value, Constraint *c)
+void Converter::visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> value, Constraint *c)
 {
     visitGenericInstruction(I, getNewArgs(I, value), c);
 }
@@ -799,8 +799,8 @@ void Converter::visitAdd(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->add(p2));
     }
 }
@@ -813,8 +813,8 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -827,8 +827,8 @@ void Converter::visitMul(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->mult(p2));
     }
 }
@@ -867,17 +867,17 @@ Constraint *Converter::getSDivConstraint(DivConstraintStore &store)
     return disj;
 }
 
-Constraint *Converter::getSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::negone;
-    Polynomial *negupper = upper->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::negone;
+    ref<Polynomial> negupper = upper->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negx = negupper;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negx = negupper;
 
     DivConstraintStore store;
 
@@ -901,24 +901,24 @@ Constraint *Converter::getSDivConstraintForUnbounded(Polynomial *upper, Polynomi
     return getSDivConstraint(store);
 }
 
-Constraint *Converter::getSDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getSDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSDivConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getSDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth)
+Constraint *Converter::getSDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::uimax(bitwidth);
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
-    Polynomial *minneg = Polynomial::simin_as_ui(bitwidth);
-    Polynomial *negupper = upper->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::uimax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> minneg = Polynomial::simin_as_ui(bitwidth);
+    ref<Polynomial> negupper = upper->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negx = negupper;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negx = negupper;
 
     DivConstraintStore store;
 
@@ -950,15 +950,15 @@ Constraint *Converter::getSDivConstraintForUnsignedBounded(Polynomial *upper, Po
     return getSDivConstraint(store);
 }
 
-Constraint *Converter::getExactSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getExactSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     // x/y = z
-    Polynomial *px = upper;
-    Polynomial *py = lower;
-    Polynomial *pz = res;
-    Polynomial *pnegx = px->constMult(Polynomial::_negone);
-    Polynomial *pnegy = py->constMult(Polynomial::_negone);
-    Polynomial *pnull = Polynomial::null;
+    ref<Polynomial> px = upper;
+    ref<Polynomial> py = lower;
+    ref<Polynomial> pz = res;
+    ref<Polynomial> pnegx = px->constMult(Polynomial::_negone);
+    ref<Polynomial> pnegy = py->constMult(Polynomial::_negone);
+    ref<Polynomial> pnull = Polynomial::null;
     // 1. x = 0 /\ z = 0
     Atom *pxnull = new Atom(px, pnull, Atom::Equ);
     Atom *pznull = new Atom(pz, pnull, Atom::Equ);
@@ -967,7 +967,7 @@ Constraint *Converter::getExactSDivConstraintForUnbounded(Polynomial *upper, Pol
     Atom *pygtrnull = new Atom(py, pnull, Atom::Gtr);
     Atom *pxgtrnull = new Atom(px, pnull, Atom::Gtr);
     Atom *pzgeqnull = new Atom(pz, pnull, Atom::Geq);
-    Polynomial *term2 = px->sub(py->mult(pz));
+    ref<Polynomial> term2 = px->sub(py->mult(pz));
     Atom *term2geqnull = new Atom(term2, pnull, Atom::Geq);
     Atom *term2lssy = new Atom(term2, py, Atom::Lss);
     Constraint *case21 = new Operator(pygtrnull, pxgtrnull, Operator::And);
@@ -984,7 +984,7 @@ Constraint *Converter::getExactSDivConstraintForUnbounded(Polynomial *upper, Pol
     Constraint *case3 = new Operator(case33, term2lssnegy, Operator::And);
     // 4. y > 0 /\ x < 0 /\ z <= 0 /\ -x + y*z >= 0 /\ -x + y*z < y
     Atom *pxlssnull = new Atom(px, pnull, Atom::Lss);
-    Polynomial *term4 = pnegx->add(py->mult(pz));
+    ref<Polynomial> term4 = pnegx->add(py->mult(pz));
     Atom *term4geqnull = new Atom(term4, pnull, Atom::Geq);
     Atom *term4lssy = new Atom(term4, py, Atom::Lss);
     Constraint *case41 = new Operator(pygtrnull, pxlssnull, Operator::And);
@@ -1013,10 +1013,10 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         Constraint *divC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             divC = m_unsignedEncoding ? getSDivConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSDivConstraintForSignedBounded(upper, lower, nondef);
@@ -1042,19 +1042,19 @@ Constraint *Converter::getUDivConstraint(DivConstraintStore &store)
     return disj;
 }
 
-Constraint *Converter::getUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSDivConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getUDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getUDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     DivConstraintStore store;
 
@@ -1073,14 +1073,14 @@ Constraint *Converter::getUDivConstraintForSignedBounded(Polynomial *upper, Poly
     return getUDivConstraint(store);
 }
 
-Constraint *Converter::getUDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getUDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     DivConstraintStore store;
 
@@ -1095,7 +1095,7 @@ Constraint *Converter::getUDivConstraintForUnsignedBounded(Polynomial *upper, Po
     return getUDivConstraint(store);
 }
 
-Constraint *Converter::getExactUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getExactUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getExactSDivConstraintForUnbounded(upper, lower, res);
 }
@@ -1108,10 +1108,10 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         Constraint *divC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             divC = m_unsignedEncoding ? getUDivConstraintForUnsignedBounded(upper, lower, nondef) : getUDivConstraintForSignedBounded(upper, lower, nondef);
         } else {
@@ -1155,17 +1155,17 @@ Constraint *Converter::getSRemConstraint(RemConstraintStore &store)
     return disj;
 }
 
-Constraint *Converter::getSRemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getSRemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::negone;
-    Polynomial *neglower = lower->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::negone;
+    ref<Polynomial> neglower = lower->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negy = neglower;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negy = neglower;
 
     RemConstraintStore store;
 
@@ -1187,24 +1187,24 @@ Constraint *Converter::getSRemConstraintForUnbounded(Polynomial *upper, Polynomi
     return getSRemConstraint(store);
 }
 
-Constraint *Converter::getSRemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getSRemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSRemConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getSRemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth)
+Constraint *Converter::getSRemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::uimax(bitwidth);
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
-    Polynomial *minneg = Polynomial::simin_as_ui(bitwidth);
-    Polynomial *neglower = lower->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::uimax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> minneg = Polynomial::simin_as_ui(bitwidth);
+    ref<Polynomial> neglower = lower->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negy = neglower;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negy = neglower;
 
     RemConstraintStore store;
 
@@ -1243,10 +1243,10 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         Constraint *remC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             remC = m_unsignedEncoding ? getSRemConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSRemConstraintForSignedBounded(upper, lower, nondef);
@@ -1272,19 +1272,19 @@ Constraint *Converter::getURemConstraint(RemConstraintStore &store)
     return disj;
 }
 
-Constraint *Converter::getURemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getURemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSRemConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getURemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getURemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     RemConstraintStore store;
 
@@ -1302,14 +1302,14 @@ Constraint *Converter::getURemConstraintForSignedBounded(Polynomial *upper, Poly
     return getURemConstraint(store);
 }
 
-Constraint *Converter::getURemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+Constraint *Converter::getURemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     RemConstraintStore store;
 
@@ -1331,10 +1331,10 @@ void Converter::visitURem(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         Constraint *remC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             remC = m_unsignedEncoding ? getURemConstraintForUnsignedBounded(upper, lower, nondef) : getURemConstraintForSignedBounded(upper, lower, nondef);
         } else {
@@ -1344,14 +1344,14 @@ void Converter::visitURem(llvm::BinaryOperator &I)
     }
 }
 
-Constraint *Converter::getAndConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res)
+Constraint *Converter::getAndConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res)
 {
     Atom *resLEQx = new Atom(res, x, Atom::Leq);
     Atom *resLEQy = new Atom(res, y, Atom::Leq);
     if (m_unsignedEncoding) {
         return new Operator(resLEQx, resLEQy, Operator::And);
     }
-    Polynomial *null = Polynomial::null;
+    ref<Polynomial> null = Polynomial::null;
     Atom *xGEQnull = new Atom(x, null, Atom::Geq);
     Atom *yGEQnull = new Atom(y, null, Atom::Geq);
     Atom *resGEQnull = new Atom(res, null, Atom::Geq);
@@ -1393,26 +1393,26 @@ void Converter::visitAnd(llvm::BinaryOperator &I)
         m_vars.push_back(getVar(&I));
     } else {
         if (m_boundedIntegers && m_bitwiseConditions) {
-            Polynomial *x = getPolynomial(I.getOperand(0));
-            Polynomial *y = getPolynomial(I.getOperand(1));
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> x = getPolynomial(I.getOperand(0));
+            ref<Polynomial> y = getPolynomial(I.getOperand(1));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             Constraint *c = getAndConstraintForBounded(x, y, nondef);
             visitGenericInstruction(I, nondef, c);
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
 }
 
-Constraint *Converter::getOrConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res)
+Constraint *Converter::getOrConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res)
 {
     Atom *resGEQx = new Atom(res, x, Atom::Leq);
     Atom *resGEQy = new Atom(res, y, Atom::Leq);
     if (m_unsignedEncoding) {
         return new Operator(resGEQx, resGEQy, Operator::And);
     }
-    Polynomial *null = Polynomial::null;
+    ref<Polynomial> null = Polynomial::null;
     Atom *xGEQnull = new Atom(x, null, Atom::Geq);
     Atom *yGEQnull = new Atom(y, null, Atom::Geq);
     Atom *resGEQnull = new Atom(res, null, Atom::Geq);
@@ -1454,13 +1454,13 @@ void Converter::visitOr(llvm::BinaryOperator &I)
         m_vars.push_back(getVar(&I));
     } else {
         if (m_boundedIntegers && m_bitwiseConditions) {
-            Polynomial *x = getPolynomial(I.getOperand(0));
-            Polynomial *y = getPolynomial(I.getOperand(1));
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> x = getPolynomial(I.getOperand(0));
+            ref<Polynomial> y = getPolynomial(I.getOperand(1));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             Constraint *c = getOrConstraintForBounded(x, y, nondef);
             visitGenericInstruction(I, nondef, c);
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
@@ -1476,11 +1476,11 @@ void Converter::visitXor(llvm::BinaryOperator &I)
     } else {
         if (llvm::isa<llvm::ConstantInt>(I.getOperand(1)) && llvm::cast<llvm::ConstantInt>(I.getOperand(1))->isAllOnesValue()) {
             // it is xor %i, -1 --> actually, it is -%i - 1
-            Polynomial *p1 = getPolynomial(I.getOperand(0));
-            Polynomial *p2 = Polynomial::one;
+            ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+            ref<Polynomial> p2 = Polynomial::one;
             visitGenericInstruction(I, p1->constMult(Polynomial::_negone)->sub(p2));
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
@@ -1505,7 +1505,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
                 visitGenericInstruction(I, m_lhs, c->toNNF(false));
                 return;
             } else if (functionName.startswith("__kittel_nondef")) {
-                Polynomial *nondef = new Polynomial(getNondef(&I));
+                ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
                 visitGenericInstruction(I, nondef);
                 return;
             }
@@ -1529,7 +1529,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
             for (std::list<llvm::Function*>::iterator cf = callees.begin(), cfe = callees.end(); cf != cfe; ++cf) {
                 llvm::Function *callee = *cf;
                 if (m_scc.find(callee) != m_scc.end() || m_complexityTuples) {
-                    std::list<Polynomial*> callArgs;
+                    std::list<ref<Polynomial>> callArgs;
                     for (llvm::CallSite::arg_iterator i = callSite.arg_begin(), e = callSite.arg_end(); i != e; ++i) {
                         llvm::Value *arg = *i;
                         if (arg->getType() != m_boolType && arg->getType()->isIntegerTy()) {
@@ -1558,9 +1558,9 @@ void Converter::visitCallInst(llvm::CallInst &I)
             }
             m_counter++;
             // zap!
-            std::list<Polynomial*> newArgs;
+            std::list<ref<Polynomial>> newArgs;
             if (I.getType()->isIntegerTy() && I.getType() != m_boolType) {
-                Polynomial *nondef = new Polynomial(getNondef(&I));
+                ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
                 newArgs = getZappedArgs(toZap, I, nondef);
             } else {
                 newArgs = getZappedArgs(toZap);
@@ -1654,7 +1654,7 @@ void Converter::visitBitCastInst(llvm::BitCastInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *value = getPolynomial(&I);
+        ref<Polynomial> value = getPolynomial(&I);
         visitGenericInstruction(I, value);
     }
 }
@@ -1664,7 +1664,7 @@ void Converter::visitPtrToIntInst(llvm::PtrToIntInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1685,13 +1685,13 @@ void Converter::visitLoadInst(llvm::LoadInst &I)
         MayMustPair mmp = it->second;
         std::set<llvm::GlobalVariable*> mays = mmp.first;
         std::set<llvm::GlobalVariable*> musts = mmp.second;
-        Polynomial* newArg = NULL;
+        ref<Polynomial> newArg;
         if (musts.size() == 1 && mays.size() == 0) {
             // unique!
-            newArg = new Polynomial(getVar(*musts.begin()));
+            newArg = Polynomial::create(getVar(*musts.begin()));
         } else {
             // nondef...
-            newArg = new Polynomial(getNondef(&I));
+            newArg = Polynomial::create(getNondef(&I));
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
         ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
@@ -1715,7 +1715,7 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
         MayMustPair mmp = it->second;
         std::set<llvm::GlobalVariable*> mays = mmp.first;
         std::set<llvm::GlobalVariable*> musts = mmp.second;
-        std::list<Polynomial*> newArgs;
+        std::list<ref<Polynomial>> newArgs;
         if (musts.size() == 1 && mays.size() == 0) {
             // unique!
             newArgs = getNewArgs(**musts.begin(), getPolynomial(val));
@@ -1743,7 +1743,7 @@ void Converter::visitFPToSIInst(llvm::FPToSIInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1753,7 +1753,7 @@ void Converter::visitFPToUIInst(llvm::FPToUIInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1766,7 +1766,7 @@ void Converter::visitInstruction(llvm::Instruction &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1778,16 +1778,16 @@ void Converter::visitSExtInst(llvm::SExtInst &I)
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
         ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
-        Polynomial *copy = getPolynomial(I.getOperand(0));
+        ref<Polynomial> copy = getPolynomial(I.getOperand(0));
         ++m_counter;
         if (m_boundedIntegers && m_unsignedEncoding) {
             unsigned int bitwidthNew = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             unsigned int bitwidthOld = llvm::cast<llvm::IntegerType>(I.getOperand(0)->getType())->getBitWidth();
-            Polynomial *sizeNew = Polynomial::power_of_two(bitwidthNew);
-            Polynomial *sizeOld = Polynomial::power_of_two(bitwidthOld);
-            Polynomial *sizeDiff = sizeNew->sub(sizeOld);
-            Polynomial *intmaxOld = Polynomial::simax(bitwidthOld);
-            Polynomial *converted = sizeDiff->add(copy);
+            ref<Polynomial> sizeNew = Polynomial::power_of_two(bitwidthNew);
+            ref<Polynomial> sizeOld = Polynomial::power_of_two(bitwidthOld);
+            ref<Polynomial> sizeDiff = sizeNew->sub(sizeOld);
+            ref<Polynomial> intmaxOld = Polynomial::simax(bitwidthOld);
+            ref<Polynomial> converted = sizeDiff->add(copy);
             ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
             ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
             Constraint *c1 = new Atom(copy, intmaxOld, Atom::Leq);
@@ -1817,8 +1817,8 @@ void Converter::visitZExtInst(llvm::ZExtInst &I)
         ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
         if (I.getOperand(0)->getType() == m_boolType) {
-            Polynomial *zero = Polynomial::null;
-            Polynomial *one = Polynomial::one;
+            ref<Polynomial> zero = Polynomial::null;
+            ref<Polynomial> one = Polynomial::one;
             ref<Term> rhszero = Term::create(getEval(m_counter), getNewArgs(I, zero));
             ref<Term> rhsone = Term::create(getEval(m_counter), getNewArgs(I, one));
             Constraint *c = getConditionFromValue(I.getOperand(0));
@@ -1827,14 +1827,14 @@ void Converter::visitZExtInst(llvm::ZExtInst &I)
             m_blockRules.push_back(rulezero);
             m_blockRules.push_back(ruleone);
         } else {
-            Polynomial *copy = getPolynomial(I.getOperand(0));
+            ref<Polynomial> copy = getPolynomial(I.getOperand(0));
             if (m_boundedIntegers && !m_unsignedEncoding) {
                 unsigned int bitwidthOld = llvm::cast<llvm::IntegerType>(I.getOperand(0)->getType())->getBitWidth();
-                Polynomial *shifter = Polynomial::power_of_two(bitwidthOld);
-                Polynomial *converted = shifter->add(copy);
+                ref<Polynomial> shifter = Polynomial::power_of_two(bitwidthOld);
+                ref<Polynomial> converted = shifter->add(copy);
                 ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
                 ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
-                Polynomial *zero = Polynomial::null;
+                ref<Polynomial> zero = Polynomial::null;
                 Constraint *c1 = new Atom(copy, zero, Atom::Geq);
                 Constraint *c2 = new Atom(copy, zero, Atom::Lss);
                 ref<Rule> rule1 = Rule::create(lhs, rhs1, c1);
@@ -1861,9 +1861,9 @@ void Converter::visitTruncInst(llvm::TruncInst &I)
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
         ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
-        Polynomial *val = NULL;
+        ref<Polynomial> val;
         if (m_boundedIntegers) {
-            val = new Polynomial(getNondef(&I));
+            val = Polynomial::create(getNondef(&I));
         } else {
             val = getPolynomial(I.getOperand(0));
         }

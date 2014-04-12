@@ -109,7 +109,7 @@ private:
     std::list<ref<Rule>> m_blockRules;
     std::list<ref<Rule>> m_rules;
     std::list<std::string> m_vars;
-    std::list<Polynomial*> m_lhs;
+    std::list<ref<Polynomial>> m_lhs;
     unsigned int m_counter;
     bool m_phase1;
 
@@ -125,15 +125,15 @@ private:
     std::string getEval(llvm::BasicBlock *bb, std::string inout);
     std::string getEval(llvm::Function *f, std::string startstop);
 
-    std::list<Polynomial*> getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
+    std::list<ref<Polynomial>> getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
 
-    void visitGenericInstruction(llvm::Instruction &I, std::list<Polynomial*> newArgs, Constraint *c=Constraint::_true);
-    void visitGenericInstruction(llvm::Instruction &I, Polynomial *value, Constraint *c=Constraint::_true);
+    void visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial>> newArgs, Constraint *c=Constraint::_true);
+    void visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> value, Constraint *c=Constraint::_true);
 
-    Polynomial *getPolynomial(llvm::Value *V);
-    std::list<Polynomial*> getNewArgs(llvm::Value &V, Polynomial *p);
-    std::list<Polynomial*> getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
-    std::list<Polynomial*> getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, Polynomial *p);
+    ref<Polynomial> getPolynomial(llvm::Value *V);
+    std::list<ref<Polynomial>> getNewArgs(llvm::Value &V, ref<Polynomial> p);
+    std::list<ref<Polynomial>> getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
+    std::list<ref<Polynomial>> getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p);
 
     std::list<llvm::BasicBlock*> m_returns;
     std::map<llvm::Instruction*, unsigned int> m_idMap;
@@ -143,8 +143,8 @@ private:
 
     Constraint *getConditionFromValue(llvm::Value *cond);
     Constraint *getConditionFromInstruction(llvm::Instruction *I);
-    Constraint *getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y);
-    Constraint *getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y, unsigned int bitwidth);
+    Constraint *getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y);
+    Constraint *getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y, unsigned int bitwidth);
     Atom::AType getAtomType(llvm::CmpInst::Predicate pred);
 
     bool m_assumeIsControl;
@@ -153,29 +153,29 @@ private:
     std::set<std::string> m_controlPoints;
 
     Constraint *getSDivConstraint(DivConstraintStore &store);
-    Constraint *getSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth);
-    Constraint *getExactSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    Constraint *getSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getSDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getSDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth);
+    Constraint *getExactSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
     Constraint *getUDivConstraint(DivConstraintStore &store);
-    Constraint *getUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getUDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getUDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getExactUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    Constraint *getUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getUDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getUDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getExactUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
     Constraint *getSRemConstraint(RemConstraintStore &store);
-    Constraint *getSRemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSRemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSRemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth);
+    Constraint *getSRemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getSRemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getSRemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth);
 
     Constraint *getURemConstraint(RemConstraintStore &store);
-    Constraint *getURemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getURemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getURemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    Constraint *getURemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getURemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    Constraint *getURemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
-    Constraint *getAndConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res);
-    Constraint *getOrConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res);
+    Constraint *getAndConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res);
+    Constraint *getOrConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res);
 
     bool m_trivial;
 

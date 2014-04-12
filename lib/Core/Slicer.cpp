@@ -83,9 +83,9 @@ std::list<ref<Rule>> Slicer::sliceUsage(std::list<ref<Rule>> rules)
     }
     std::list<ref<Rule>> res;
     std::vector<std::string> vars;
-    std::list<Polynomial*> var_args = (*rules.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
-        Polynomial *tmp = *i;
+    std::list<ref<Polynomial>> var_args = (*rules.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial>>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
+        ref<Polynomial> tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
     unsigned int arity = static_cast<unsigned int>(vars.size());
@@ -168,9 +168,9 @@ std::list<ref<Rule>> Slicer::sliceConstraint(std::list<ref<Rule>> rules)
     }
     std::list<ref<Rule>> res;
     std::vector<std::string> vars;
-    std::list<Polynomial*> var_args = (*rules.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
-        Polynomial *tmp = *i;
+    std::list<ref<Polynomial>> var_args = (*rules.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial>>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
+        ref<Polynomial> tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
     m_numVars = static_cast<unsigned int>(vars.size());
@@ -217,12 +217,12 @@ std::list<ref<Rule>> Slicer::sliceConstraint(std::list<ref<Rule>> rules)
             c_vars.insert(rv->begin(), rv->end());
             continue;
         }
-        std::list<Polynomial*> rhsArgs = rule->getRight()->getArgs();
-        std::list<Polynomial*>::iterator ri = rhsArgs.begin();
+        std::list<ref<Polynomial>> rhsArgs = rule->getRight()->getArgs();
+        std::list<ref<Polynomial>>::iterator ri = rhsArgs.begin();
         for (std::vector<std::string>::iterator it = vars.begin(), et = vars.end(); it != et; ++it, ++ri) {
             std::string lvar = *it;
             unsigned int lvarIdx = getIdxVar(lvar);
-            Polynomial *inRhs = *ri;
+            ref<Polynomial> inRhs = *ri;
             std::set<std::string> *tmp = inRhs->getVariables();
             for (std::set<std::string>::iterator ii = tmp->begin(), ee = tmp->end(); ii != ee; ++ii) {
                 if (!isNondef(*ii)) {
@@ -427,12 +427,12 @@ std::list<ref<Rule>> Slicer::sliceDefined(std::list<ref<Rule>> rules)
             // already have this one
             continue;
         }
-        std::list<Polynomial*> largs = left->getArgs();
-        std::list<Polynomial*> rargs = right->getArgs();
+        std::list<ref<Polynomial>> largs = left->getArgs();
+        std::list<ref<Polynomial>> rargs = right->getArgs();
         std::set<std::string> defs;
-        for (std::list<Polynomial*>::iterator li = largs.begin(), le = largs.end(), ri = rargs.begin(); li != le; ++li, ++ri) {
-            Polynomial *lpol = *li;
-            Polynomial *rpol = *ri;
+        for (std::list<ref<Polynomial>>::iterator li = largs.begin(), le = largs.end(), ri = rargs.begin(); li != le; ++li, ++ri) {
+            ref<Polynomial> lpol = *li;
+            ref<Polynomial> rpol = *ri;
             std::string lvar = *lpol->getVariables()->begin();
             if (!rpol->isVar()) {
                 defs.insert(lvar);
@@ -475,8 +475,8 @@ std::list<ref<Rule>> Slicer::sliceDefined(std::list<ref<Rule>> rules)
 
     std::list<ref<Rule>> res;
     std::list<std::string> vars;
-    std::list<Polynomial*> polys = (*reachable.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = polys.begin(), e = polys.end(); i != e; ++i) {
+    std::list<ref<Polynomial>> polys = (*reachable.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial>>::iterator i = polys.begin(), e = polys.end(); i != e; ++i) {
         vars.push_back(*(*i)->getVariables()->begin());
     }
     for (std::list<ref<Rule>>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
@@ -633,9 +633,9 @@ std::list<ref<Rule>> Slicer::sliceStillUsed(std::list<ref<Rule>> rules, bool con
         ref<Term> left = tmp->getLeft();
         ref<Term> right = tmp->getRight();
         std::set<std::string> *c_vars = tmp->getConstraint()->getVariables();
-        std::list<Polynomial*> largs = left->getArgs();
+        std::list<ref<Polynomial>> largs = left->getArgs();
         size_t largsSize = largs.size();
-        std::list<Polynomial*> rargs = right->getArgs();
+        std::list<ref<Polynomial>> rargs = right->getArgs();
         std::set<std::string> used;
         std::set<std::string> interestingVars;
         std::set<std::string> seenVars;
@@ -644,8 +644,8 @@ std::list<ref<Rule>> Slicer::sliceStillUsed(std::list<ref<Rule>> rules, bool con
             std::set<std::string> *vars = right->getVariables();
             interestingVars.insert(vars->begin(), vars->end());
         } else {
-            for (std::list<Polynomial*>::iterator ri = rargs.begin(), re = rargs.end(), li = largs.begin(); ri != re; ++ri, ++li, ++counter) {
-                Polynomial *rpol = *ri;
+            for (std::list<ref<Polynomial>>::iterator ri = rargs.begin(), re = rargs.end(), li = largs.begin(); ri != re; ++ri, ++li, ++counter) {
+                ref<Polynomial> rpol = *ri;
                 if (rpol->isVar()) {
                     std::string rvar = *rpol->getVariables()->begin();
                     if (counter >= largsSize) {
@@ -673,8 +673,8 @@ std::list<ref<Rule>> Slicer::sliceStillUsed(std::list<ref<Rule>> rules, bool con
                 }
             }
         }
-        for (std::list<Polynomial*>::iterator li = largs.begin(), le = largs.end(); li != le; ++li) {
-            Polynomial *lpol = *li;
+        for (std::list<ref<Polynomial>>::iterator li = largs.begin(), le = largs.end(); li != le; ++li) {
+            ref<Polynomial> lpol = *li;
             std::string lvar = *lpol->getVariables()->begin();
             if (c_vars->find(lvar) != c_vars->end() || interestingVars.find(lvar) != interestingVars.end()) {
                 used.insert(lvar);
@@ -728,9 +728,9 @@ std::list<ref<Rule>> Slicer::sliceStillUsed(std::list<ref<Rule>> rules, bool con
             stillusedMap.insert(std::make_pair(leftF, getStillUsed(leftF)));
         }
         if (varsMap.find(leftF) == varsMap.end()) {
-            std::list<Polynomial*> polys = rule->getLeft()->getArgs();
+            std::list<ref<Polynomial>> polys = rule->getLeft()->getArgs();
             std::list<std::string> vars;
-            for (std::list<Polynomial*>::iterator it = polys.begin(), et = polys.end(); it != et; ++it) {
+            for (std::list<ref<Polynomial>>::iterator it = polys.begin(), et = polys.end(); it != et; ++it) {
                 vars.push_back(*(*it)->getVariables()->begin());
             }
             varsMap.insert(std::make_pair(leftF, vars));

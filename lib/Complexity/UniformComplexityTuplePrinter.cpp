@@ -38,9 +38,9 @@ static std::string getLeftString(ref<Rule> rule, std::list<std::string> &vars)
     return res.str();
 }
 
-static Polynomial *getArg(std::string &var, std::list<std::string> &lhsNames, std::list<Polynomial*> &args)
+static ref<Polynomial> getArg(std::string &var, std::list<std::string> &lhsNames, std::list<ref<Polynomial>> &args)
 {
-    std::list<Polynomial*>::iterator a = args.begin();
+    std::list<ref<Polynomial>>::iterator a = args.begin();
     for (std::list<std::string>::iterator i = lhsNames.begin(), e = lhsNames.end(); i != e; ++i, ++a) {
         if (*i == var) {
             return *a;
@@ -59,12 +59,12 @@ static std::string getRightString(ref<Rule> rule, std::list<std::string> &vars, 
         printVars(vars, res, ", ");
         res << ')';
     } else {
-        std::list<Polynomial*> args = rule->getRight()->getArgs();
+        std::list<ref<Polynomial>> args = rule->getRight()->getArgs();
         res << rhsFun << '(';
         for (std::list<std::string>::iterator i = vars.begin(), e = vars.end(); i != e; ) {
             std::string var = *i;
-            Polynomial *arg = getArg(var, found->second, args);
-            if (arg == NULL) {
+            ref<Polynomial> arg = getArg(var, found->second, args);
+            if (arg.isNull()) {
                 res << var;
             } else {
                 res << arg->toString();
@@ -156,8 +156,8 @@ static std::map<std::string, std::list<std::string> > getArgNames(std::list<ref<
         ref<Rule> rule = *i;
         std::string lhsFun = rule->getLeft()->getFunctionSymbol();
         std::list<std::string> argNames;
-        std::list<Polynomial*> args = rule->getLeft()->getArgs();
-        for (std::list<Polynomial*>::iterator ii = args.begin(), ee = args.end(); ii != ee; ++ii) {
+        std::list<ref<Polynomial>> args = rule->getLeft()->getArgs();
+        for (std::list<ref<Polynomial>>::iterator ii = args.begin(), ee = args.end(); ii != ee; ++ii) {
             if (!(*ii)->isVar()) {
                 std::cerr << "Internal error in UniformComplexityTuplePrinter (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
                 exit(0xAAAA);

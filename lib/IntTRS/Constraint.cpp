@@ -58,7 +58,7 @@ std::string True::toCIntString()
     exit(217);
 }
 
-Constraint *True::instantiate(std::map<std::string, Polynomial*> *)
+Constraint *True::instantiate(std::map<std::string, ref<Polynomial>> *)
 {
     return Constraint::_true;
 }
@@ -135,7 +135,7 @@ std::string False::toCIntString()
     exit(217);
 }
 
-Constraint *False::instantiate(std::map<std::string, Polynomial*> *)
+Constraint *False::instantiate(std::map<std::string, ref<Polynomial>> *)
 {
     return Constraint::_false;
 }
@@ -212,7 +212,7 @@ std::string Nondef::toCIntString()
     exit(217);
 }
 
-Constraint *Nondef::instantiate(std::map<std::string, Polynomial*> *)
+Constraint *Nondef::instantiate(std::map<std::string, ref<Polynomial>> *)
 {
     return new Nondef();
 }
@@ -263,17 +263,14 @@ bool Nondef::equalsInternal(Constraint *c)
 }
 
 // Atom
-Atom::Atom(Polynomial *lhs, Polynomial *rhs, AType type)
+Atom::Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type)
   : m_lhs(lhs),
     m_rhs(rhs),
     m_type(type)
 {}
 
 Atom::~Atom()
-{
-    delete m_lhs;
-    delete m_rhs;
-}
+{}
 
 Atom::AType Atom::getAType()
 {
@@ -359,7 +356,7 @@ std::string Atom::toCIntString()
     return res.str();
 }
 
-Constraint *Atom::instantiate(std::map<std::string, Polynomial*> *bindings)
+Constraint *Atom::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
 {
     return new Atom(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
@@ -463,12 +460,12 @@ bool Atom::equalsInternal(Constraint *c)
     return m_type == atom->m_type && m_lhs->equals(atom->m_lhs) && m_rhs->equals(atom->m_rhs);
 }
 
-Polynomial *Atom::getLeft()
+ref<Polynomial> Atom::getLeft()
 {
     return m_lhs;
 }
 
-Polynomial *Atom::getRight()
+ref<Polynomial> Atom::getRight()
 {
     return m_rhs;
 }
@@ -507,7 +504,7 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
-Constraint *Negation::instantiate(std::map<std::string, Polynomial*> *bindings)
+Constraint *Negation::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
 {
     return new Negation(m_c->instantiate(bindings));
 }
@@ -619,7 +616,7 @@ std::string Operator::toCIntString()
     return res.str();
 }
 
-Constraint *Operator::instantiate(std::map<std::string, Polynomial*> *bindings)
+Constraint *Operator::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
 {
     return new Operator(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
