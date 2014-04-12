@@ -47,35 +47,49 @@ void InstChecker::visitTerminatorInst(llvm::TerminatorInst &I)
 
 void InstChecker::visitAdd(llvm::BinaryOperator &I)
 {
-    if (!llvm::isa<llvm::IntegerType>(I.getType())) {
+    if (!I.getType()->isIntegerTy() && !I.getType()->isVectorTy()) {
         addUnsuitable(I);
     }
 }
 
 void InstChecker::visitSub(llvm::BinaryOperator &I)
 {
-    if (!llvm::isa<llvm::IntegerType>(I.getType())) {
+    if (!I.getType()->isIntegerTy() && !I.getType()->isVectorTy()) {
         addUnsuitable(I);
     }
 }
 
 void InstChecker::visitMul(llvm::BinaryOperator &I)
 {
-    if (!llvm::isa<llvm::IntegerType>(I.getType())) {
+    if (!I.getType()->isIntegerTy() && !I.getType()->isVectorTy()) {
         addUnsuitable(I);
     }
 }
 
 void InstChecker::visitSDiv(llvm::BinaryOperator &I)
 {
-    if (!llvm::isa<llvm::IntegerType>(I.getType())) {
+    if (!I.getType()->isIntegerTy() && !I.getType()->isVectorTy()) {
         addUnsuitable(I);
     }
 }
 
 void InstChecker::visitSRem(llvm::BinaryOperator &I)
 {
-    if (!llvm::isa<llvm::IntegerType>(I.getType())) {
+    if (!I.getType()->isIntegerTy()) {
+        addUnsuitable(I);
+    }
+}
+
+void InstChecker::visitUDiv(llvm::BinaryOperator &I)
+{
+    if (!I.getType()->isIntegerTy() && !I.getType()->isVectorTy()) {
+        addUnsuitable(I);
+    }
+}
+
+void InstChecker::visitURem(llvm::BinaryOperator &I)
+{
+    if (!I.getType()->isIntegerTy()) {
         addUnsuitable(I);
     }
 }
@@ -163,7 +177,7 @@ void InstChecker::visitSelectInst(llvm::SelectInst &I)
 
 void InstChecker::visitPHINode(llvm::PHINode &I)
 {
-    if (I.getType()->isFloatTy() || I.getType()->isDoubleTy() || llvm::isa<llvm::PointerType>(I.getType())) {
+    if (I.getType()->isFloatTy() || I.getType()->isDoubleTy() || I.getType()->isPointerTy() || I.getType()->isVectorTy()) {
         return;
     }
     if (!llvm::isa<llvm::IntegerType>(I.getType())) {
