@@ -165,7 +165,7 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
 void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap)
 {
     if (m_trivial) {
-        m_rules.push_back(new Rule(new Term(getEval(m_function, "start"), m_lhs), new Term(getEval(m_function, "stop"), m_lhs), Constraint::_true));
+        m_rules.push_back(Rule::create(Term::create(getEval(m_function, "start"), m_lhs), Term::create(getEval(m_function, "stop"), m_lhs), Constraint::_true));
         return;
     }
     m_function = function;
@@ -183,25 +183,25 @@ void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc,
 
     // add rules from returns to stop
     for (std::list<llvm::BasicBlock*>::iterator i = m_returns.begin(), e = m_returns.end(); i != e; ++i) {
-        Term *lhs = new Term(getEval(*i, "out"), m_lhs);
-        Term *rhs = new Term(getEval(m_function, "stop"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(*i, "out"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(m_function, "stop"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 }
 
-std::list<Rule*> Converter::getRules()
+std::list<ref<Rule>> Converter::getRules()
 {
     return m_rules;
 }
 
-std::list<Rule*> Converter::getCondensedRules()
+std::list<ref<Rule>> Converter::getCondensedRules()
 {
-    std::list<Rule*> good;
-    std::list<Rule*> junk;
-    std::list<Rule*> res;
-    for (std::list<Rule*>::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    std::list<ref<Rule>> good;
+    std::list<ref<Rule>> junk;
+    std::list<ref<Rule>> res;
+    for (std::list<ref<Rule>>::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string f = rule->getLeft()->getFunctionSymbol();
         if (m_controlPoints.find(f) != m_controlPoints.end()) {
             good.push_back(rule);
@@ -209,21 +209,21 @@ std::list<Rule*> Converter::getCondensedRules()
             junk.push_back(rule);
         }
     }
-    for (std::list<Rule*>::iterator i = good.begin(), e = good.end(); i != e; ++i) {
-        Rule *rule = *i;
-        std::vector<Rule*> todo;
+    for (std::list<ref<Rule>>::iterator i = good.begin(), e = good.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
+        std::vector<ref<Rule>> todo;
         todo.push_back(rule);
         while (!todo.empty()) {
-            Rule *r = *todo.begin();
+            ref<Rule> r = *todo.begin();
             todo.erase(todo.begin());
-            Term *rhs = r->getRight();
+            ref<Term> rhs = r->getRight();
             std::string f = rhs->getFunctionSymbol();
             if (m_controlPoints.find(f) != m_controlPoints.end()) {
                 res.push_back(r);
             } else {
-                std::list<Rule*> newtodo;
-                for (std::list<Rule*>::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
-                    Rule *junkrule = *ii;
+                std::list<ref<Rule>> newtodo;
+                for (std::list<ref<Rule>>::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
+                    ref<Rule> junkrule = *ii;
                     if (junkrule->getLeft()->getFunctionSymbol() == f) {
                         std::map<std::string, Polynomial*> subby;
                         std::list<Polynomial*> rhsargs = rhs->getArgs();
@@ -231,7 +231,7 @@ std::list<Rule*> Converter::getCondensedRules()
                         for (std::list<std::string>::iterator vi = m_vars.begin(), ve = m_vars.end(); vi != ve; ++vi, ++ai) {
                             subby.insert(std::make_pair(*vi, *ai));
                         }
-                        Rule *newRule = new Rule(r->getLeft(), junkrule->getRight()->instantiate(&subby), new Operator(r->getConstraint(), junkrule->getConstraint()->instantiate(&subby), Operator::And));
+                        ref<Rule> newRule = Rule::create(r->getLeft(), junkrule->getRight()->instantiate(&subby), new Operator(r->getConstraint(), junkrule->getConstraint()->instantiate(&subby), Operator::And));
                         newtodo.push_back(newRule);
                     }
                 }
@@ -639,9 +639,9 @@ void Converter::visitBB(llvm::BasicBlock *bb)
 {
     // start
     if (bb == m_entryBlock) {
-        Term *lhs = new Term(getEval(m_function, "start"), m_lhs);
-        Term *rhs = new Term(getEval(bb, "in"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(m_function, "start"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 
@@ -684,14 +684,14 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         }
     }
     if (first != NULL) {
-        Term *lhs = new Term(getEval(bb, "in"), m_lhs);
-        Term *rhs = new Term(getEval(firstID), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, cond);
+        ref<Term> lhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(firstID), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, cond);
         m_rules.push_back(rule);
     } else {
-        Term *lhs = new Term(getEval(bb, "in"), m_lhs);
-        Term *rhs = new Term(getEval(bb, "out"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, cond);
+        ref<Term> lhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, cond);
         m_rules.push_back(rule);
     }
 
@@ -710,10 +710,10 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         }
     }
     if (last != NULL) {
-        Term *lhs = new Term(getEval(lastID+1), m_lhs);
+        ref<Term> lhs = Term::create(getEval(lastID+1), m_lhs);
         m_counter++;
-        Term *rhs = new Term(getEval(bb, "out"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 
@@ -721,26 +721,26 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     llvm::TerminatorInst *terminator = bb->getTerminator();
     if (llvm::isa<llvm::ReturnInst>(terminator)) {
     } else if (llvm::isa<llvm::UnreachableInst>(terminator)) {
-        Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-        Term *rhs = new Term(getEval(m_function, "stop"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(m_function, "stop"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     } else {
         llvm::BranchInst *branch = llvm::cast<llvm::BranchInst>(terminator);
         bool useCondition = (!m_onlyLoopConditions || m_loopConditionBlocks.find(bb) != m_loopConditionBlocks.end());
         if (branch->isUnconditional()) {
-            Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-            Term *rhs = new Term(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
-            Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+            ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+            ref<Term> rhs = Term::create(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
+            ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
             m_rules.push_back(rule);
         } else {
-            Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-            Term *rhs1 = new Term(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
-            Term *rhs2 = new Term(getEval(branch->getSuccessor(1), "in"), getArgsWithPhis(bb, branch->getSuccessor(1)));
+            ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+            ref<Term> rhs1 = Term::create(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
+            ref<Term> rhs2 = Term::create(getEval(branch->getSuccessor(1), "in"), getArgsWithPhis(bb, branch->getSuccessor(1)));
             Constraint *c = getConditionFromValue(branch->getCondition());
-            Rule *rule1 = new Rule(lhs, rhs1, useCondition ? c->toNNF(false) : Constraint::_true);
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, useCondition ? c->toNNF(false) : Constraint::_true);
             m_rules.push_back(rule1);
-            Rule *rule2 = new Rule(lhs, rhs2, useCondition ? c->toNNF(true) : Constraint::_true);
+            ref<Rule> rule2 = Rule::create(lhs, rhs2, useCondition ? c->toNNF(true) : Constraint::_true);
             m_rules.push_back(rule2);
         }
     }
@@ -779,10 +779,10 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst&)
 void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<Polynomial*> newArgs, Constraint *c)
 {
     m_idMap.insert(std::make_pair(&I, m_counter));
-    Term *lhs = new Term(getEval(m_counter), m_lhs);
+    ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
     ++m_counter;
-    Term *rhs = new Term(getEval(m_counter), newArgs);
-    Rule *rule = new Rule(lhs, rhs, c);
+    ref<Term> rhs = Term::create(getEval(m_counter), newArgs);
+    ref<Rule> rule = Rule::create(lhs, rhs, c);
     m_blockRules.push_back(rule);
 }
 
@@ -1525,7 +1525,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
             }
             std::set<llvm::GlobalVariable*> toZap;
             m_idMap.insert(std::make_pair(&I, m_counter));
-            Term *lhs = new Term(getEval(m_counter), m_lhs);
+            ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
             for (std::list<llvm::Function*>::iterator cf = callees.begin(), cfe = callees.end(); cf != cfe; ++cf) {
                 llvm::Function *callee = *cf;
                 if (m_scc.find(callee) != m_scc.end() || m_complexityTuples) {
@@ -1540,8 +1540,8 @@ void Converter::visitCallInst(llvm::CallInst &I)
                         callArgs.push_back(getPolynomial(*i));
                     }
                     m_controlPoints.insert(getEval(callee, "start"));
-                    Term *rhs2 = new Term(getEval(callee, "start"), callArgs);
-                    Rule *rule2 = new Rule(lhs, rhs2, Constraint::_true);
+                    ref<Term> rhs2 = Term::create(getEval(callee, "start"), callArgs);
+                    ref<Rule> rule2 = Rule::create(lhs, rhs2, Constraint::_true);
                     m_blockRules.push_back(rule2);
                 }
                 if (callee->isDeclaration()) {
@@ -1565,8 +1565,8 @@ void Converter::visitCallInst(llvm::CallInst &I)
             } else {
                 newArgs = getZappedArgs(toZap);
             }
-            Term *rhs1 = new Term(getEval(m_counter), newArgs);
-            Rule *rule1 = new Rule(lhs, rhs1, Constraint::_true);
+            ref<Term> rhs1 = Term::create(getEval(m_counter), newArgs);
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, Constraint::_true);
             m_blockRules.push_back(rule1);
             return;
         } else {
@@ -1615,14 +1615,14 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
             m_controlPoints.insert(getEval(m_counter));
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         m_counter++;
-        Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, getPolynomial(I.getTrueValue())));
-        Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, getPolynomial(I.getFalseValue())));
+        ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getTrueValue())));
+        ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getFalseValue())));
         Constraint *c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(I.getCondition());
-        Rule *rule1 = new Rule(lhs, rhs1, c->toNNF(false));
+        ref<Rule> rule1 = Rule::create(lhs, rhs1, c->toNNF(false));
         m_blockRules.push_back(rule1);
-        Rule *rule2 = new Rule(lhs, rhs2, c->toNNF(true));
+        ref<Rule> rule2 = Rule::create(lhs, rhs2, c->toNNF(true));
         m_blockRules.push_back(rule2);
     }
 }
@@ -1694,10 +1694,10 @@ void Converter::visitLoadInst(llvm::LoadInst &I)
             newArg = new Polynomial(getNondef(&I));
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
-        Term *rhs = new Term(getEval(m_counter), getNewArgs(I, newArg));
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, newArg));
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }
@@ -1727,10 +1727,10 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
             newArgs = getZappedArgs(mays);
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
-        Term *rhs = new Term(getEval(m_counter), newArgs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), newArgs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }
@@ -1777,7 +1777,7 @@ void Converter::visitSExtInst(llvm::SExtInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         Polynomial *copy = getPolynomial(I.getOperand(0));
         ++m_counter;
         if (m_boundedIntegers && m_unsignedEncoding) {
@@ -1788,18 +1788,18 @@ void Converter::visitSExtInst(llvm::SExtInst &I)
             Polynomial *sizeDiff = sizeNew->sub(sizeOld);
             Polynomial *intmaxOld = Polynomial::simax(bitwidthOld);
             Polynomial *converted = sizeDiff->add(copy);
-            Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, copy));
-            Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, converted));
+            ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
+            ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
             Constraint *c1 = new Atom(copy, intmaxOld, Atom::Leq);
             Constraint *c2 = new Atom(copy, intmaxOld, Atom::Gtr);
-            Rule *rule1 = new Rule(lhs, rhs1, c1);
-            Rule *rule2 = new Rule(lhs, rhs2, c2);
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, c1);
+            ref<Rule> rule2 = Rule::create(lhs, rhs2, c2);
             m_blockRules.push_back(rule1);
             m_blockRules.push_back(rule2);
         } else {
             // mathematical integers or bounded integers with signed encoding
-            Term *rhs = new Term(getEval(m_counter), getNewArgs(I, copy));
-            Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+            ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, copy));
+            ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
             m_blockRules.push_back(rule);
         }
     }
@@ -1814,16 +1814,16 @@ void Converter::visitZExtInst(llvm::ZExtInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
         if (I.getOperand(0)->getType() == m_boolType) {
             Polynomial *zero = Polynomial::null;
             Polynomial *one = Polynomial::one;
-            Term *rhszero = new Term(getEval(m_counter), getNewArgs(I, zero));
-            Term *rhsone = new Term(getEval(m_counter), getNewArgs(I, one));
+            ref<Term> rhszero = Term::create(getEval(m_counter), getNewArgs(I, zero));
+            ref<Term> rhsone = Term::create(getEval(m_counter), getNewArgs(I, one));
             Constraint *c = getConditionFromValue(I.getOperand(0));
-            Rule *rulezero = new Rule(lhs, rhszero, c->toNNF(true));
-            Rule *ruleone = new Rule(lhs, rhsone, c->toNNF(false));
+            ref<Rule> rulezero = Rule::create(lhs, rhszero, c->toNNF(true));
+            ref<Rule> ruleone = Rule::create(lhs, rhsone, c->toNNF(false));
             m_blockRules.push_back(rulezero);
             m_blockRules.push_back(ruleone);
         } else {
@@ -1832,19 +1832,19 @@ void Converter::visitZExtInst(llvm::ZExtInst &I)
                 unsigned int bitwidthOld = llvm::cast<llvm::IntegerType>(I.getOperand(0)->getType())->getBitWidth();
                 Polynomial *shifter = Polynomial::power_of_two(bitwidthOld);
                 Polynomial *converted = shifter->add(copy);
-                Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, copy));
-                Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, converted));
+                ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
+                ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
                 Polynomial *zero = Polynomial::null;
                 Constraint *c1 = new Atom(copy, zero, Atom::Geq);
                 Constraint *c2 = new Atom(copy, zero, Atom::Lss);
-                Rule *rule1 = new Rule(lhs, rhs1, c1);
-                Rule *rule2 = new Rule(lhs, rhs2, c2);
+                ref<Rule> rule1 = Rule::create(lhs, rhs1, c1);
+                ref<Rule> rule2 = Rule::create(lhs, rhs2, c2);
                 m_blockRules.push_back(rule1);
                 m_blockRules.push_back(rule2);
             } else {
                 // mathematical integers of bounded integers with unsigned encoding
-                Term *rhs = new Term(getEval(m_counter), getNewArgs(I, copy));
-                Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+                ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, copy));
+                ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
                 m_blockRules.push_back(rule);
             }
         }
@@ -1860,7 +1860,7 @@ void Converter::visitTruncInst(llvm::TruncInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         Polynomial *val = NULL;
         if (m_boundedIntegers) {
             val = new Polynomial(getNondef(&I));
@@ -1868,8 +1868,8 @@ void Converter::visitTruncInst(llvm::TruncInst &I)
             val = getPolynomial(I.getOperand(0));
         }
         m_counter++;
-        Term *rhs = new Term(getEval(m_counter), getNewArgs(I, val));
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, val));
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }

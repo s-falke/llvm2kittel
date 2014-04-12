@@ -14,6 +14,7 @@
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/Util/Ref.h"
 #include "llvm2kittel/Util/Version.h"
 
 // llvm includes
@@ -89,9 +90,9 @@ public:
 
     void visitInstruction(llvm::Instruction &I);
 
-    std::list<Rule*> getRules();
+    std::list<ref<Rule>> getRules();
 
-    std::list<Rule*> getCondensedRules();
+    std::list<ref<Rule>> getCondensedRules();
 
     std::set<std::string> getPhiVariables();
 
@@ -105,8 +106,8 @@ private:
 
     const llvm::Type *m_boolType;
 
-    std::list<Rule*> m_blockRules;
-    std::list<Rule*> m_rules;
+    std::list<ref<Rule>> m_blockRules;
+    std::list<ref<Rule>> m_rules;
     std::list<std::string> m_vars;
     std::list<Polynomial*> m_lhs;
     unsigned int m_counter;

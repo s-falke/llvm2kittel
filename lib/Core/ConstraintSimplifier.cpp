@@ -94,10 +94,10 @@ static Constraint *makeConjunction(std::list<Atom*> &atoms)
     return res;
 }
 
-static Rule *simplifyConstraints(Rule *rule)
+static ref<Rule> simplifyConstraints(ref<Rule> rule)
 {
-    Term *lhs = rule->getLeft();
-    Term *rhs = rule->getRight();
+    ref<Term> lhs = rule->getLeft();
+    ref<Term> rhs = rule->getRight();
     Constraint *c = rule->getConstraint();
     if (c->getCType() == Constraint::CTrue) {
         return rule;
@@ -112,16 +112,16 @@ static Rule *simplifyConstraints(Rule *rule)
     if (newAtoms.size() == atoms.size()) {
         return rule;
     } else if (newAtoms.size() == 0) {
-        return new Rule(lhs, rhs, Constraint::_true);
+        return Rule::create(lhs, rhs, Constraint::_true);
     } else {
-        return new Rule(lhs, rhs, makeConjunction(newAtoms));
+        return Rule::create(lhs, rhs, makeConjunction(newAtoms));
     }
 }
 
-std::list<Rule*> simplifyConstraints(std::list<Rule*> rules)
+std::list<ref<Rule>> simplifyConstraints(std::list<ref<Rule>> rules)
 {
-    std::list<Rule*> res;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule>> res;
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         res.push_back(simplifyConstraints(*i));
     }
     return res;

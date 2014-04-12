@@ -553,10 +553,10 @@ int main(int argc, char *argv[])
     unsigned int currNum = 0;
     for (std::list<std::list<llvm::Function*> >::iterator scci = dependsOnSccs.begin(), scce = dependsOnSccs.end(); scci != scce; ++scci) {
         std::list<llvm::Function*> scc = *scci;
-        std::list<Rule*> allRules;
-        std::list<Rule*> allCondensedRules;
-        std::list<Rule*> allKittelizedRules;
-        std::list<Rule*> allSlicedRules;
+        std::list<ref<Rule>> allRules;
+        std::list<ref<Rule>> allCondensedRules;
+        std::list<ref<Rule>> allKittelizedRules;
+        std::list<ref<Rule>> allSlicedRules;
         if (debug) {
             std::cout << "========================================" << std::endl;
         }
@@ -594,11 +594,11 @@ int main(int argc, char *argv[])
             }
             converter.phase1(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
             converter.phase2(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
-            std::list<Rule*> rules = converter.getRules();
-            std::list<Rule*> condensedRules = converter.getCondensedRules();
-            std::list<Rule*> kittelizedRules = kittelize(condensedRules);
+            std::list<ref<Rule>> rules = converter.getRules();
+            std::list<ref<Rule>> condensedRules = converter.getCondensedRules();
+            std::list<ref<Rule>> kittelizedRules = kittelize(condensedRules);
             Slicer slicer(curr, converter.getPhiVariables());
-            std::list<Rule*> slicedRules;
+            std::list<ref<Rule>> slicedRules;
             if (noSlicing) {
                 slicedRules = kittelizedRules;
             } else {
@@ -624,18 +624,18 @@ int main(int argc, char *argv[])
         }
         if (debug) {
             std::cout << "========================================" << std::endl;
-            for (std::list<Rule*>::iterator i = allRules.begin(), e = allRules.end(); i != e; ++i) {
-                Rule *tmp = *i;
+            for (std::list<ref<Rule>>::iterator i = allRules.begin(), e = allRules.end(); i != e; ++i) {
+                ref<Rule> tmp = *i;
                 std::cout << tmp->toString() << std::endl;
             }
             std::cout << "========================================" << std::endl;
-            for (std::list<Rule*>::iterator i = allCondensedRules.begin(), e = allCondensedRules.end(); i != e; ++i) {
-                Rule *tmp = *i;
+            for (std::list<ref<Rule>>::iterator i = allCondensedRules.begin(), e = allCondensedRules.end(); i != e; ++i) {
+                ref<Rule> tmp = *i;
                 std::cout << tmp->toString() << std::endl;
             }
             std::cout << "========================================" << std::endl;
-            for (std::list<Rule*>::iterator i = allKittelizedRules.begin(), e = allKittelizedRules.end(); i != e; ++i) {
-                Rule *tmp = *i;
+            for (std::list<ref<Rule>>::iterator i = allKittelizedRules.begin(), e = allKittelizedRules.end(); i != e; ++i) {
+                ref<Rule> tmp = *i;
                 std::cout << tmp->toString() << std::endl;
             }
             std::cout << "========================================" << std::endl;
@@ -648,8 +648,8 @@ int main(int argc, char *argv[])
             std::string name = startfun.str();
             printUniformComplexityTuples(allSlicedRules, complexityLHSs, name, std::cout);
         } else {
-            for (std::list<Rule*>::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
-                Rule *tmp = *i;
+            for (std::list<ref<Rule>>::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
+                ref<Rule> tmp = *i;
                 std::cout << tmp->toKittelString() << std::endl;
             }
         }

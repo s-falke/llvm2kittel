@@ -13,16 +13,19 @@
 #include <list>
 #include <sstream>
 
-Rule::Rule(Term *lhs, Term *rhs, Constraint *c)
-  : m_lhs(lhs),
+Rule::Rule(ref<Term> lhs, ref<Term> rhs, Constraint *c)
+  : refCount(0),
+    m_lhs(lhs),
     m_rhs(rhs),
     m_c(c)
 {}
 
+ref<Rule> Rule::create(ref<Term> lhs, ref<Term> rhs, Constraint *c) {
+  return new Rule(lhs, rhs,c);
+}
+
 Rule::~Rule()
 {
-    delete m_lhs;
-    delete m_rhs;
     delete m_c;
 }
 
@@ -43,12 +46,12 @@ std::string Rule::toKittelString()
     return res.str();
 }
 
-Term *Rule::getLeft()
+ref<Term> Rule::getLeft()
 {
     return m_lhs;
 }
 
-Term *Rule::getRight()
+ref<Term> Rule::getRight()
 {
     return m_rhs;
 }
@@ -70,7 +73,7 @@ std::set<std::string> *Rule::getVariables()
     return res;
 }
 
-Rule *Rule::dropArgs(std::set<unsigned int> drop)
+ref<Rule> Rule::dropArgs(std::set<unsigned int> drop)
 {
-    return new Rule(m_lhs->dropArgs(drop), m_rhs->dropArgs(drop), m_c);
+    return create(m_lhs->dropArgs(drop), m_rhs->dropArgs(drop), m_c);
 }

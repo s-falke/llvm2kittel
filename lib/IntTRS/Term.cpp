@@ -12,10 +12,15 @@
 #include <sstream>
 
 Term::Term(std::string f, std::list<Polynomial*> args)
-  : m_f(f),
+  : refCount(0),
+    m_f(f),
     m_args(args),
     m_vars()
 {}
+
+ref<Term> Term::create(std::string f, std::list<Polynomial*> args) {
+  return new Term(f, args);
+}
 
 Term::~Term()
 {
@@ -62,7 +67,7 @@ Polynomial *Term::getArg(unsigned int i)
     return NULL;
 }
 
-Term *Term::instantiate(std::map<std::string, Polynomial*> *bindings)
+ref<Term> Term::instantiate(std::map<std::string, Polynomial*> *bindings)
 {
     std::list<Polynomial*> newargs;
     for (std::list<Polynomial*>::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
@@ -103,7 +108,7 @@ void Term::setupVars(void)
     }
 }
 
-Term *Term::dropArgs(std::set<unsigned int> drop)
+ref<Term> Term::dropArgs(std::set<unsigned int> drop)
 {
     std::list<Polynomial*> newargs;
     unsigned int argc = 0;
@@ -113,5 +118,5 @@ Term *Term::dropArgs(std::set<unsigned int> drop)
             newargs.push_back(pol);
         }
     }
-    return new Term(m_f, newargs);
+    return create(m_f, newargs);
 }

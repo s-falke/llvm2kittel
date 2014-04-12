@@ -50,13 +50,13 @@ Constraint *simplify(Constraint *c)
     }
 }
 
-std::list<Rule*> kittelize(std::list<Rule*> rules)
+std::list<ref<Rule>> kittelize(std::list<ref<Rule>> rules)
 {
-    std::list<Rule*> res;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
-        Term *lhs = rule->getLeft();
-        Term *rhs = rule->getRight();
+    std::list<ref<Rule>> res;
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
+        ref<Term> lhs = rule->getLeft();
+        ref<Term> rhs = rule->getRight();
         Constraint *con = rule->getConstraint()->evaluateTrivialAtoms()->eliminateNeq()->toDNF();
         std::list<Constraint*> dcs = con->getDualClauses();
         for (std::list<Constraint*>::iterator ci = dcs.begin(), ce = dcs.end(); ci != ce; ++ci) {
@@ -66,10 +66,10 @@ std::list<Rule*> kittelize(std::list<Rule*> rules)
                 // no rule
             } else if (c->getCType() == Constraint::CNondef) {
                 // rule with "TRUE"
-                res.push_back(new Rule(lhs, rhs, Constraint::_true));
+              res.push_back(Rule::create(lhs, rhs, Constraint::_true));
             } else {
                 // rule with c
-                res.push_back(new Rule(lhs, rhs, c));
+              res.push_back(Rule::create(lhs, rhs, c));
             }
         }
     }

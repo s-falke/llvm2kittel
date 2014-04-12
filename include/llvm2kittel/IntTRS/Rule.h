@@ -8,6 +8,8 @@
 #ifndef RULE_H
 #define RULE_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <set>
 #include <string>
@@ -17,27 +19,32 @@ class Term;
 
 class Rule
 {
+public:
+  unsigned refCount;
+
+protected:
+    Rule(ref<Term> lhs, ref<Term> rhs, Constraint *c);
 
 public:
-    Rule(Term *lhs, Term *rhs, Constraint *c);
+    static ref<Rule> create(ref<Term> lhs, ref<Term> rhs, Constraint *c);
     ~Rule();
 
     std::string toString();
     std::string toKittelString();
 
-    Term *getLeft();
-    Term *getRight();
+    ref<Term> getLeft();
+    ref<Term> getRight();
     Constraint *getConstraint();
     std::set<std::string> *getVariables();
 
-    Rule *dropArgs(std::set<unsigned int> drop);
+    ref<Rule> dropArgs(std::set<unsigned int> drop);
 
 private:
     Rule(const Rule&);
     Rule &operator=(const Rule&);
 
-    Term *m_lhs;
-    Term *m_rhs;
+    ref<Term> m_lhs;
+    ref<Term> m_rhs;
     Constraint *m_c;
 
 };

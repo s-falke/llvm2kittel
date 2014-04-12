@@ -8,6 +8,8 @@
 #ifndef COMPLEXITY_TUPLE_PRINTER_H
 #define COMPLEXITY_TUPLE_PRINTER_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <set>
@@ -16,6 +18,6 @@
 
 class Rule;
 
-void printComplexityTuples(std::list<Rule*> &rules, std::set<std::string> &complexityLHSs, std::ostream &stream);
+void printComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &complexityLHSs, std::ostream &stream);
 
 #endif // COMPLEXITY_TUPLE_PRINTER_H

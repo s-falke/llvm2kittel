@@ -28,7 +28,7 @@ static void printVars(std::list<std::string> &vars, std::ostream &stream, std::s
     }
 }
 
-static std::string getLeftString(Rule *rule, std::list<std::string> &vars)
+static std::string getLeftString(ref<Rule> rule, std::list<std::string> &vars)
 {
     std::ostringstream res;
     std::string lhsFun = rule->getLeft()->getFunctionSymbol();
@@ -49,7 +49,7 @@ static Polynomial *getArg(std::string &var, std::list<std::string> &lhsNames, st
     return NULL;
 }
 
-static std::string getRightString(Rule *rule, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
+static std::string getRightString(ref<Rule> rule, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
 {
     std::ostringstream res;
     std::string rhsFun = rule->getRight()->getFunctionSymbol();
@@ -78,7 +78,7 @@ static std::string getRightString(Rule *rule, std::list<std::string> &vars, std:
     return res.str();
 }
 
-static std::string toCIntString(Rule *rule, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
+static std::string toCIntString(ref<Rule> rule, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
 {
     std::ostringstream res;
     res << getLeftString(rule, vars) << " -> " << "Com_1(" << getRightString(rule, vars, argNames) << ")";
@@ -88,7 +88,7 @@ static std::string toCIntString(Rule *rule, std::list<std::string> &vars, std::m
     return res.str();
 }
 
-static std::string toCIntString(std::list<Rule*> &rules, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
+static std::string toCIntString(std::list<ref<Rule>> &rules, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
 {
     size_t numRules = rules.size();
     if (numRules == 0) {
@@ -97,9 +97,9 @@ static std::string toCIntString(std::list<Rule*> &rules, std::list<std::string> 
     }
     std::ostringstream res;
     bool first = true;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ) {
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ) {
         // the iterator get increased inside the loop
-        Rule *tmp = *i;
+        ref<Rule> tmp = *i;
         if (tmp->getConstraint()->getCType() != Constraint::CTrue) {
             std::cerr << "Cannot print nontrivial complexity tuple with nontrivial constraints (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         }
@@ -116,11 +116,11 @@ static std::string toCIntString(std::list<Rule*> &rules, std::list<std::string> 
     return res.str();
 }
 
-static std::list<std::string> getVars(std::list<Rule*> &rules)
+static std::list<std::string> getVars(std::list<ref<Rule>> &rules)
 {
     std::set<std::string> varsSet;
 
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         std::set<std::string> *tmp = (*i)->getVariables();
         for (std::set<std::string>::iterator ii = tmp->begin(), ee = tmp->end(); ii != ee; ++ii) {
             if (ii->substr(0, 7) != "nondef."){
@@ -134,11 +134,11 @@ static std::list<std::string> getVars(std::list<Rule*> &rules)
     return res;
 }
 
-static std::list<std::string> getAllVars(std::list<Rule*> &rules)
+static std::list<std::string> getAllVars(std::list<ref<Rule>> &rules)
 {
     std::set<std::string> varsSet;
 
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         std::set<std::string> *tmp = (*i)->getVariables();
         varsSet.insert(tmp->begin(), tmp->end());
     }
@@ -148,12 +148,12 @@ static std::list<std::string> getAllVars(std::list<Rule*> &rules)
     return res;
 }
 
-static std::map<std::string, std::list<std::string> > getArgNames(std::list<Rule*> &rules)
+static std::map<std::string, std::list<std::string> > getArgNames(std::list<ref<Rule>> &rules)
 {
     std::map<std::string, std::list<std::string> > res;
 
-    for (std::list<Rule*>::iterator i= rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule>>::iterator i= rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string lhsFun = rule->getLeft()->getFunctionSymbol();
         std::list<std::string> argNames;
         std::list<Polynomial*> args = rule->getLeft()->getArgs();
@@ -176,7 +176,7 @@ static std::map<std::string, std::list<std::string> > getArgNames(std::list<Rule
     return res;
 }
 
-void printUniformComplexityTuples(std::list<Rule*> &rules, std::set<std::string> &complexityLHSs, std::string &startFun, std::ostream &stream)
+void printUniformComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &complexityLHSs, std::string &startFun, std::ostream &stream)
 {
     std::set<std::string> todoComplexityLHSs;
     todoComplexityLHSs.insert(complexityLHSs.begin(), complexityLHSs.end());
@@ -192,8 +192,8 @@ void printUniformComplexityTuples(std::list<Rule*> &rules, std::set<std::string>
     stream << ')' << std::endl;
     stream << "(RULES" << std::endl;
 
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string lhsFun = rule->getLeft()->getFunctionSymbol();
         if (complexityLHSs.find(lhsFun) == complexityLHSs.end()) {
             stream << "  " << toCIntString(rule, vars, argNames) << std::endl;
@@ -202,9 +202,9 @@ void printUniformComplexityTuples(std::list<Rule*> &rules, std::set<std::string>
                 // already taken care of
             } else {
                 // collect and print in one complexity tuple
-                std::list<Rule*> combineRules;
-                for (std::list<Rule*>::iterator ii = rules.begin(); ii != e; ++ii) {
-                    Rule *tmp = *ii;
+                std::list<ref<Rule>> combineRules;
+                for (std::list<ref<Rule>>::iterator ii = rules.begin(); ii != e; ++ii) {
+                    ref<Rule> tmp = *ii;
                     if (tmp->getLeft()->getFunctionSymbol() == lhsFun) {
                         combineRules.push_back(tmp);
                     }

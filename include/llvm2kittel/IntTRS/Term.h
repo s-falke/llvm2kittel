@@ -8,6 +8,8 @@
 #ifndef TERM_H
 #define TERM_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <map>
@@ -19,9 +21,14 @@ class Polynomial;
 
 class Term
 {
+public:
+    unsigned refCount;
+
+protected:
+    Term(std::string f, std::list<Polynomial*> args);
 
 public:
-    Term(std::string f, std::list<Polynomial*> args);
+    static ref<Term> create(std::string f, std::list<Polynomial*> args);
     ~Term();
 
     std::string toString();
@@ -30,13 +37,13 @@ public:
     std::list<Polynomial*> getArgs();
     Polynomial *getArg(unsigned int argpos);
 
-    Term *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Term> instantiate(std::map<std::string, Polynomial*> *bindings);
 
     std::set<std::string> *getVariables();
 
     std::set<std::string> *getVariables(unsigned int argpos);
 
-    Term *dropArgs(std::set<unsigned int> drop);
+    ref<Term> dropArgs(std::set<unsigned int> drop);
 
 private:
     Term(const Term&);
