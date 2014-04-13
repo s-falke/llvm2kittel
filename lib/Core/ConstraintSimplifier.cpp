@@ -50,9 +50,9 @@ static std::list<ref<Atom> > getAtoms(ref<Constraint> c)
     return res;
 }
 
-static bool disjoint(std::set<std::string> &vars, std::set<std::string> *avars)
+static bool disjoint(std::set<std::string> &vars, std::set<std::string> &avars)
 {
-    for (std::set<std::string>::iterator i = avars->begin(), e = avars->end(); i != e; ++i) {
+    for (std::set<std::string>::iterator i = avars.begin(), e = avars.end(); i != e; ++i) {
         std::string v = *i;
         if (vars.find(v) != vars.end()) {
             return false;
@@ -77,7 +77,8 @@ static std::list<ref<Atom> > filterAtoms(std::list<ref<Atom> > &atoms, std::set<
     std::list<ref<Atom> > res;
     for (std::list<ref<Atom> >::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
         ref<Atom> a = *i;
-        std::set<std::string> *avars = a->getVariables();
+        std::set<std::string> avars;
+        a->addVariablesToSet(avars);
         if (!disjoint(vars, avars) && !alreadyThere(a, res)) {
             res.push_back(a);
         }
@@ -103,10 +104,8 @@ static ref<Rule> simplifyConstraints(ref<Rule> rule)
         return rule;
     }
     std::set<std::string> vars;
-    std::set<std::string> *tmp1 = lhs->getVariables();
-    std::set<std::string> *tmp2 = rhs->getVariables();
-    vars.insert(tmp1->begin(), tmp1->end());
-    vars.insert(tmp2->begin(), tmp2->end());
+    lhs->addVariablesToSet(vars);
+    rhs->addVariablesToSet(vars);
     std::list<ref<Atom> > atoms = getAtoms(c);
     std::list<ref<Atom> > newAtoms = filterAtoms(atoms, vars);
     if (newAtoms.size() == atoms.size()) {

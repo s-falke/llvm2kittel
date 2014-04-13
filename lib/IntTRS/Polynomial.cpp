@@ -126,16 +126,14 @@ std::string Monomial::getFirst()
     return m_powers.begin()->first;
 }
 
-std::set<std::string> *Monomial::getVariables()
+void Monomial::addVariablesToSet(std::set<std::string> &res)
 {
-    std::set<std::string> *res = new std::set<std::string>();
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
         std::pair<std::string, unsigned int> tmp = *i;
         if (tmp.second != 0) {
-            res->insert(tmp.first);
+            res.insert(tmp.first);
         }
     }
-    return res;
 }
 
 ref<Polynomial> Polynomial::null;
@@ -520,15 +518,12 @@ ref<Polynomial> Polynomial::instantiate(std::map<std::string, ref<Polynomial> > 
     return res;
 }
 
-std::set<std::string> *Polynomial::getVariables()
+void Polynomial::addVariablesToSet(std::set<std::string> &res)
 {
-    std::set<std::string> *res = new std::set<std::string>();
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
         std::pair<mpz_class, ref<Monomial> > tmp = *i;
-        std::set<std::string> *mvars = tmp.second->getVariables();
-        res->insert(mvars->begin(), mvars->end());
+        tmp.second->addVariablesToSet(res);
     }
-    return res;
 }
 
 long int Polynomial::normStepsNeeded()

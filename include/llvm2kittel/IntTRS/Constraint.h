@@ -56,7 +56,7 @@ public:
     virtual ref<Constraint> eliminateNeq() = 0;
     virtual ref<Constraint> evaluateTrivialAtoms() = 0;
 
-    virtual std::set<std::string> *getVariables() = 0;
+    virtual void addVariablesToSet(std::set<std::string> &res) = 0;
 
     virtual bool equals(ref<Constraint> c);
 
@@ -97,7 +97,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -128,7 +128,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -159,7 +159,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -205,7 +205,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     ref<Polynomial> getLeft();
     ref<Polynomial> getRight();
@@ -255,7 +255,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -304,7 +304,7 @@ public:
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     ref<Constraint> getLeft();
     ref<Constraint> getRight();

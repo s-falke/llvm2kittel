@@ -113,11 +113,8 @@ ref<Constraint> True::evaluateTrivialAtoms()
     return Constraint::_true;
 }
 
-std::set<std::string> *True::getVariables()
-{
-    std::set<std::string> *res = new std::set<std::string>();
-    return res;
-}
+void True::addVariablesToSet(std::set<std::string> &res)
+{}
 
 bool True::equalsInternal(ref<Constraint>)
 {
@@ -198,11 +195,8 @@ ref<Constraint> False::evaluateTrivialAtoms()
     return Constraint::_false;
 }
 
-std::set<std::string> *False::getVariables()
-{
-    std::set<std::string> *res = new std::set<std::string>();
-    return res;
-}
+void False::addVariablesToSet(std::set<std::string> &res)
+{}
 
 bool False::equalsInternal(ref<Constraint>)
 {
@@ -279,11 +273,8 @@ ref<Constraint> Nondef::evaluateTrivialAtoms()
     return this;
 }
 
-std::set<std::string> *Nondef::getVariables()
-{
-    std::set<std::string> *res = new std::set<std::string>();
-    return res;
-}
+void Nondef::addVariablesToSet(std::set<std::string> &res)
+{}
 
 bool Nondef::equalsInternal(ref<Constraint> c)
 {
@@ -477,14 +468,10 @@ ref<Constraint> Atom::evaluateTrivialAtoms()
     }
 }
 
-std::set<std::string> *Atom::getVariables()
+void Atom::addVariablesToSet(std::set<std::string> &res)
 {
-    std::set<std::string> *tmp1 = m_lhs->getVariables();
-    std::set<std::string> *tmp2 = m_rhs->getVariables();
-    std::set<std::string> *res = new std::set<std::string>();
-    res->insert(tmp1->begin(), tmp1->end());
-    res->insert(tmp2->begin(), tmp2->end());
-    return res;
+    m_lhs->addVariablesToSet(res);
+    m_rhs->addVariablesToSet(res);
 }
 
 bool Atom::equalsInternal(ref<Constraint> c)
@@ -578,9 +565,9 @@ ref<Constraint> Negation::evaluateTrivialAtoms()
     return create(m_c->evaluateTrivialAtoms());
 }
 
-std::set<std::string> *Negation::getVariables()
+void Negation::addVariablesToSet(std::set<std::string> &res)
 {
-    return m_c->getVariables();
+    m_c->addVariablesToSet(res);
 }
 
 bool Negation::equalsInternal(ref<Constraint> c)
@@ -743,14 +730,10 @@ ref<Constraint> Operator::evaluateTrivialAtoms()
     return create(m_lhs->evaluateTrivialAtoms(), m_rhs->evaluateTrivialAtoms(), m_type);
 }
 
-std::set<std::string> *Operator::getVariables()
+void Operator::addVariablesToSet(std::set<std::string> &res)
 {
-    std::set<std::string> *tmp1 = m_lhs->getVariables();
-    std::set<std::string> *tmp2 = m_rhs->getVariables();
-    std::set<std::string> *res = new std::set<std::string>();
-    res->insert(tmp1->begin(), tmp1->end());
-    res->insert(tmp2->begin(), tmp2->end());
-    return res;
+    m_lhs->addVariablesToSet(res);
+    m_rhs->addVariablesToSet(res);
 }
 
 ref<Constraint> Operator::getLeft()
