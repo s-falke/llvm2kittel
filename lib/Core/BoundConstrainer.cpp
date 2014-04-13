@@ -31,7 +31,7 @@ static std::string getBlockFun(std::string f, unsigned int i)
     return tmp.str();
 }
 
-static Constraint *getBoundConstraints(std::string var, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
+static ref<Constraint> getBoundConstraints(std::string var, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
 {
     std::map<std::string, unsigned int>::iterator found = bitwidthMap.find(var);
     if (found == bitwidthMap.end()) {
@@ -49,19 +49,19 @@ static Constraint *getBoundConstraints(std::string var, std::map<std::string, un
         lower = Polynomial::simin(bitwidth);
         upper = Polynomial::simax(bitwidth);
     }
-    Constraint *lowerCheck = new Atom(pvar, lower, Atom::Geq);
-    Constraint *upperCheck = new Atom(pvar, upper, Atom::Leq);
-    return new Operator(lowerCheck, upperCheck, Operator::And);
+    ref<Constraint> lowerCheck = Atom::create(pvar, lower, Atom::Geq);
+    ref<Constraint> upperCheck = Atom::create(pvar, upper, Atom::Leq);
+    return Operator::create(lowerCheck, upperCheck, Operator::And);
 }
 
-static Constraint *getBoundConstraints(std::set<std::string> &vars, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
+static ref<Constraint> getBoundConstraints(std::set<std::string> &vars, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
 {
     if (vars.size() == 0) {
         return Constraint::_true;
     }
-    Constraint *res = getBoundConstraints(*(vars.begin()), bitwidthMap, unsignedEncoding);
+    ref<Constraint> res = getBoundConstraints(*(vars.begin()), bitwidthMap, unsignedEncoding);
     for (std::set<std::string>::iterator i = ++(vars.begin()), e = vars.end(); i != e; ++i) {
-        res = new Operator(res, getBoundConstraints(*i, bitwidthMap, unsignedEncoding), Operator::And);
+        res = Operator::create(res, getBoundConstraints(*i, bitwidthMap, unsignedEncoding), Operator::And);
     }
     return res;
 }
@@ -110,14 +110,14 @@ static std::map<unsigned int, ref<Polynomial>> getNonNormalArgPositions(ref<Term
     return res;
 }
 
-static std::list<ref<Polynomial>> getNonNormalAtomPolynomials(Constraint *c)
+static std::list<ref<Polynomial>> getNonNormalAtomPolynomials(ref<Constraint> c)
 {
     std::list<ref<Polynomial>> res;
-    std::list<Constraint*> atomics = c->getAtomics();
-    for (std::list<Constraint*>::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
-        Constraint *cc = *i;
+    std::list<ref<Constraint>> atomics = c->getAtomics();
+    for (std::list<ref<Constraint>>::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
+        ref<Constraint> cc = *i;
         if (cc->getCType() == Constraint::CAtom) {
-            Atom *atom = static_cast<Atom*>(cc);
+            ref<Atom> atom = static_cast<Atom*>(cc.get());
             ref<Polynomial> lhs = atom->getLeft();
             if (!isNormal(lhs)) {
                 res.push_back(lhs);
@@ -183,8 +183,8 @@ static std::list<ref<Rule>> getNormRules(ref<Term> normLhs, unsigned int c, std:
         upper = Polynomial::simax(bitwidth);
     }
     adder = Polynomial::power_of_two(bitwidth);
-    Constraint *tooSmall = new Atom(pvar, lower, Atom::Lss);
-    Constraint *tooBig = new Atom(pvar, upper, Atom::Gtr);
+    ref<Constraint> tooSmall = Atom::create(pvar, lower, Atom::Lss);
+    ref<Constraint> tooBig = Atom::create(pvar, upper, Atom::Gtr);
     ref<Term> rhs1 = getNormRhs(normLhs, c, adder, true);
     ref<Rule> rule1 = Rule::create(normLhs, rhs1, tooSmall);
     ref<Term> rhs2 = getNormRhs(normLhs, c, adder, false);
@@ -216,7 +216,7 @@ static ref<Rule> chainRules(ref<Rule> rule1, ref<Rule> rule2)
         std::string var = *((*i2)->getVariables()->begin());
         subby.insert(std::make_pair(var, p));
     }
-  return Rule::create(rule1->getLeft(), rule2->getRight()->instantiate(&subby), new Operator(rule1->getConstraint(), rule2->getConstraint()->instantiate(&subby), Operator::And));
+    return Rule::create(rule1->getLeft(), rule2->getRight()->instantiate(&subby), Operator::create(rule1->getConstraint(), rule2->getConstraint()->instantiate(&subby), Operator::And));
 }
 
 static std::pair<ref<Rule>, ref<Rule>> getTheNormRules(std::string rhsFun, unsigned int argPos, std::list<ref<Rule>> &rules)
@@ -379,17 +379,17 @@ static void printRules(std::string header, std::list<ref<Rule>> rules)
 }
 */
 
-static std::list<Atom*> getAtoms(Constraint *c)
+static std::list<ref<Atom>> getAtoms(ref<Constraint> c)
 {
-    std::list<Atom*> res;
-    std::stack<Constraint*> todo;
+    std::list<ref<Atom>> res;
+    std::stack<ref<Constraint>> todo;
     todo.push(c);
     while (!todo.empty()) {
-        Constraint *cc = todo.top();
+        ref<Constraint> cc = todo.top();
         todo.pop();
         switch (cc->getCType()) {
         case Constraint::COperator: {
-            Operator *op = static_cast<Operator*>(cc);
+            ref<Operator> op = static_cast<Operator*>(cc.get());
             if (op->getOType() != Operator::And) {
                 std::cerr << "Unexpected constraint!" << std::endl;
                 exit(76767);
@@ -399,7 +399,7 @@ static std::list<Atom*> getAtoms(Constraint *c)
             break;
         }
         case Constraint::CAtom:
-            res.push_back(static_cast<Atom*>(cc));
+            res.push_back(static_cast<Atom*>(cc.get()));
             break;
         case Constraint::CTrue:
         case Constraint::CFalse:
@@ -413,24 +413,24 @@ static std::list<Atom*> getAtoms(Constraint *c)
     return res;
 }
 
-static Constraint *makeConjunction(std::list<Atom*> &atoms)
+static ref<Constraint> makeConjunction(std::list<ref<Atom>> &atoms)
 {
-    Constraint *res = *(atoms.begin());
-    for (std::list<Atom*>::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
-        res = new Operator(res, *i, Operator::And);
+    ref<Constraint> res = *(atoms.begin());
+    for (std::list<ref<Atom>>::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
+        res = Operator::create(res, *i, Operator::And);
     }
     return res;
 }
 
-static Constraint *mapPolysToVars(Constraint *c, std::map<Polynomial*, std::string> &atomPolyToVarMap)
+static ref<Constraint> mapPolysToVars(ref<Constraint> c, std::map<Polynomial*, std::string> &atomPolyToVarMap)
 {
     if (atomPolyToVarMap.empty()) {
         return c;
     }
-    std::list<Atom*> atoms = getAtoms(c);
-    std::list<Atom*> newAtoms;
-    for (std::list<Atom*>::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
-        Atom *a = *i;
+    std::list<ref<Atom>> atoms = getAtoms(c);
+    std::list<ref<Atom>> newAtoms;
+    for (std::list<ref<Atom>>::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
+        ref<Atom> a = *i;
         ref<Polynomial> lhs = a->getLeft();
         ref<Polynomial> rhs = a->getRight();
         ref<Polynomial> newLhs;
@@ -452,7 +452,8 @@ static Constraint *mapPolysToVars(Constraint *c, std::map<Polynomial*, std::stri
             newRhs = rhs;
         }
         if (newLhs.get() != lhs.get() || newRhs.get() != rhs.get()) {
-            newAtoms.push_back(new Atom(newLhs, newRhs, a->getAType()));
+            ref<Atom> na = static_cast<Atom*>(Atom::create(newLhs, newRhs, a->getAType()).get());
+            newAtoms.push_back(na);
         } else {
             newAtoms.push_back(a);
         }
@@ -470,7 +471,7 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
-        Constraint *c = rule->getConstraint();
+        ref<Constraint> c = rule->getConstraint();
         std::string lhsFun = lhs->getFunctionSymbol();
         std::string rhsFun = rhs->getFunctionSymbol();
         std::map<unsigned int, ref<Polynomial>> nonNormal = getNonNormalArgPositions(rhs);
@@ -482,8 +483,8 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             std::set<std::string> vars;
             vars.insert(lhsVars->begin(), lhsVars->end());
             vars.insert(rhsVars->begin(), rhsVars->end());
-            Constraint *bounds = getBoundConstraints(vars, bitwidthMap, unsignedEncoding);
-            Constraint *conj = new Operator(c, bounds, Operator::And);
+            ref<Constraint> bounds = getBoundConstraints(vars, bitwidthMap, unsignedEncoding);
+            ref<Constraint> conj = Operator::create(c, bounds, Operator::And);
             ref<Rule> newRule = Rule::create(lhs, rhs, conj);
             res.push_back(newRule);
         } else {
@@ -521,7 +522,7 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             // rule needs bound constraints and normalization
 
             // lhs -> rhs_cond_norm [ bounds ]
-            Constraint *bounds1 = getBoundConstraints(*(lhs->getVariables()), bitwidthMap, unsignedEncoding);
+            ref<Constraint> bounds1 = getBoundConstraints(*(lhs->getVariables()), bitwidthMap, unsignedEncoding);
             std::list<ref<Polynomial>> cond_norm_args = lhs->getArgs();
             cond_norm_args.insert(cond_norm_args.end(), nonNormalAtomPolys.begin(), nonNormalAtomPolys.end());
             ref<Term> rhs_cond_norm = Term::create(cond_norm, cond_norm_args);
@@ -533,8 +534,8 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             cond_norm_done_args.insert(cond_norm_done_args.end(), condNormArgs.begin(), condNormArgs.end());
             ref<Term> rhs_cond_norm_done = Term::create(cond_norm, cond_norm_done_args);
             ref<Term> block = Term::create(blocker, lhs->getArgs());
-            Constraint *bounds2 = getBoundConstraints(*(rhs_cond_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
-            Constraint *newC = new Operator(mapPolysToVars(c, atomPolyToVarMap), bounds2, Operator::And);
+            ref<Constraint> bounds2 = getBoundConstraints(*(rhs_cond_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
+            ref<Constraint> newC = Operator::create(mapPolysToVars(c, atomPolyToVarMap), bounds2, Operator::And);
             ref<Rule> rule2 = Rule::create(rhs_cond_norm_done, block, newC);
 
             // block -> rhs_rule_norm
@@ -544,7 +545,7 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             // rhs_rule_norm -> rhs [ bounds ]
             ref<Term> rhs_rule_norm_done = Term::create(rule_norm, ruleNormArgs);
             ref<Term> normRhs = Term::create(rhsFun, ruleNormArgs);
-            Constraint *bounds3 = getBoundConstraints(*(rhs_rule_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
+            ref<Constraint> bounds3 = getBoundConstraints(*(rhs_rule_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
             ref<Rule> rule4 = Rule::create(rhs_rule_norm_done, normRhs, bounds3);
 
             // do normalization for both

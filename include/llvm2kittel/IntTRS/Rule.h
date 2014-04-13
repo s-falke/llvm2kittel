@@ -23,10 +23,10 @@ public:
   unsigned refCount;
 
 protected:
-    Rule(ref<Term> lhs, ref<Term> rhs, Constraint *c);
+    Rule(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c);
 
 public:
-    static ref<Rule> create(ref<Term> lhs, ref<Term> rhs, Constraint *c);
+    static ref<Rule> create(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c);
     ~Rule();
 
     std::string toString();
@@ -34,7 +34,7 @@ public:
 
     ref<Term> getLeft();
     ref<Term> getRight();
-    Constraint *getConstraint();
+    ref<Constraint> getConstraint();
     std::set<std::string> *getVariables();
 
     ref<Rule> dropArgs(std::set<unsigned int> drop);
@@ -45,7 +45,7 @@ private:
 
     ref<Term> m_lhs;
     ref<Term> m_rhs;
-    Constraint *m_c;
+    ref<Constraint> m_c;
 
 };
 

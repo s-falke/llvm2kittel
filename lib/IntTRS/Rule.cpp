@@ -13,21 +13,19 @@
 #include <list>
 #include <sstream>
 
-Rule::Rule(ref<Term> lhs, ref<Term> rhs, Constraint *c)
+Rule::Rule(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c)
   : refCount(0),
     m_lhs(lhs),
     m_rhs(rhs),
     m_c(c)
 {}
 
-ref<Rule> Rule::create(ref<Term> lhs, ref<Term> rhs, Constraint *c) {
+ref<Rule> Rule::create(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c) {
   return new Rule(lhs, rhs,c);
 }
 
 Rule::~Rule()
-{
-    delete m_c;
-}
+{}
 
 std::string Rule::toString()
 {
@@ -56,7 +54,7 @@ ref<Term> Rule::getRight()
     return m_rhs;
 }
 
-Constraint *Rule::getConstraint()
+ref<Constraint> Rule::getConstraint()
 {
     return m_c;
 }

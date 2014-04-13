@@ -46,7 +46,7 @@ static ref<Polynomial> getArg(std::string &var, std::list<std::string> &lhsNames
             return *a;
         }
     }
-    return NULL;
+    return ref<Polynomial>();
 }
 
 static std::string getRightString(ref<Rule> rule, std::list<std::string> &vars, std::map<std::string, std::list<std::string> > &argNames)
