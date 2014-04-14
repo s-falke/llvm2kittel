@@ -113,7 +113,8 @@ static std::map<unsigned int, ref<Polynomial> > getNonNormalArgPositions(ref<Ter
 static std::list<ref<Polynomial> > getNonNormalAtomPolynomials(ref<Constraint> c)
 {
     std::list<ref<Polynomial> > res;
-    std::list<ref<Constraint> > atomics = c->getAtomics();
+    std::list<ref<Constraint> > atomics;
+    c->addAtomicsToList(atomics);
     for (std::list<ref<Constraint> >::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
         ref<Constraint> cc = *i;
         if (cc->getCType() == Constraint::CAtom) {

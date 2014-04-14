@@ -89,18 +89,14 @@ ref<Constraint> True::toDNF()
     return Constraint::_true;
 }
 
-std::list<ref<Constraint> > True::getDualClauses()
+void True::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
-std::list<ref<Constraint> > True::getAtomics()
+void True::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
 ref<Constraint> True::eliminateNeq()
@@ -171,18 +167,14 @@ ref<Constraint> False::toDNF()
     return Constraint::_false;
 }
 
-std::list<ref<Constraint> > False::getDualClauses()
+void False::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
-std::list<ref<Constraint> > False::getAtomics()
+void False::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
 ref<Constraint> False::eliminateNeq()
@@ -249,18 +241,14 @@ ref<Constraint> Nondef::toDNF()
     return this;
 }
 
-std::list<ref<Constraint> > Nondef::getDualClauses()
+void Nondef::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
-std::list<ref<Constraint> > Nondef::getAtomics()
+void Nondef::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
 ref<Constraint> Nondef::eliminateNeq()
@@ -411,18 +399,14 @@ ref<Constraint> Atom::toDNF()
     return this;
 }
 
-std::list<ref<Constraint> > Atom::getDualClauses()
+void Atom::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
-std::list<ref<Constraint> > Atom::getAtomics()
+void Atom::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
 ref<Constraint> Atom::eliminateNeq()
@@ -543,16 +527,14 @@ ref<Constraint> Negation::toDNF()
     exit(77);
 }
 
-std::list<ref<Constraint> > Negation::getDualClauses()
+void Negation::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
     res.push_back(this);
-    return res;
 }
 
-std::list<ref<Constraint> > Negation::getAtomics()
+void Negation::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    return m_c->getAtomics();
+    m_c->addAtomicsToList(res);
 }
 
 ref<Constraint> Negation::eliminateNeq()
@@ -669,8 +651,10 @@ ref<Constraint> Operator::toDNF()
     } else if (m_type == And) {
         ref<Constraint> lhsdnf = m_lhs->toDNF();
         ref<Constraint> rhsdnf = m_rhs->toDNF();
-        std::list<ref<Constraint> > lhsdcs = lhsdnf->getDualClauses();
-        std::list<ref<Constraint> > rhsdcs = rhsdnf->getDualClauses();
+        std::list<ref<Constraint> > lhsdcs;
+        lhsdnf->addDualClausesToList(lhsdcs);
+        std::list<ref<Constraint> > rhsdcs;
+        rhsdnf->addDualClausesToList(rhsdcs);
         std::list<ref<Constraint> > combined;
         for (std::list<ref<Constraint> >::iterator outeri = lhsdcs.begin(), outere = lhsdcs.end(); outeri != outere; ++outeri) {
             ref<Constraint> outerdc = *outeri;
@@ -691,33 +675,23 @@ ref<Constraint> Operator::toDNF()
     }
 }
 
-std::list<ref<Constraint> > Operator::getDualClauses()
+void Operator::addDualClausesToList(std::list<ref<Constraint> > &res)
 {
     if (m_type == And) {
-        std::list<ref<Constraint> > res;
         res.push_back(this);
-        return res;
     } else if (m_type == Or) {
-        std::list<ref<Constraint> > res;
-        std::list<ref<Constraint> > tmp1 = m_lhs->getDualClauses();
-        std::list<ref<Constraint> > tmp2 = m_rhs->getDualClauses();
-        res.insert(res.begin(), tmp2.begin(), tmp2.end());
-        res.insert(res.begin(), tmp1.begin(), tmp1.end());
-        return res;
+        m_lhs->addDualClausesToList(res);
+        m_rhs->addDualClausesToList(res);
     } else {
-        std::cerr << "Internal error in Operator::getDualClauses (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+        std::cerr << "Internal error in Operator::addDualClausesToList (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(0xCAFFEE);
     }
 }
 
-std::list<ref<Constraint> > Operator::getAtomics()
+void Operator::addAtomicsToList(std::list<ref<Constraint> > &res)
 {
-    std::list<ref<Constraint> > res;
-    std::list<ref<Constraint> > tmp1 = m_lhs->getAtomics();
-    std::list<ref<Constraint> > tmp2 = m_rhs->getAtomics();
-    res.insert(res.begin(), tmp2.begin(), tmp2.end());
-    res.insert(res.begin(), tmp1.begin(), tmp1.end());
-    return res;
+    m_lhs->addAtomicsToList(res);
+    m_rhs->addAtomicsToList(res);
 }
 
 ref<Constraint> Operator::eliminateNeq()
