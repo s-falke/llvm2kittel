@@ -5,7 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/BoundConditioner.h"
+#include "llvm2kittel/BoundConstrainer.h"
 #include "llvm2kittel/ConstraintSimplifier.h"
 #include "llvm2kittel/Converter.h"
 #include "llvm2kittel/Kittelizer.h"
@@ -605,7 +605,7 @@ int main(int argc, char *argv[])
                 slicedRules = slicer.sliceStillUsed(slicer.sliceDefined(slicer.sliceConstraint(slicer.sliceUsage(kittelizedRules))), conservativeSlicing);
             }
             if (boundedIntegers) {
-                slicedRules = kittelize(addBoundConditions(slicedRules, converter.getBitwidthMap(), unsignedEncoding));
+                slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding));
             }
             if (debug) {
                 allRules.insert(allRules.end(), rules.begin(), rules.end());

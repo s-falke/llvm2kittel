@@ -5,7 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/BoundConditioner.h"
+#include "llvm2kittel/BoundConstrainer.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
 #include "llvm2kittel/IntTRS/Rule.h"
@@ -460,7 +460,7 @@ static Constraint *mapPolysToVars(Constraint *c, std::map<Polynomial*, std::stri
     return makeConjunction(newAtoms);
 }
 
-std::list<Rule*> addBoundConditions(std::list<Rule*> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding)
+std::list<Rule*> addBoundConstraints(std::list<Rule*> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding)
 {
     std::list<Rule*> res;
     std::set<std::string> haveToKeep;
@@ -476,7 +476,7 @@ std::list<Rule*> addBoundConditions(std::list<Rule*> rules, std::map<std::string
         std::map<unsigned int, Polynomial*> nonNormal = getNonNormalArgPositions(rhs);
         std::list<Polynomial*> nonNormalAtomPolys = getNonNormalAtomPolynomials(c);
         if (nonNormal.empty() && nonNormalAtomPolys.empty()) {
-            // rule only needs bound conditions
+            // rule only needs bound constraints
             std::set<std::string> *lhsVars = lhs->getVariables();
             std::set<std::string> *rhsVars = rhs->getVariables();
             std::set<std::string> vars;
@@ -518,7 +518,7 @@ std::list<Rule*> addBoundConditions(std::list<Rule*> rules, std::map<std::string
                 bitwidthMap.insert(std::make_pair(var, tmpvari->second));
             }
 
-            // rule needs bound conditions and normalization
+            // rule needs bound constraints and normalization
 
             // lhs -> rhs_cond_norm [ bounds ]
             Constraint *bounds1 = getBoundConstraints(*(lhs->getVariables()), bitwidthMap, unsignedEncoding);

@@ -106,12 +106,12 @@ add_library(llvm2kittelComplexity STATIC
 )
 
 add_library(llvm2kittelCore STATIC
-  lib/Core/BoundConditioner.cpp
+  lib/Core/BoundConstrainer.cpp
   lib/Core/Converter.cpp
   lib/Core/Kittelizer.cpp
   lib/Core/Slicer.cpp
   lib/Core/ConstraintSimplifier.cpp
-  include/llvm2kittel/BoundConditioner.h
+  include/llvm2kittel/BoundConstrainer.h
   include/llvm2kittel/ConstraintSimplifier.h
   include/llvm2kittel/Converter.h
   include/llvm2kittel/DivConstraintStore.h
