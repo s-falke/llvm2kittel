@@ -5,14 +5,14 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#ifndef CONDITION_SIMPLIFIER_H
-#define CONDITION_SIMPLIFIER_H
+#ifndef CONSTRAINT_SIMPLIFIER_H
+#define CONSTRAINT_SIMPLIFIER_H
 
 // C++ includes
 #include <list>
 
 class Rule;
 
-std::list<Rule*> simplifyConditions(std::list<Rule*> rules);
+std::list<Rule*> simplifyConstraints(std::list<Rule*> rules);
 
-#endif // CONDITION_SIMPLIFIER_H
+#endif // CONSTRAINT_SIMPLIFIER_H

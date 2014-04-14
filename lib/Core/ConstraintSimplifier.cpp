@@ -5,7 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/ConditionSimplifier.h"
+#include "llvm2kittel/ConstraintSimplifier.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/IntTRS/Term.h"
@@ -94,7 +94,7 @@ static Constraint *makeConjunction(std::list<Atom*> &atoms)
     return res;
 }
 
-static Rule *simplifyConditions(Rule *rule)
+static Rule *simplifyConstraints(Rule *rule)
 {
     Term *lhs = rule->getLeft();
     Term *rhs = rule->getRight();
@@ -118,11 +118,11 @@ static Rule *simplifyConditions(Rule *rule)
     }
 }
 
-std::list<Rule*> simplifyConditions(std::list<Rule*> rules)
+std::list<Rule*> simplifyConstraints(std::list<Rule*> rules)
 {
     std::list<Rule*> res;
     for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        res.push_back(simplifyConditions(*i));
+        res.push_back(simplifyConstraints(*i));
     }
     return res;
 }

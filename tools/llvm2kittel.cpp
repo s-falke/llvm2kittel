@@ -6,7 +6,7 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/BoundConditioner.h"
-#include "llvm2kittel/ConditionSimplifier.h"
+#include "llvm2kittel/ConstraintSimplifier.h"
 #include "llvm2kittel/Converter.h"
 #include "llvm2kittel/Kittelizer.h"
 #include "llvm2kittel/Slicer.h"
@@ -613,7 +613,7 @@ int main(int argc, char *argv[])
                 allKittelizedRules.insert(allKittelizedRules.end(), kittelizedRules.begin(), kittelizedRules.end());
             }
             if (simplifyConds) {
-                slicedRules = simplifyConditions(slicedRules);
+                slicedRules = simplifyConstraints(slicedRules);
             }
             allSlicedRules.insert(allSlicedRules.end(), slicedRules.begin(), slicedRules.end());
 
