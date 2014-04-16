@@ -39,7 +39,7 @@
 
 #define SMALL_VECTOR_SIZE 8
 
-Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, bool exactDivision, bool bitwiseConditions, bool complexityTuples)
+Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, bool exactDivision, bool dumbDivision, bool bitwiseConditions, bool complexityTuples)
   : m_entryBlock(NULL),
     m_boolType(boolType),
     m_blockRules(),
@@ -70,6 +70,7 @@ Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool sele
     m_onlyLoopConditions(onlyLoopConditions),
     m_loopConditionBlocks(),
     m_exactDivision(exactDivision),
+    m_dumbDivision(dumbDivision),
     m_bitwiseConditions(bitwiseConditions),
     m_complexityTuples(complexityTuples),
     m_complexityLHSs()
@@ -1026,8 +1027,10 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             divC = m_unsignedEncoding ? getSDivConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSDivConstraintForSignedBounded(upper, lower, nondef);
-        } else {
+        } else if (!m_dumbDivision) {
             divC = m_exactDivision ? getExactSDivConstraintForUnbounded(upper, lower, nondef) : getSDivConstraintForUnbounded(upper, lower, nondef);
+        } else {
+            divC = Constraint::_true;
         }
         visitGenericInstruction(I, nondef, divC);
     }
@@ -1120,8 +1123,10 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
         ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             divC = m_unsignedEncoding ? getUDivConstraintForUnsignedBounded(upper, lower, nondef) : getUDivConstraintForSignedBounded(upper, lower, nondef);
-        } else {
+        } else if (!m_dumbDivision) {
             divC = m_exactDivision ? getExactUDivConstraintForUnbounded(upper, lower, nondef) : getUDivConstraintForUnbounded(upper, lower, nondef);
+        } else {
+            divC = Constraint::_true;
         }
         visitGenericInstruction(I, nondef, divC);
     }
@@ -1256,8 +1261,10 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             remC = m_unsignedEncoding ? getSRemConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSRemConstraintForSignedBounded(upper, lower, nondef);
-        } else {
+        } else if (!m_dumbDivision){
             remC = getSRemConstraintForUnbounded(upper, lower, nondef);
+        } else {
+            remC = Constraint::_true;
         }
         visitGenericInstruction(I, nondef, remC);
     }
@@ -1343,8 +1350,10 @@ void Converter::visitURem(llvm::BinaryOperator &I)
         ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             remC = m_unsignedEncoding ? getURemConstraintForUnsignedBounded(upper, lower, nondef) : getURemConstraintForSignedBounded(upper, lower, nondef);
-        } else {
+        } else if (!m_dumbDivision) {
             remC = getURemConstraintForUnbounded(upper, lower, nondef);
+        } else {
+            remC = Constraint::_true;
         }
         visitGenericInstruction(I, nondef, remC);
     }

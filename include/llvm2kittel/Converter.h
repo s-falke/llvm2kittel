@@ -49,7 +49,7 @@ class Converter : public llvm::InstVisitor<Converter>
 #include "WARN_ON.h"
 
 public:
-    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, bool exactDivision, bool bitwiseConditions, bool complexityTuples);
+    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, bool exactDivision, bool dumbDivision, bool bitwiseConditions, bool complexityTuples);
 
     void phase1(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
     void phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
@@ -203,6 +203,7 @@ private:
     std::set<llvm::BasicBlock*> m_loopConditionBlocks;
 
     bool m_exactDivision;
+    bool m_dumbDivision;
 
     bool m_bitwiseConditions;
 
