@@ -113,3 +113,20 @@ ref<Term> Term::dropArgs(std::set<unsigned int> drop)
     }
     return create(m_f, newargs);
 }
+
+bool Term::equals(ref<Term> term)
+{
+    if (m_f != term->m_f)
+        return false;
+
+    if (m_args.size() != term->m_args.size())
+        return false;
+
+    for (auto i = m_args.begin(), e = m_args.end(), ti = term->m_args.begin();
+         i != e; ++i, ++ti) {
+        if (!(*i)->equals((*ti)))
+            return false;
+    }
+
+    return true;
+}

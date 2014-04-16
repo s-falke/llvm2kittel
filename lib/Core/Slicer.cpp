@@ -918,3 +918,20 @@ bool Slicer::isNondef(std::string v)
 {
     return (v.substr(0, 7) == "nondef.");
 }
+
+std::list<ref<Rule>> Slicer::sliceDuplicates(std::list<ref<Rule> > rules) {
+  std::list<ref<Rule>> res;
+
+  for (auto i = rules.begin(), e = rules.end(); i != e; ++i) {
+    bool newRule = true;
+    for (auto ri = res.begin(), re = res.end(); ri != re; ++ri) {
+      if ((*i)->equals(*ri)) {
+        newRule = false;
+      }
+    }
+    if (newRule)
+      res.push_back(*i);
+  }
+
+  return res;
+}
