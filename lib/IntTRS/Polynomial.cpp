@@ -30,7 +30,7 @@ Monomial::~Monomial()
 unsigned int Monomial::getPower(std::string x)
 {
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (tmp.first == x) {
             return tmp.second;
         }
@@ -46,7 +46,7 @@ bool Monomial::empty()
 bool Monomial::equals(ref<Monomial> mono)
 {
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (mono->getPower(tmp.first) != tmp.second) {
             return false;
         }
@@ -59,7 +59,7 @@ bool Monomial::isUnivariateLinear()
     if (m_powers.size() != 1) {
         return false;
     } else {
-        std::pair<std::string, unsigned int> tmp = *m_powers.begin();
+        std::pair<std::string, unsigned int> &tmp = *m_powers.begin();
         return tmp.second == 1;
     }
 }
@@ -68,7 +68,7 @@ std::string Monomial::toString()
 {
     std::ostringstream sstr;
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (tmp.second == 1) {
             sstr << tmp.first;
         } else {
@@ -86,7 +86,7 @@ ref<Monomial> Monomial::mult(ref<Monomial> mono)
     ref<Monomial> res = create("x");
     res->m_powers.clear();
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         unsigned int otherPower = mono->getPower(tmp.first);
         unsigned int newPower = tmp.second + otherPower;
         if (newPower != 0) {
@@ -94,7 +94,7 @@ ref<Monomial> Monomial::mult(ref<Monomial> mono)
         }
     }
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = mono->m_powers.begin(), e = mono->m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (getPower(tmp.first) == 0) {
             res->m_powers.push_back(tmp);
         }
@@ -108,7 +108,7 @@ ref<Monomial> Monomial::lowerFirst()
     res->m_powers.clear();
     bool isFirst = true;
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (isFirst) {
             if (tmp.second != 1) {
                 res->m_powers.push_back(std::make_pair(tmp.first, tmp.second - 1));
@@ -129,7 +129,7 @@ std::string Monomial::getFirst()
 void Monomial::addVariablesToSet(std::set<std::string> &res)
 {
     for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ++i) {
-        std::pair<std::string, unsigned int> tmp = *i;
+        std::pair<std::string, unsigned int> &tmp = *i;
         if (tmp.second != 0) {
             res.insert(tmp.first);
         }
@@ -288,7 +288,7 @@ Polynomial::~Polynomial()
 void Polynomial::getCoeff(mpz_t res, ref<Monomial> mono)
 {
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         if (mono->equals(tmp.second)) {
             mpz_set(res, tmp.first.get_mpz_t());
         }
@@ -308,7 +308,7 @@ bool Polynomial::isVar()
     } else if (m_monos.size() != 1) {
         return false;
     } else {
-        std::pair<mpz_class, ref<Monomial> > tmp = *m_monos.begin();
+        std::pair<mpz_class, ref<Monomial> > &tmp = *m_monos.begin();
         return (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_one) == 0) && (tmp.second->isUnivariateLinear());
     }
 }
@@ -319,7 +319,7 @@ bool Polynomial::isUnivariateLinear()
     if (m_monos.size() != 1) {
         return false;
     } else {
-        std::pair<mpz_class, ref<Monomial> > tmp = *m_monos.begin();
+        std::pair<mpz_class, ref<Monomial> > &tmp = *m_monos.begin();
         return tmp.second->isUnivariateLinear();
     }
 }
@@ -332,7 +332,7 @@ bool Polynomial::isConst()
 bool Polynomial::isLinear()
 {
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         if (!tmp.second->isUnivariateLinear()) {
             return false;
         }
@@ -348,7 +348,7 @@ std::string Polynomial::toString()
     } else {
         bool isFirst = true;
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ) {
-            std::pair<mpz_class, ref<Monomial> > tmp = *i;
+            std::pair<mpz_class, ref<Monomial> > &tmp = *i;
             if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_one) == 0) {
             } else if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_negone) == 0) {
                 if (isFirst) {
@@ -398,7 +398,7 @@ ref<Polynomial> Polynomial::add(ref<Polynomial> poly)
     ref<Polynomial> res = create(newConstant);
     mpz_clear(newConstant);
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         mpz_t otherCoeff;
         mpz_init(otherCoeff);
         poly->getCoeff(otherCoeff, tmp.second);
@@ -412,7 +412,7 @@ ref<Polynomial> Polynomial::add(ref<Polynomial> poly)
         mpz_clear(newCoeff); // The mpz_class constructor does not take ownership
     }
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = poly->m_monos.begin(), e = poly->m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         mpz_t coeff;
         mpz_init(coeff);
         getCoeff(coeff, tmp.second);
@@ -440,7 +440,7 @@ ref<Polynomial> Polynomial::constMult(mpz_t d)
         ref<Polynomial> res = create(newConstant);
         mpz_clear(newConstant);
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-            std::pair<mpz_class, ref<Monomial> > tmp = *i;
+            std::pair<mpz_class, ref<Monomial> > &tmp = *i;
             mpz_t newCoeff;
             mpz_init(newCoeff);
             mpz_mul(newCoeff, tmp.first.get_mpz_t(), d);
@@ -459,9 +459,9 @@ ref<Polynomial> Polynomial::mult(ref<Polynomial> poly)
     }
     ref<Polynomial> pp = Polynomial::null;
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator oi = m_monos.begin(), oe = m_monos.end(); oi != oe; ++oi) {
-        std::pair<mpz_class, ref<Monomial> > outer = *oi;
+        std::pair<mpz_class, ref<Monomial> > &outer = *oi;
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator ii = poly->m_monos.begin(), ie = poly->m_monos.end(); ii != ie; ++ii) {
-            std::pair<mpz_class, ref<Monomial> > inner = *ii;
+            std::pair<mpz_class, ref<Monomial> > &inner = *ii;
             ref<Polynomial> tmp = create(outer.second->mult(inner.second));
             mpz_t newCoeff;
             mpz_init(newCoeff);
@@ -491,7 +491,7 @@ ref<Polynomial> Polynomial::instantiate(std::map<std::string, ref<Polynomial> > 
     ref<Polynomial> res = create(m_constant);
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
         ref<Polynomial> accu = Polynomial::one;
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         ref<Monomial> mono = tmp.second;
         while (!mono->empty()) {
             std::string x = mono->getFirst();
@@ -511,7 +511,7 @@ ref<Polynomial> Polynomial::instantiate(std::map<std::string, ref<Polynomial> > 
 void Polynomial::addVariablesToSet(std::set<std::string> &res)
 {
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         tmp.second->addVariablesToSet(res);
     }
 }
@@ -523,7 +523,7 @@ long int Polynomial::normStepsNeeded()
     }
     long int res = 0;
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
-        std::pair<mpz_class, ref<Monomial> > tmp = *i;
+        std::pair<mpz_class, ref<Monomial> > &tmp = *i;
         if (!tmp.second->isUnivariateLinear()) {
             // multiplication...
             return -1;
