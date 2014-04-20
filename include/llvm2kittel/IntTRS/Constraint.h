@@ -212,6 +212,7 @@ public:
 
 protected:
     bool equalsInternal(ref<Constraint> c);
+    static ref<Constraint> evaluateTrivialAtomsInternal(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type);
 
 private:
     ref<Polynomial> m_lhs;

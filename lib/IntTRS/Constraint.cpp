@@ -278,7 +278,7 @@ Atom::Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type)
 
 ref<Constraint> Atom::create(ref<Polynomial> lhs, ref<Polynomial> rhs, Atom::AType type)
 {
-    return new Atom(lhs, rhs, type);
+    return evaluateTrivialAtomsInternal(lhs, rhs, type);
 }
 
 Atom::~Atom()
@@ -420,26 +420,30 @@ ref<Constraint> Atom::eliminateNeq()
     }
 }
 
-ref<Constraint> Atom::evaluateTrivialAtoms()
+ref<Constraint> Atom::evaluateTrivialAtoms() {
+    return evaluateTrivialAtomsInternal(m_lhs, m_rhs, m_type);
+}
+
+ref<Constraint> Atom::evaluateTrivialAtomsInternal(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type)
 {
-    if (m_lhs->isConst() && m_rhs->isConst()) {
+    if (lhs->isConst() && rhs->isConst()) {
         mpz_t lconst, rconst;
         mpz_init(lconst);
         mpz_init(rconst);
-        m_lhs->getConst(lconst);
-        m_rhs->getConst(rconst);
+        lhs->getConst(lconst);
+        rhs->getConst(rconst);
         bool eval = true;
-        if (m_type == Equ) {
+        if (type == Equ) {
             eval = (mpz_cmp(lconst, rconst) == 0);
-        } else if (m_type == Neq) {
+        } else if (type == Neq) {
             eval = (mpz_cmp(lconst, rconst) != 0);
-        } else if (m_type == Geq) {
+        } else if (type == Geq) {
             eval = (mpz_cmp(lconst, rconst) >= 0);
-        } else if (m_type == Gtr) {
+        } else if (type == Gtr) {
             eval = (mpz_cmp(lconst, rconst) > 0);
-        } else if (m_type == Leq) {
+        } else if (type == Leq) {
             eval = (mpz_cmp(lconst, rconst) <= 0);
-        } else if (m_type == Lss) {
+        } else if (type == Lss) {
             eval = (mpz_cmp(lconst, rconst) < 0);
         }
         mpz_clear(lconst);
@@ -450,7 +454,7 @@ ref<Constraint> Atom::evaluateTrivialAtoms()
             return Constraint::_false;
         }
     } else {
-        return new Atom(m_lhs, m_rhs, m_type);
+        return new Atom(lhs, rhs, type);
     }
 }
 
@@ -479,6 +483,17 @@ ref<Polynomial> Atom::getRight()
 // Negation
 ref<Constraint> Negation::create(ref<Constraint> c)
 {
+    if (c->getCType() == CTrue) {
+        return _false;
+    } else if (c->getCType() == CFalse) {
+        return _true;
+    } else if (c->getCType() == CNondef) {
+        return c;
+    } else if (c->getCType() == CNegation) {
+        ref<Negation> neg = static_cast<Negation*>(c.get());
+        return neg->m_c;
+    }
+
     return new Negation(c);
 }
 
@@ -569,6 +584,28 @@ Operator::Operator(ref<Constraint> lhs, ref<Constraint> rhs, OType type)
 
 ref<Constraint> Operator::create(ref<Constraint> lhs, ref<Constraint> rhs, Operator::OType type)
 {
+    if (type == And) {
+        if (lhs->getCType() == CTrue) {
+            return rhs;
+        } else if (rhs->getCType() == CTrue) {
+            return lhs;
+        } else if (lhs->getCType() == CFalse) {
+            return _false;
+        } else if (rhs->getCType() == CFalse) {
+            return _false;
+        }
+    } else if (type == Or) {
+        if (lhs->getCType() == CTrue) {
+            return _true;
+        } else if (rhs->getCType() == CTrue) {
+            return _true;
+        } else if (lhs->getCType() == CFalse) {
+            return rhs;
+        } else if (rhs->getCType() == CFalse) {
+            return lhs;
+        }
+    }
+
     return new Operator(lhs, rhs, type);
 }
 
