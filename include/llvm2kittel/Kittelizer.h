@@ -15,6 +15,6 @@
 
 class Rule;
 
-std::list<ref<Rule>> kittelize(std::list<ref<Rule>> rules);
+std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules);
 
 #endif // KITTELIZER_H

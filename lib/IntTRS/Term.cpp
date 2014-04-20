@@ -11,15 +11,15 @@
 // C++ includes
 #include <sstream>
 
-Term::Term(std::string f, std::list<ref<Polynomial>> args)
+Term::Term(std::string f, std::list<ref<Polynomial> > args)
   : refCount(0),
     m_f(f),
     m_args(args),
     m_vars()
 {}
 
-ref<Term> Term::create(std::string f, std::list<ref<Polynomial>> args) {
-  return new Term(f, args);
+ref<Term> Term::create(std::string f, std::list<ref<Polynomial> > args) {
+    return new Term(f, args);
 }
 
 Term::~Term()
@@ -29,7 +29,7 @@ std::string Term::toString()
 {
     std::ostringstream res;
     res << m_f << '(';
-    for (std::list<ref<Polynomial>>::iterator i = m_args.begin(), e = m_args.end(); i != e; ) {
+    for (std::list<ref<Polynomial> >::iterator i = m_args.begin(), e = m_args.end(); i != e; ) {
         ref<Polynomial> tmp = *i;
         res << tmp->toString();
         if (++i != e) {
@@ -45,7 +45,7 @@ std::string Term::getFunctionSymbol()
     return m_f;
 }
 
-std::list<ref<Polynomial>> Term::getArgs()
+std::list<ref<Polynomial> > Term::getArgs()
 {
     return m_args;
 }
@@ -53,7 +53,7 @@ std::list<ref<Polynomial>> Term::getArgs()
 ref<Polynomial> Term::getArg(unsigned int i)
 {
     unsigned int c = 0;
-    for (std::list<ref<Polynomial>>::iterator it = m_args.begin(), et = m_args.end(); it != et; ++it) {
+    for (std::list<ref<Polynomial> >::iterator it = m_args.begin(), et = m_args.end(); it != et; ++it) {
         if (c == i) {
             return *it;
         }
@@ -62,10 +62,10 @@ ref<Polynomial> Term::getArg(unsigned int i)
     return ref<Polynomial>();
 }
 
-ref<Term> Term::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
+ref<Term> Term::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
-    std::list<ref<Polynomial>> newargs;
-    for (std::list<ref<Polynomial>>::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
+    std::list<ref<Polynomial> > newargs;
+    for (std::list<ref<Polynomial> >::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
         ref<Polynomial> pol = *i;
         newargs.push_back(pol->instantiate(bindings));
     }
@@ -96,7 +96,7 @@ void Term::setupVars(void)
 {
     if (m_args.size() != m_vars.size()) {
         m_vars.clear();
-        for (std::list<ref<Polynomial>>::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
+        for (std::list<ref<Polynomial> >::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
             ref<Polynomial> tmp = *i;
             m_vars.push_back(tmp->getVariables());
         }
@@ -105,9 +105,9 @@ void Term::setupVars(void)
 
 ref<Term> Term::dropArgs(std::set<unsigned int> drop)
 {
-    std::list<ref<Polynomial>> newargs;
+    std::list<ref<Polynomial> > newargs;
     unsigned int argc = 0;
-    for (std::list<ref<Polynomial>>::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i, ++argc) {
+    for (std::list<ref<Polynomial> >::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i, ++argc) {
         if (drop.find(argc) == drop.end()) {
             ref<Polynomial> pol = *i;
             newargs.push_back(pol);

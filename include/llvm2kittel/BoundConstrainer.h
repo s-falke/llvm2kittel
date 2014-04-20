@@ -17,6 +17,6 @@
 
 class Rule;
 
-std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding);
+std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding);
 
 #endif // BOUND_CONSTRAINER_H

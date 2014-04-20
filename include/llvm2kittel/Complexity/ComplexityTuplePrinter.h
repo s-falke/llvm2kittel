@@ -18,6 +18,6 @@
 
 class Rule;
 
-void printComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &complexityLHSs, std::ostream &stream);
+void printComplexityTuples(std::list<ref<Rule> > &rules, std::set<std::string> &complexityLHSs, std::ostream &stream);
 
 #endif // COMPLEXITY_TUPLE_PRINTER_H

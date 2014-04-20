@@ -15,10 +15,10 @@
 #include <cstdlib>
 #include <stack>
 
-static std::list<ref<Atom>> getAtoms(ref<Constraint> c)
+static std::list<ref<Atom> > getAtoms(ref<Constraint> c)
 {
-    std::list<ref<Atom>> res;
-    std::stack<ref<Constraint>> todo;
+    std::list<ref<Atom> > res;
+    std::stack<ref<Constraint> > todo;
     todo.push(c);
     while (!todo.empty()) {
         ref<Constraint> cc = todo.top();
@@ -61,9 +61,9 @@ static bool disjoint(std::set<std::string> &vars, std::set<std::string> *avars)
     return true;
 }
 
-static bool alreadyThere(ref<Atom> a, std::list<ref<Atom>> &atoms)
+static bool alreadyThere(ref<Atom> a, std::list<ref<Atom> > &atoms)
 {
-    for (std::list<ref<Atom>>::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
+    for (std::list<ref<Atom> >::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
         ref<Atom> aa = *i;
         if (a->equals(aa)) {
             return true;
@@ -72,10 +72,10 @@ static bool alreadyThere(ref<Atom> a, std::list<ref<Atom>> &atoms)
     return false;
 }
 
-static std::list<ref<Atom>> filterAtoms(std::list<ref<Atom>> &atoms, std::set<std::string> &vars)
+static std::list<ref<Atom> > filterAtoms(std::list<ref<Atom> > &atoms, std::set<std::string> &vars)
 {
-    std::list<ref<Atom>> res;
-    for (std::list<ref<Atom>>::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
+    std::list<ref<Atom> > res;
+    for (std::list<ref<Atom> >::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
         ref<Atom> a = *i;
         std::set<std::string> *avars = a->getVariables();
         if (!disjoint(vars, avars) && !alreadyThere(a, res)) {
@@ -85,10 +85,10 @@ static std::list<ref<Atom>> filterAtoms(std::list<ref<Atom>> &atoms, std::set<st
     return res;
 }
 
-static ref<Constraint> makeConjunction(std::list<ref<Atom>> &atoms)
+static ref<Constraint> makeConjunction(std::list<ref<Atom> > &atoms)
 {
     ref<Constraint> res = *(atoms.begin());
-    for (std::list<ref<Atom>>::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
+    for (std::list<ref<Atom> >::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
       res = Operator::create(res, *i, Operator::And);
     }
     return res;
@@ -107,8 +107,8 @@ static ref<Rule> simplifyConstraints(ref<Rule> rule)
     std::set<std::string> *tmp2 = rhs->getVariables();
     vars.insert(tmp1->begin(), tmp1->end());
     vars.insert(tmp2->begin(), tmp2->end());
-    std::list<ref<Atom>> atoms = getAtoms(c);
-    std::list<ref<Atom>> newAtoms = filterAtoms(atoms, vars);
+    std::list<ref<Atom> > atoms = getAtoms(c);
+    std::list<ref<Atom> > newAtoms = filterAtoms(atoms, vars);
     if (newAtoms.size() == atoms.size()) {
         return rule;
     } else if (newAtoms.size() == 0) {
@@ -118,10 +118,10 @@ static ref<Rule> simplifyConstraints(ref<Rule> rule)
     }
 }
 
-std::list<ref<Rule>> simplifyConstraints(std::list<ref<Rule>> rules)
+std::list<ref<Rule> > simplifyConstraints(std::list<ref<Rule> > rules)
 {
-    std::list<ref<Rule>> res;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         res.push_back(simplifyConstraints(*i));
     }
     return res;

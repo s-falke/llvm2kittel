@@ -15,6 +15,6 @@
 
 class Rule;
 
-std::list<ref<Rule>> simplifyConstraints(std::list<ref<Rule>> rules);
+std::list<ref<Rule> > simplifyConstraints(std::list<ref<Rule> > rules);
 
 #endif // CONSTRAINT_SIMPLIFIER_H

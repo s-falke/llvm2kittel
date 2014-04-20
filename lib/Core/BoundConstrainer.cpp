@@ -66,10 +66,10 @@ static ref<Constraint> getBoundConstraints(std::set<std::string> &vars, std::map
     return res;
 }
 
-static std::list<ref<Polynomial>> getNormArgs(std::string fun, std::list<ref<Rule>> rules)
+static std::list<ref<Polynomial> > getNormArgs(std::string fun, std::list<ref<Rule> > rules)
 {
     if (fun.substr(fun.length() - 4) == "stop") {
-        for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
             ref<Rule> rule = *i;
             ref<Term> rhs = rule->getRight();
             if (rhs->getFunctionSymbol() == fun) {
@@ -79,7 +79,7 @@ static std::list<ref<Polynomial>> getNormArgs(std::string fun, std::list<ref<Rul
         std::cerr << "Did not find rule with matching RHS!" << std::endl;
         exit(1212);
     }
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         if (lhs->getFunctionSymbol() == fun) {
@@ -95,12 +95,12 @@ bool isNormal(ref<Polynomial> p)
     return p->isVar() || p->isConst();
 }
 
-static std::map<unsigned int, ref<Polynomial>> getNonNormalArgPositions(ref<Term> rhs)
+static std::map<unsigned int, ref<Polynomial> > getNonNormalArgPositions(ref<Term> rhs)
 {
-    std::map<unsigned int, ref<Polynomial>> res;
-    std::list<ref<Polynomial>> args = rhs->getArgs();
+    std::map<unsigned int, ref<Polynomial> > res;
+    std::list<ref<Polynomial> > args = rhs->getArgs();
     unsigned int c = 0;
-    for (std::list<ref<Polynomial>>::iterator i = args.begin(), e = args.end(); i != e; ++i) {
+    for (std::list<ref<Polynomial> >::iterator i = args.begin(), e = args.end(); i != e; ++i) {
         ref<Polynomial> p = *i;
         if (!isNormal(p)) {
             res.insert(std::make_pair(c, p));
@@ -110,11 +110,11 @@ static std::map<unsigned int, ref<Polynomial>> getNonNormalArgPositions(ref<Term
     return res;
 }
 
-static std::list<ref<Polynomial>> getNonNormalAtomPolynomials(ref<Constraint> c)
+static std::list<ref<Polynomial> > getNonNormalAtomPolynomials(ref<Constraint> c)
 {
-    std::list<ref<Polynomial>> res;
-    std::list<ref<Constraint>> atomics = c->getAtomics();
-    for (std::list<ref<Constraint>>::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
+    std::list<ref<Polynomial> > res;
+    std::list<ref<Constraint> > atomics = c->getAtomics();
+    for (std::list<ref<Constraint> >::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
         ref<Constraint> cc = *i;
         if (cc->getCType() == Constraint::CAtom) {
             ref<Atom> atom = static_cast<Atom*>(cc.get());
@@ -131,9 +131,9 @@ static std::list<ref<Polynomial>> getNonNormalAtomPolynomials(ref<Constraint> c)
     return res;
 }
 
-static std::string get(std::list<ref<Polynomial>> args, unsigned int c)
+static std::string get(std::list<ref<Polynomial> > args, unsigned int c)
 {
-    std::list<ref<Polynomial>>::iterator tmp = args.begin();
+    std::list<ref<Polynomial> >::iterator tmp = args.begin();
     for (unsigned int i = 0; i < c; ++i) {
         ++tmp;
     }
@@ -142,10 +142,10 @@ static std::string get(std::list<ref<Polynomial>> args, unsigned int c)
 
 static ref<Term> getNormRhs(ref<Term> lhs, unsigned int c, ref<Polynomial> addTerm, bool doAdd)
 {
-    std::list<ref<Polynomial>> args = lhs->getArgs();
-    std::list<ref<Polynomial>> newargs;
+    std::list<ref<Polynomial> > args = lhs->getArgs();
+    std::list<ref<Polynomial> > newargs;
     unsigned int cc = 0;
-    for (std::list<ref<Polynomial>>::iterator i = args.begin(), e = args.end(); i != e; ++i) {
+    for (std::list<ref<Polynomial> >::iterator i = args.begin(), e = args.end(); i != e; ++i) {
         ref<Polynomial> p = *i;
         if (c == cc) {
             if (doAdd) {
@@ -158,12 +158,12 @@ static ref<Term> getNormRhs(ref<Term> lhs, unsigned int c, ref<Polynomial> addTe
         }
         ++cc;
     }
-  return Term::create(lhs->getFunctionSymbol(), newargs);
+    return Term::create(lhs->getFunctionSymbol(), newargs);
 }
 
-static std::list<ref<Rule>> getNormRules(ref<Term> normLhs, unsigned int c, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
+static std::list<ref<Rule> > getNormRules(ref<Term> normLhs, unsigned int c, std::map<std::string, unsigned int> &bitwidthMap, bool unsignedEncoding)
 {
-    std::list<ref<Rule>> res;
+    std::list<ref<Rule> > res;
     std::string var = get(normLhs->getArgs(), c);
     std::map<std::string, unsigned int>::iterator found = bitwidthMap.find(var);
     if (found == bitwidthMap.end()) {
@@ -208,10 +208,10 @@ static ref<Rule> chainRules(ref<Rule> rule1, ref<Rule> rule2)
 {
     ref<Term> rhs1 = rule1->getRight();
     ref<Term> lhs2 = rule2->getLeft();
-    std::map<std::string, ref<Polynomial>> subby;
-    std::list<ref<Polynomial>> rhs1args = rhs1->getArgs();
-    std::list<ref<Polynomial>> lhs2args = lhs2->getArgs();
-    for (std::list<ref<Polynomial>>::iterator i1 = rhs1args.begin(), e1 = rhs1args.end(), i2 = lhs2args.begin(); i1 != e1; ++i1, ++i2) {
+    std::map<std::string, ref<Polynomial> > subby;
+    std::list<ref<Polynomial> > rhs1args = rhs1->getArgs();
+    std::list<ref<Polynomial> > lhs2args = lhs2->getArgs();
+    for (std::list<ref<Polynomial> >::iterator i1 = rhs1args.begin(), e1 = rhs1args.end(), i2 = lhs2args.begin(); i1 != e1; ++i1, ++i2) {
         ref<Polynomial> p = *i1;
         std::string var = *((*i2)->getVariables()->begin());
         subby.insert(std::make_pair(var, p));
@@ -219,10 +219,10 @@ static ref<Rule> chainRules(ref<Rule> rule1, ref<Rule> rule2)
     return Rule::create(rule1->getLeft(), rule2->getRight()->instantiate(&subby), Operator::create(rule1->getConstraint(), rule2->getConstraint()->instantiate(&subby), Operator::And));
 }
 
-static std::pair<ref<Rule>, ref<Rule>> getTheNormRules(std::string rhsFun, unsigned int argPos, std::list<ref<Rule>> &rules)
+static std::pair<ref<Rule>, ref<Rule> > getTheNormRules(std::string rhsFun, unsigned int argPos, std::list<ref<Rule> > &rules)
 {
-    std::list<ref<Rule>> normRules;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > normRules;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> tmp = *i;
         if (tmp->getLeft()->getFunctionSymbol() == rhsFun && tmp->getRight()->getFunctionSymbol() == rhsFun) {
             ref<Polynomial> theArg = tmp->getRight()->getArg(argPos);
@@ -238,28 +238,28 @@ static std::pair<ref<Rule>, ref<Rule>> getTheNormRules(std::string rhsFun, unsig
     return std::make_pair(*normRules.begin(), *(++normRules.begin()));
 }
 
-static std::list<ref<Rule>> getChainedNormRules(ref<Rule> rule, std::list<ref<Rule>> &rules)
+static std::list<ref<Rule> > getChainedNormRules(ref<Rule> rule, std::list<ref<Rule> > &rules)
 {
-    std::list<ref<Rule>> res;
-    std::list<ref<Rule>> thusFar;
+    std::list<ref<Rule> > res;
+    std::list<ref<Rule> > thusFar;
     ref<Term> rhs = rule->getRight();
-    std::list<ref<Polynomial>> args = rhs->getArgs();
+    std::list<ref<Polynomial> > args = rhs->getArgs();
     thusFar.push_back(rule);
     std::string rhsFun = rhs->getFunctionSymbol();
     unsigned int argCount = 0;
-    for (std::list<ref<Polynomial>>::iterator ia = args.begin(), ea = args.end(); ia != ea; ++ia) {
+    for (std::list<ref<Polynomial> >::iterator ia = args.begin(), ea = args.end(); ia != ea; ++ia) {
         ref<Polynomial> p = *ia;
         if (isNormal(p)) {
             ++ argCount;
             continue;
         }
-        std::list<ref<Rule>> tmp;
-        for (std::list<ref<Rule>>::iterator ir = thusFar.begin(), er = thusFar.end(); ir != er; ++ir) {
+        std::list<ref<Rule> > tmp;
+        for (std::list<ref<Rule> >::iterator ir = thusFar.begin(), er = thusFar.end(); ir != er; ++ir) {
             ref<Rule> toChain = *ir;
             // no chaining
             tmp.push_back(toChain);
             long int normStepsNeeded = p->normStepsNeeded();
-            std::pair<ref<Rule>, ref<Rule>> theNormRules = getTheNormRules(rhsFun, argCount, rules);
+            std::pair<ref<Rule>, ref<Rule> > theNormRules = getTheNormRules(rhsFun, argCount, rules);
             ref<Rule> rule1 = toChain;
             ref<Rule> rule2 = toChain;
             for (long int c = 1; c <= normStepsNeeded; ++c) {
@@ -274,7 +274,7 @@ static std::list<ref<Rule>> getChainedNormRules(ref<Rule> rule, std::list<ref<Ru
     }
     // now chain with exit
     ref<Rule> exitRule;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> tmp = *i;
         if (tmp->getLeft()->getFunctionSymbol() == rhsFun && tmp->getRight()->getFunctionSymbol() != rhsFun) {
             exitRule = tmp;
@@ -285,16 +285,16 @@ static std::list<ref<Rule>> getChainedNormRules(ref<Rule> rule, std::list<ref<Ru
         std::cerr << "Did not find exit rule!" << std::endl;
         exit(777);
     }
-    for (std::list<ref<Rule>>::iterator i = thusFar.begin(), e = thusFar.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = thusFar.begin(), e = thusFar.end(); i != e; ++i) {
         res.push_back(chainRules(*i, exitRule));
     }
     return res;
 }
 
-static std::list<ref<Rule>> eliminateUnneededNorms(std::list<ref<Rule>> rules, std::set<std::string> &haveToKeep)
+static std::list<ref<Rule> > eliminateUnneededNorms(std::list<ref<Rule> > rules, std::set<std::string> &haveToKeep)
 {
-    std::list<ref<Rule>> res;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
@@ -318,7 +318,7 @@ static std::list<ref<Rule>> eliminateUnneededNorms(std::list<ref<Rule>> rules, s
                 res.push_back(rule);
             } else {
                 // chain
-                std::list<ref<Rule>> chainedRules = getChainedNormRules(rule, rules);
+                std::list<ref<Rule> > chainedRules = getChainedNormRules(rule, rules);
                 res.insert(res.end(), chainedRules.begin(), chainedRules.end());
             }
         } else {
@@ -329,10 +329,10 @@ static std::list<ref<Rule>> eliminateUnneededNorms(std::list<ref<Rule>> rules, s
     return res;
 }
 
-static std::list<ref<Rule>> eliminateBlocks(std::list<ref<Rule>> rules)
+static std::list<ref<Rule> > eliminateBlocks(std::list<ref<Rule> > rules)
 {
-    std::list<ref<Rule>> res;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
@@ -340,7 +340,7 @@ static std::list<ref<Rule>> eliminateBlocks(std::list<ref<Rule>> rules)
         std::string rhsFun = rhs->getFunctionSymbol();
         if (isBlockSymbol(rhsFun)) {
             // chain
-            for (std::list<ref<Rule>>::iterator ii = rules.begin(), ee = rules.end(); ii != ee; ++ii) {
+            for (std::list<ref<Rule> >::iterator ii = rules.begin(), ee = rules.end(); ii != ee; ++ii) {
                 ref<Rule> inner = *ii;
                 if (inner->getLeft()->getFunctionSymbol() == rhsFun) {
                    res.push_back(chainRules(rule, inner));
@@ -369,20 +369,20 @@ static bool isCNorm(std::string v)
 }
 
 /*
-static void printRules(std::string header, std::list<ref<Rule>> rules)
+static void printRules(std::string header, std::list<ref<Rule> > rules)
 {
     std::cout << header << std::endl;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         std::cout << (*i)->toString() << std::endl;
     }
     std::cout << header << std::endl;
 }
 */
 
-static std::list<ref<Atom>> getAtoms(ref<Constraint> c)
+static std::list<ref<Atom> > getAtoms(ref<Constraint> c)
 {
-    std::list<ref<Atom>> res;
-    std::stack<ref<Constraint>> todo;
+    std::list<ref<Atom> > res;
+    std::stack<ref<Constraint> > todo;
     todo.push(c);
     while (!todo.empty()) {
         ref<Constraint> cc = todo.top();
@@ -413,10 +413,10 @@ static std::list<ref<Atom>> getAtoms(ref<Constraint> c)
     return res;
 }
 
-static ref<Constraint> makeConjunction(std::list<ref<Atom>> &atoms)
+static ref<Constraint> makeConjunction(std::list<ref<Atom> > &atoms)
 {
     ref<Constraint> res = *(atoms.begin());
-    for (std::list<ref<Atom>>::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
+    for (std::list<ref<Atom> >::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
         res = Operator::create(res, *i, Operator::And);
     }
     return res;
@@ -427,9 +427,9 @@ static ref<Constraint> mapPolysToVars(ref<Constraint> c, std::map<Polynomial*, s
     if (atomPolyToVarMap.empty()) {
         return c;
     }
-    std::list<ref<Atom>> atoms = getAtoms(c);
-    std::list<ref<Atom>> newAtoms;
-    for (std::list<ref<Atom>>::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
+    std::list<ref<Atom> > atoms = getAtoms(c);
+    std::list<ref<Atom> > newAtoms;
+    for (std::list<ref<Atom> >::iterator i = atoms.begin(), e = atoms.end(); i != e; ++i) {
         ref<Atom> a = *i;
         ref<Polynomial> lhs = a->getLeft();
         ref<Polynomial> rhs = a->getRight();
@@ -461,21 +461,21 @@ static ref<Constraint> mapPolysToVars(ref<Constraint> c, std::map<Polynomial*, s
     return makeConjunction(newAtoms);
 }
 
-std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding)
+std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding)
 {
-    std::list<ref<Rule>> res;
+    std::list<ref<Rule> > res;
     std::set<std::string> haveToKeep;
     unsigned int normCount = 0;
     unsigned int blockCount = 0;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
         ref<Constraint> c = rule->getConstraint();
         std::string lhsFun = lhs->getFunctionSymbol();
         std::string rhsFun = rhs->getFunctionSymbol();
-        std::map<unsigned int, ref<Polynomial>> nonNormal = getNonNormalArgPositions(rhs);
-        std::list<ref<Polynomial>> nonNormalAtomPolys = getNonNormalAtomPolynomials(c);
+        std::map<unsigned int, ref<Polynomial> > nonNormal = getNonNormalArgPositions(rhs);
+        std::list<ref<Polynomial> > nonNormalAtomPolys = getNonNormalAtomPolynomials(c);
         if (nonNormal.empty() && nonNormalAtomPolys.empty()) {
             // rule only needs bound constraints
             std::set<std::string> *lhsVars = lhs->getVariables();
@@ -488,9 +488,9 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             ref<Rule> newRule = Rule::create(lhs, rhs, conj);
             res.push_back(newRule);
         } else {
-            std::list<ref<Polynomial>> ruleNormArgs = getNormArgs(rhsFun, rules);
-            std::list<ref<Polynomial>> condNormArgs;
-            std::list<ref<Polynomial>> rhsArgs = rhs->getArgs();
+            std::list<ref<Polynomial> > ruleNormArgs = getNormArgs(rhsFun, rules);
+            std::list<ref<Polynomial> > condNormArgs;
+            std::list<ref<Polynomial> > rhsArgs = rhs->getArgs();
 
             std::string cond_norm = getNormFun(rhsFun, normCount);
             ++normCount;
@@ -502,7 +502,7 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             // set up dummy vars for atom polys
             std::map<Polynomial*, std::string> atomPolyToVarMap;
             unsigned int counter = 0;
-            for (std::list<ref<Polynomial>>::iterator pi = nonNormalAtomPolys.begin(), pe = nonNormalAtomPolys.end(); pi != pe; ++pi) {
+            for (std::list<ref<Polynomial> >::iterator pi = nonNormalAtomPolys.begin(), pe = nonNormalAtomPolys.end(); pi != pe; ++pi) {
                 ref<Polynomial> pol = *pi;
                 if (pol->normStepsNeeded() == -1) {
                     haveToKeep.insert(cond_norm);
@@ -523,14 +523,14 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
 
             // lhs -> rhs_cond_norm [ bounds ]
             ref<Constraint> bounds1 = getBoundConstraints(*(lhs->getVariables()), bitwidthMap, unsignedEncoding);
-            std::list<ref<Polynomial>> cond_norm_args = lhs->getArgs();
+            std::list<ref<Polynomial> > cond_norm_args = lhs->getArgs();
             cond_norm_args.insert(cond_norm_args.end(), nonNormalAtomPolys.begin(), nonNormalAtomPolys.end());
             ref<Term> rhs_cond_norm = Term::create(cond_norm, cond_norm_args);
             ref<Rule> rule1 = Rule::create(lhs, rhs_cond_norm, bounds1);
             res.push_back(rule1);
 
             // rhs_cond_norm -> blockrhs_rule_norm [ bounds /\ mapped(c) ]
-            std::list<ref<Polynomial>> cond_norm_done_args = lhs->getArgs();
+            std::list<ref<Polynomial> > cond_norm_done_args = lhs->getArgs();
             cond_norm_done_args.insert(cond_norm_done_args.end(), condNormArgs.begin(), condNormArgs.end());
             ref<Term> rhs_cond_norm_done = Term::create(cond_norm, cond_norm_done_args);
             ref<Term> block = Term::create(blocker, lhs->getArgs());
@@ -550,14 +550,14 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
 
             // do normalization for both
             unsigned int count = 0;
-            for (std::list<ref<Polynomial>>::iterator it = cond_norm_done_args.begin(), et = cond_norm_done_args.end(); it != et; ++it) {
+            for (std::list<ref<Polynomial> >::iterator it = cond_norm_done_args.begin(), et = cond_norm_done_args.end(); it != et; ++it) {
                 ref<Polynomial> pol = *it;
                 if (pol->isConst()) {
                     continue;
                 }
                 std::string var = *(pol->getVariables()->begin());
                 if (isCNorm(var)) {
-                    std::list<ref<Rule>> normRules = getNormRules(rhs_cond_norm_done, count, bitwidthMap, unsignedEncoding);
+                    std::list<ref<Rule> > normRules = getNormRules(rhs_cond_norm_done, count, bitwidthMap, unsignedEncoding);
                     res.insert(res.end(), normRules.begin(), normRules.end());
                 }
                 ++count;
@@ -565,11 +565,11 @@ std::list<ref<Rule>> addBoundConstraints(std::list<ref<Rule>> rules, std::map<st
             res.push_back(rule2);
             res.push_back(rule3);
             count = 0;
-            for (std::list<ref<Polynomial>>::iterator ii = rhsArgs.begin(), ee = rhsArgs.end(); ii != ee; ++ii) {
-                std::map<unsigned int, ref<Polynomial>>::iterator it = nonNormal.find(count);
+            for (std::list<ref<Polynomial> >::iterator ii = rhsArgs.begin(), ee = rhsArgs.end(); ii != ee; ++ii) {
+                std::map<unsigned int, ref<Polynomial> >::iterator it = nonNormal.find(count);
                 if (it != nonNormal.end()) {
                     // normalize it!
-                    std::list<ref<Rule>> normRules = getNormRules(rhs_rule_norm_done, count, bitwidthMap, unsignedEncoding);
+                    std::list<ref<Rule> > normRules = getNormRules(rhs_rule_norm_done, count, bitwidthMap, unsignedEncoding);
                     res.insert(res.end(), normRules.begin(), normRules.end());
                     ref<Polynomial> p = it->second;
                     if (p->normStepsNeeded() == -1) {

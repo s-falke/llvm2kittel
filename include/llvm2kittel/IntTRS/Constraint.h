@@ -44,13 +44,13 @@ public:
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
 
-    virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings) = 0;
+    virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
     virtual ref<Constraint> toNNF(bool negate) = 0;
     virtual ref<Constraint> toDNF() = 0; // formula needs to be in NNF!
-    virtual std::list<ref<Constraint>> getDualClauses() = 0; // formula needs to be in DNF!
+    virtual std::list<ref<Constraint> > getDualClauses() = 0; // formula needs to be in DNF!
 
-    virtual std::list<ref<Constraint>> getAtomics() = 0;
+    virtual std::list<ref<Constraint> > getAtomics() = 0;
 
     virtual ref<Constraint> eliminateNeq() = 0;
     virtual ref<Constraint> evaluateTrivialAtoms() = 0;
@@ -85,13 +85,13 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
@@ -116,13 +116,13 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
@@ -147,13 +147,13 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
@@ -193,13 +193,13 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
@@ -243,13 +243,13 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
@@ -292,13 +292,13 @@ public:
 
     CType getCType();
 
-    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint>> getDualClauses();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<ref<Constraint>> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();

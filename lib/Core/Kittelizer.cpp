@@ -22,9 +22,9 @@ ref<Constraint> simplify(ref<Constraint> c)
     }
     ref<Operator> op = static_cast<Operator*>(c.get());
     if (op->getOType() == Operator::And) {
-        std::list<ref<Constraint>> atomics = op->getAtomics();
-        std::list<ref<Constraint>> usedAtomics;
-        for (std::list<ref<Constraint>>::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
+        std::list<ref<Constraint> > atomics = op->getAtomics();
+        std::list<ref<Constraint> > usedAtomics;
+        for (std::list<ref<Constraint> >::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
             ref<Constraint> cc = *i;
             Constraint::CType ccType = cc->getCType();
             if (ccType == Constraint::CFalse) {
@@ -40,7 +40,7 @@ ref<Constraint> simplify(ref<Constraint> c)
         }
         ref<Constraint> res = *usedAtomics.rbegin();
         usedAtomics.erase(--usedAtomics.end());
-        for (std::list<ref<Constraint>>::reverse_iterator ri = usedAtomics.rbegin(), re = usedAtomics.rend(); ri != re; ++ri) {
+        for (std::list<ref<Constraint> >::reverse_iterator ri = usedAtomics.rbegin(), re = usedAtomics.rend(); ri != re; ++ri) {
           res = Operator::create(*ri, res, Operator::And);
         }
         return res;
@@ -50,16 +50,16 @@ ref<Constraint> simplify(ref<Constraint> c)
     }
 }
 
-std::list<ref<Rule>> kittelize(std::list<ref<Rule>> rules)
+std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules)
 {
-    std::list<ref<Rule>> res;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
         ref<Constraint> con = rule->getConstraint()->evaluateTrivialAtoms()->eliminateNeq()->toDNF();
-        std::list<ref<Constraint>> dcs = con->getDualClauses();
-        for (std::list<ref<Constraint>>::iterator ci = dcs.begin(), ce = dcs.end(); ci != ce; ++ci) {
+        std::list<ref<Constraint> > dcs = con->getDualClauses();
+        for (std::list<ref<Constraint> >::iterator ci = dcs.begin(), ce = dcs.end(); ci != ce; ++ci) {
             ref<Constraint> c = simplify(*ci);
             Constraint::CType type = c->getCType();
             if (type == Constraint::CFalse) {

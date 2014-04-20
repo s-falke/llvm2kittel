@@ -34,13 +34,13 @@ public:
     Slicer(llvm::Function *F, std::set<std::string> phiVars);
     ~Slicer();
 
-    std::list<ref<Rule>> sliceUsage(std::list<ref<Rule>> rules);
+    std::list<ref<Rule> > sliceUsage(std::list<ref<Rule> > rules);
 
-    std::list<ref<Rule>> sliceConstraint(std::list<ref<Rule>> rules);
+    std::list<ref<Rule> > sliceConstraint(std::list<ref<Rule> > rules);
 
-    std::list<ref<Rule>> sliceDefined(std::list<ref<Rule>> rules);
+    std::list<ref<Rule> > sliceDefined(std::list<ref<Rule> > rules);
 
-    std::list<ref<Rule>> sliceStillUsed(std::list<ref<Rule>> rules, bool conservative);
+    std::list<ref<Rule> > sliceStillUsed(std::list<ref<Rule> > rules, bool conservative);
 
 private:
     llvm::Function *m_F;
@@ -58,10 +58,10 @@ private:
     unsigned int m_numFunctions;
     std::set<std::string> m_functions;
     bool *m_preceeds;
-    void setUpPreceeds(std::list<ref<Rule>> rules);
+    void setUpPreceeds(std::list<ref<Rule> > rules);
     void makePreceedsTransitive(void);
     bool *m_calls;
-    void setUpCalls(std::list<ref<Rule>> rules);
+    void setUpCalls(std::list<ref<Rule> > rules);
     void makeCallsTransitive(void);
 
     std::map<std::string, unsigned int> m_varIdx;
@@ -83,7 +83,7 @@ private:
 
     std::set<unsigned int> getNotNeeded(std::string f, std::list<std::string> vars);
 
-    std::set<std::string> computeReachableFuns(std::list<ref<Rule>> rules);
+    std::set<std::string> computeReachableFuns(std::list<ref<Rule> > rules);
 
     bool isRecursiveCall(std::string f);
     bool isNondef(std::string v);

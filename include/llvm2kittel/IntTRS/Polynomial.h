@@ -89,7 +89,7 @@ public:
     ref<Polynomial> constMult(mpz_t d);
     ref<Polynomial> mult(ref<Polynomial> poly);
 
-    ref<Polynomial> instantiate(std::map<std::string, ref<Polynomial>> *bindings);
+    ref<Polynomial> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     std::set<std::string> *getVariables();
 
@@ -111,17 +111,17 @@ public:
     static ref<Polynomial> power_of_two(unsigned int power);
 
 private:
-    std::list<std::pair<mpz_class, ref<Monomial>> > m_monos;
+    std::list<std::pair<mpz_class, ref<Monomial> > > m_monos;
     mpz_t m_constant;
 
     static bool __init;
     static bool init();
 
-    static std::map<unsigned int, ref<Polynomial>> m_simax;
-    static std::map<unsigned int, ref<Polynomial>> m_simin_as_ui;
-    static std::map<unsigned int, ref<Polynomial>> m_simin;
-    static std::map<unsigned int, ref<Polynomial>> m_uimax;
-    static std::map<unsigned int, ref<Polynomial>> m_power_of_two;
+    static std::map<unsigned int, ref<Polynomial> > m_simax;
+    static std::map<unsigned int, ref<Polynomial> > m_simin_as_ui;
+    static std::map<unsigned int, ref<Polynomial> > m_simin;
+    static std::map<unsigned int, ref<Polynomial> > m_uimax;
+    static std::map<unsigned int, ref<Polynomial> > m_power_of_two;
 
 private:
     Polynomial(const Polynomial &);

@@ -90,9 +90,9 @@ public:
 
     void visitInstruction(llvm::Instruction &I);
 
-    std::list<ref<Rule>> getRules();
+    std::list<ref<Rule> > getRules();
 
-    std::list<ref<Rule>> getCondensedRules();
+    std::list<ref<Rule> > getCondensedRules();
 
     std::set<std::string> getPhiVariables();
 
@@ -106,10 +106,10 @@ private:
 
     const llvm::Type *m_boolType;
 
-    std::list<ref<Rule>> m_blockRules;
-    std::list<ref<Rule>> m_rules;
+    std::list<ref<Rule> > m_blockRules;
+    std::list<ref<Rule> > m_rules;
     std::list<std::string> m_vars;
-    std::list<ref<Polynomial>> m_lhs;
+    std::list<ref<Polynomial> > m_lhs;
     unsigned int m_counter;
     bool m_phase1;
 
@@ -125,15 +125,15 @@ private:
     std::string getEval(llvm::BasicBlock *bb, std::string inout);
     std::string getEval(llvm::Function *f, std::string startstop);
 
-    std::list<ref<Polynomial>> getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
+    std::list<ref<Polynomial> > getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
 
-    void visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial>> newArgs, ref<Constraint> c=Constraint::_true);
+    void visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial> > newArgs, ref<Constraint> c=Constraint::_true);
     void visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> value, ref<Constraint> c=Constraint::_true);
 
     ref<Polynomial> getPolynomial(llvm::Value *V);
-    std::list<ref<Polynomial>> getNewArgs(llvm::Value &V, ref<Polynomial> p);
-    std::list<ref<Polynomial>> getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
-    std::list<ref<Polynomial>> getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p);
+    std::list<ref<Polynomial> > getNewArgs(llvm::Value &V, ref<Polynomial> p);
+    std::list<ref<Polynomial> > getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
+    std::list<ref<Polynomial> > getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p);
 
     std::list<llvm::BasicBlock*> m_returns;
     std::map<llvm::Instruction*, unsigned int> m_idMap;

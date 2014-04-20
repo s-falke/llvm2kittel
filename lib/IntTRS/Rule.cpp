@@ -21,7 +21,7 @@ Rule::Rule(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c)
 {}
 
 ref<Rule> Rule::create(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c) {
-  return new Rule(lhs, rhs,c);
+    return new Rule(lhs, rhs,c);
 }
 
 Rule::~Rule()

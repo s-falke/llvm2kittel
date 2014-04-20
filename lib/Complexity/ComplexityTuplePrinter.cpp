@@ -25,7 +25,7 @@ static std::string toCIntString(ref<Rule> rule)
     return res.str();
 }
 
-static std::string toCIntString(std::list<ref<Rule>> &rules)
+static std::string toCIntString(std::list<ref<Rule> > &rules)
 {
     size_t numRules = rules.size();
     if (numRules == 0) {
@@ -34,7 +34,7 @@ static std::string toCIntString(std::list<ref<Rule>> &rules)
     }
     std::ostringstream res;
     bool first = true;
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ) {
         // the iterator get increased inside the loop
         ref<Rule> tmp = *i;
         if (tmp->getConstraint()->getCType() != Constraint::CTrue) {
@@ -53,11 +53,11 @@ static std::string toCIntString(std::list<ref<Rule>> &rules)
     return res.str();
 }
 
-static void printVars(std::list<ref<Rule>> &rules, std::ostream &stream)
+static void printVars(std::list<ref<Rule> > &rules, std::ostream &stream)
 {
     std::set<std::string> varsSet;
 
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         std::set<std::string> *tmp = (*i)->getVariables();
         varsSet.insert(tmp->begin(), tmp->end());
     }
@@ -67,7 +67,7 @@ static void printVars(std::list<ref<Rule>> &rules, std::ostream &stream)
     }
 }
 
-void printComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &complexityLHSs, std::ostream &stream)
+void printComplexityTuples(std::list<ref<Rule> > &rules, std::set<std::string> &complexityLHSs, std::ostream &stream)
 {
     std::set<std::string> todoComplexityLHSs;
     todoComplexityLHSs.insert(complexityLHSs.begin(), complexityLHSs.end());
@@ -78,7 +78,7 @@ void printComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &c
     stream << ')' << std::endl;
     stream << "(RULES" << std::endl;
 
-    for (std::list<ref<Rule>>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         std::string lhsFun = rule->getLeft()->getFunctionSymbol();
         if (complexityLHSs.find(lhsFun) == complexityLHSs.end()) {
@@ -88,8 +88,8 @@ void printComplexityTuples(std::list<ref<Rule>> &rules, std::set<std::string> &c
                 // already taken care of
             } else {
                 // collect and print in one complexity tuple
-                std::list<ref<Rule>> combineRules;
-                for (std::list<ref<Rule>>::iterator ii = rules.begin(); ii != e; ++ii) {
+                std::list<ref<Rule> > combineRules;
+                for (std::list<ref<Rule> >::iterator ii = rules.begin(); ii != e; ++ii) {
                     ref<Rule> tmp = *ii;
                     if (tmp->getLeft()->getFunctionSymbol() == lhsFun) {
                         combineRules.push_back(tmp);

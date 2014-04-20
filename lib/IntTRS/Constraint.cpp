@@ -69,7 +69,7 @@ std::string True::toCIntString()
     exit(217);
 }
 
-ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial>> *)
+ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_true;
 }
@@ -88,16 +88,16 @@ ref<Constraint> True::toDNF()
     return Constraint::_true;
 }
 
-std::list<ref<Constraint>> True::getDualClauses()
+std::list<ref<Constraint> > True::getDualClauses()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<ref<Constraint>> True::getAtomics()
+std::list<ref<Constraint> > True::getAtomics()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
@@ -153,7 +153,7 @@ std::string False::toCIntString()
     exit(217);
 }
 
-ref<Constraint> False::instantiate(std::map<std::string, ref<Polynomial>> *)
+ref<Constraint> False::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_false;
 }
@@ -172,16 +172,16 @@ ref<Constraint> False::toDNF()
     return Constraint::_false;
 }
 
-std::list<ref<Constraint>> False::getDualClauses()
+std::list<ref<Constraint> > False::getDualClauses()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<ref<Constraint>> False::getAtomics()
+std::list<ref<Constraint> > False::getAtomics()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
@@ -237,7 +237,7 @@ std::string Nondef::toCIntString()
     exit(217);
 }
 
-ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial>> *)
+ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return new Nondef();
 }
@@ -252,16 +252,16 @@ ref<Constraint> Nondef::toDNF()
     return this;
 }
 
-std::list<ref<Constraint>> Nondef::getDualClauses()
+std::list<ref<Constraint> > Nondef::getDualClauses()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<ref<Constraint>> Nondef::getAtomics()
+std::list<ref<Constraint> > Nondef::getAtomics()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
@@ -386,7 +386,7 @@ std::string Atom::toCIntString()
     return res.str();
 }
 
-ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
+ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
@@ -417,16 +417,16 @@ ref<Constraint> Atom::toDNF()
     return this;
 }
 
-std::list<ref<Constraint>> Atom::getDualClauses()
+std::list<ref<Constraint> > Atom::getDualClauses()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<ref<Constraint>> Atom::getAtomics()
+std::list<ref<Constraint> > Atom::getAtomics()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
@@ -536,7 +536,7 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
-ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
+ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_c->instantiate(bindings));
 }
@@ -552,14 +552,14 @@ ref<Constraint> Negation::toDNF()
     exit(77);
 }
 
-std::list<ref<Constraint>> Negation::getDualClauses()
+std::list<ref<Constraint> > Negation::getDualClauses()
 {
-    std::list<ref<Constraint>> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<ref<Constraint>> Negation::getAtomics()
+std::list<ref<Constraint> > Negation::getAtomics()
 {
     return m_c->getAtomics();
 }
@@ -650,7 +650,7 @@ std::string Operator::toCIntString()
     return res.str();
 }
 
-ref<Constraint> Operator::instantiate(std::map<std::string, ref<Polynomial>> *bindings)
+ref<Constraint> Operator::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
@@ -678,19 +678,19 @@ ref<Constraint> Operator::toDNF()
     } else if (m_type == And) {
         ref<Constraint> lhsdnf = m_lhs->toDNF();
         ref<Constraint> rhsdnf = m_rhs->toDNF();
-        std::list<ref<Constraint>> lhsdcs = lhsdnf->getDualClauses();
-        std::list<ref<Constraint>> rhsdcs = rhsdnf->getDualClauses();
-        std::list<ref<Constraint>> combined;
-        for (std::list<ref<Constraint>>::iterator outeri = lhsdcs.begin(), outere = lhsdcs.end(); outeri != outere; ++outeri) {
+        std::list<ref<Constraint> > lhsdcs = lhsdnf->getDualClauses();
+        std::list<ref<Constraint> > rhsdcs = rhsdnf->getDualClauses();
+        std::list<ref<Constraint> > combined;
+        for (std::list<ref<Constraint> >::iterator outeri = lhsdcs.begin(), outere = lhsdcs.end(); outeri != outere; ++outeri) {
             ref<Constraint> outerdc = *outeri;
-            for (std::list<ref<Constraint>>::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
+            for (std::list<ref<Constraint> >::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
                 ref<Constraint> innerdc = *inneri;
                 combined.push_back(create(outerdc, innerdc, And));
             }
         }
         ref<Constraint> res = *combined.rbegin();
         combined.erase(--combined.end());
-        for (std::list<ref<Constraint>>::reverse_iterator ri = combined.rbegin(), re = combined.rend(); ri != re; ++ri) {
+        for (std::list<ref<Constraint> >::reverse_iterator ri = combined.rbegin(), re = combined.rend(); ri != re; ++ri) {
             res = create(*ri, res, Or);
         }
         return res;
@@ -700,16 +700,16 @@ ref<Constraint> Operator::toDNF()
     }
 }
 
-std::list<ref<Constraint>> Operator::getDualClauses()
+std::list<ref<Constraint> > Operator::getDualClauses()
 {
     if (m_type == And) {
-        std::list<ref<Constraint>> res;
+        std::list<ref<Constraint> > res;
         res.push_back(this);
         return res;
     } else if (m_type == Or) {
-        std::list<ref<Constraint>> res;
-        std::list<ref<Constraint>> tmp1 = m_lhs->getDualClauses();
-        std::list<ref<Constraint>> tmp2 = m_rhs->getDualClauses();
+        std::list<ref<Constraint> > res;
+        std::list<ref<Constraint> > tmp1 = m_lhs->getDualClauses();
+        std::list<ref<Constraint> > tmp2 = m_rhs->getDualClauses();
         res.insert(res.begin(), tmp2.begin(), tmp2.end());
         res.insert(res.begin(), tmp1.begin(), tmp1.end());
         return res;
@@ -719,11 +719,11 @@ std::list<ref<Constraint>> Operator::getDualClauses()
     }
 }
 
-std::list<ref<Constraint>> Operator::getAtomics()
+std::list<ref<Constraint> > Operator::getAtomics()
 {
-    std::list<ref<Constraint>> res;
-    std::list<ref<Constraint>> tmp1 = m_lhs->getAtomics();
-    std::list<ref<Constraint>> tmp2 = m_rhs->getAtomics();
+    std::list<ref<Constraint> > res;
+    std::list<ref<Constraint> > tmp1 = m_lhs->getAtomics();
+    std::list<ref<Constraint> > tmp2 = m_rhs->getAtomics();
     res.insert(res.begin(), tmp2.begin(), tmp2.end());
     res.insert(res.begin(), tmp1.begin(), tmp1.end());
     return res;

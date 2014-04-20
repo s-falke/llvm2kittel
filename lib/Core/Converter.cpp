@@ -190,17 +190,17 @@ void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc,
     }
 }
 
-std::list<ref<Rule>> Converter::getRules()
+std::list<ref<Rule> > Converter::getRules()
 {
     return m_rules;
 }
 
-std::list<ref<Rule>> Converter::getCondensedRules()
+std::list<ref<Rule> > Converter::getCondensedRules()
 {
-    std::list<ref<Rule>> good;
-    std::list<ref<Rule>> junk;
-    std::list<ref<Rule>> res;
-    for (std::list<ref<Rule>>::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > good;
+    std::list<ref<Rule> > junk;
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         std::string f = rule->getLeft()->getFunctionSymbol();
         if (m_controlPoints.find(f) != m_controlPoints.end()) {
@@ -209,9 +209,9 @@ std::list<ref<Rule>> Converter::getCondensedRules()
             junk.push_back(rule);
         }
     }
-    for (std::list<ref<Rule>>::iterator i = good.begin(), e = good.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = good.begin(), e = good.end(); i != e; ++i) {
         ref<Rule> rule = *i;
-        std::vector<ref<Rule>> todo;
+        std::vector<ref<Rule> > todo;
         todo.push_back(rule);
         while (!todo.empty()) {
             ref<Rule> r = *todo.begin();
@@ -221,13 +221,13 @@ std::list<ref<Rule>> Converter::getCondensedRules()
             if (m_controlPoints.find(f) != m_controlPoints.end()) {
                 res.push_back(r);
             } else {
-                std::list<ref<Rule>> newtodo;
-                for (std::list<ref<Rule>>::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
+                std::list<ref<Rule> > newtodo;
+                for (std::list<ref<Rule> >::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
                     ref<Rule> junkrule = *ii;
                     if (junkrule->getLeft()->getFunctionSymbol() == f) {
-                        std::map<std::string, ref<Polynomial>> subby;
-                        std::list<ref<Polynomial>> rhsargs = rhs->getArgs();
-                        std::list<ref<Polynomial>>::iterator ai = rhsargs.begin();
+                        std::map<std::string, ref<Polynomial> > subby;
+                        std::list<ref<Polynomial> > rhsargs = rhs->getArgs();
+                        std::list<ref<Polynomial> >::iterator ai = rhsargs.begin();
                         for (std::list<std::string>::iterator vi = m_vars.begin(), ve = m_vars.end(); vi != ve; ++vi, ++ai) {
                             subby.insert(std::make_pair(*vi, *ai));
                         }
@@ -305,11 +305,11 @@ ref<Polynomial> Converter::getPolynomial(llvm::Value *V)
     }
 }
 
-std::list<ref<Polynomial>> Converter::getNewArgs(llvm::Value &V, ref<Polynomial> p)
+std::list<ref<Polynomial> > Converter::getNewArgs(llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<ref<Polynomial>> res;
+    std::list<ref<Polynomial> > res;
     std::string Vname = getVar(&V);
-    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         if (Vname == *i) {
             res.push_back(p);
@@ -320,10 +320,10 @@ std::list<ref<Polynomial>> Converter::getNewArgs(llvm::Value &V, ref<Polynomial>
     return res;
 }
 
-std::list<ref<Polynomial>> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
+std::list<ref<Polynomial> > Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
 {
-    std::list<ref<Polynomial>> res;
-    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> > res;
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -347,11 +347,11 @@ std::list<ref<Polynomial>> Converter::getZappedArgs(std::set<llvm::GlobalVariabl
     return res;
 }
 
-std::list<ref<Polynomial>> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p)
+std::list<ref<Polynomial> > Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<ref<Polynomial>> res;
+    std::list<ref<Polynomial> > res;
     std::string Vname = getVar(&V);
-    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -746,10 +746,10 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     }
 }
 
-std::list<ref<Polynomial>> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
+std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
 {
-    std::list<ref<Polynomial>> res;
-    std::map<std::string, ref<Polynomial>> phiValues;
+    std::list<ref<Polynomial> > res;
+    std::map<std::string, ref<Polynomial> > phiValues;
     for (llvm::BasicBlock::iterator i = to->begin(), e = to->end(); i != e; ++i) {
         if (!llvm::isa<llvm::PHINode>(*i)) {
             break;
@@ -761,9 +761,9 @@ std::list<ref<Polynomial>> Converter::getArgsWithPhis(llvm::BasicBlock *from, ll
         std::string PHIName = getVar(phi);
         phiValues.insert(std::make_pair(PHIName, getPolynomial(phi->getIncomingValueForBlock(from))));
     }
-    std::list<ref<Polynomial>>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
-        std::map<std::string, ref<Polynomial>>::iterator found = phiValues.find(*i);
+        std::map<std::string, ref<Polynomial> >::iterator found = phiValues.find(*i);
         if (found == phiValues.end()) {
             res.push_back(*pp);
         } else {
@@ -776,7 +776,7 @@ std::list<ref<Polynomial>> Converter::getArgsWithPhis(llvm::BasicBlock *from, ll
 void Converter::visitTerminatorInst(llvm::TerminatorInst&)
 {}
 
-void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial>> newArgs, ref<Constraint> c)
+void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial> > newArgs, ref<Constraint> c)
 {
     m_idMap.insert(std::make_pair(&I, m_counter));
     ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
@@ -1529,7 +1529,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
             for (std::list<llvm::Function*>::iterator cf = callees.begin(), cfe = callees.end(); cf != cfe; ++cf) {
                 llvm::Function *callee = *cf;
                 if (m_scc.find(callee) != m_scc.end() || m_complexityTuples) {
-                    std::list<ref<Polynomial>> callArgs;
+                    std::list<ref<Polynomial> > callArgs;
                     for (llvm::CallSite::arg_iterator i = callSite.arg_begin(), e = callSite.arg_end(); i != e; ++i) {
                         llvm::Value *arg = *i;
                         if (arg->getType() != m_boolType && arg->getType()->isIntegerTy()) {
@@ -1558,7 +1558,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
             }
             m_counter++;
             // zap!
-            std::list<ref<Polynomial>> newArgs;
+            std::list<ref<Polynomial> > newArgs;
             if (I.getType()->isIntegerTy() && I.getType() != m_boolType) {
                 ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
                 newArgs = getZappedArgs(toZap, I, nondef);
@@ -1715,7 +1715,7 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
         MayMustPair mmp = it->second;
         std::set<llvm::GlobalVariable*> mays = mmp.first;
         std::set<llvm::GlobalVariable*> musts = mmp.second;
-        std::list<ref<Polynomial>> newArgs;
+        std::list<ref<Polynomial> > newArgs;
         if (musts.size() == 1 && mays.size() == 0) {
             // unique!
             newArgs = getNewArgs(**musts.begin(), getPolynomial(val));
