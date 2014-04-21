@@ -21,7 +21,7 @@ class Polynomial;
 class Constraint
 {
 public:
-  unsigned refCount;
+  unsigned int refCount;
 
 protected:
   Constraint();

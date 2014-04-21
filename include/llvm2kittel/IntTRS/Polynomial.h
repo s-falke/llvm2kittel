@@ -23,7 +23,7 @@
 class Monomial
 {
 public:
-    unsigned refCount;
+    unsigned int refCount;
 
 protected:
     Monomial(std::string x);
@@ -61,7 +61,7 @@ private:
 class Polynomial
 {
 public:
-    unsigned refCount;
+    unsigned int refCount;
 
 protected:
     Polynomial(std::string x);

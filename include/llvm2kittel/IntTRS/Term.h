@@ -22,7 +22,7 @@ class Polynomial;
 class Term
 {
 public:
-    unsigned refCount;
+    unsigned int refCount;
 
 protected:
     Term(std::string f, std::list<ref<Polynomial> > args);
