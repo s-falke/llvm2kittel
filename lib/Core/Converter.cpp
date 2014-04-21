@@ -158,14 +158,14 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
     }
 
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i) {
-        m_lhs.push_back(new Polynomial(*i));
+        m_lhs.push_back(Polynomial::create(*i));
     }
 }
 
 void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap)
 {
     if (m_trivial) {
-        m_rules.push_back(new Rule(new Term(getEval(m_function, "start"), m_lhs), new Term(getEval(m_function, "stop"), m_lhs), Constraint::_true));
+        m_rules.push_back(Rule::create(Term::create(getEval(m_function, "start"), m_lhs), Term::create(getEval(m_function, "stop"), m_lhs), Constraint::_true));
         return;
     }
     m_function = function;
@@ -183,25 +183,25 @@ void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc,
 
     // add rules from returns to stop
     for (std::list<llvm::BasicBlock*>::iterator i = m_returns.begin(), e = m_returns.end(); i != e; ++i) {
-        Term *lhs = new Term(getEval(*i, "out"), m_lhs);
-        Term *rhs = new Term(getEval(m_function, "stop"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(*i, "out"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(m_function, "stop"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 }
 
-std::list<Rule*> Converter::getRules()
+std::list<ref<Rule> > Converter::getRules()
 {
     return m_rules;
 }
 
-std::list<Rule*> Converter::getCondensedRules()
+std::list<ref<Rule> > Converter::getCondensedRules()
 {
-    std::list<Rule*> good;
-    std::list<Rule*> junk;
-    std::list<Rule*> res;
-    for (std::list<Rule*>::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    std::list<ref<Rule> > good;
+    std::list<ref<Rule> > junk;
+    std::list<ref<Rule> > res;
+    for (std::list<ref<Rule> >::iterator i = m_rules.begin(), e = m_rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string f = rule->getLeft()->getFunctionSymbol();
         if (m_controlPoints.find(f) != m_controlPoints.end()) {
             good.push_back(rule);
@@ -209,29 +209,29 @@ std::list<Rule*> Converter::getCondensedRules()
             junk.push_back(rule);
         }
     }
-    for (std::list<Rule*>::iterator i = good.begin(), e = good.end(); i != e; ++i) {
-        Rule *rule = *i;
-        std::vector<Rule*> todo;
+    for (std::list<ref<Rule> >::iterator i = good.begin(), e = good.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
+        std::vector<ref<Rule> > todo;
         todo.push_back(rule);
         while (!todo.empty()) {
-            Rule *r = *todo.begin();
+            ref<Rule> r = *todo.begin();
             todo.erase(todo.begin());
-            Term *rhs = r->getRight();
+            ref<Term> rhs = r->getRight();
             std::string f = rhs->getFunctionSymbol();
             if (m_controlPoints.find(f) != m_controlPoints.end()) {
                 res.push_back(r);
             } else {
-                std::list<Rule*> newtodo;
-                for (std::list<Rule*>::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
-                    Rule *junkrule = *ii;
+                std::list<ref<Rule> > newtodo;
+                for (std::list<ref<Rule> >::iterator ii = junk.begin(), ee = junk.end(); ii != ee; ++ii) {
+                    ref<Rule> junkrule = *ii;
                     if (junkrule->getLeft()->getFunctionSymbol() == f) {
-                        std::map<std::string, Polynomial*> subby;
-                        std::list<Polynomial*> rhsargs = rhs->getArgs();
-                        std::list<Polynomial*>::iterator ai = rhsargs.begin();
+                        std::map<std::string, ref<Polynomial> > subby;
+                        std::list<ref<Polynomial> > rhsargs = rhs->getArgs();
+                        std::list<ref<Polynomial> >::iterator ai = rhsargs.begin();
                         for (std::list<std::string>::iterator vi = m_vars.begin(), ve = m_vars.end(); vi != ve; ++vi, ++ai) {
                             subby.insert(std::make_pair(*vi, *ai));
                         }
-                        Rule *newRule = new Rule(r->getLeft(), junkrule->getRight()->instantiate(&subby), new Operator(r->getConstraint(), junkrule->getConstraint()->instantiate(&subby), Operator::And));
+                        ref<Rule> newRule = Rule::create(r->getLeft(), junkrule->getRight()->instantiate(&subby), Operator::create(r->getConstraint(), junkrule->getConstraint()->instantiate(&subby), Operator::And));
                         newtodo.push_back(newRule);
                     }
                 }
@@ -279,7 +279,7 @@ std::string Converter::getEval(llvm::Function *func, std::string startstop)
     return tmp.str();
 }
 
-Polynomial *Converter::getPolynomial(llvm::Value *V)
+ref<Polynomial> Converter::getPolynomial(llvm::Value *V)
 {
     if (llvm::isa<llvm::ConstantInt>(V)) {
         mpz_t value;
@@ -295,21 +295,21 @@ Polynomial *Converter::getPolynomial(llvm::Value *V)
             tmp << cv;
             gmp_sscanf(tmp.str().data(), "%Zd", value);
         }
-        Polynomial *res = new Polynomial(value);
+        ref<Polynomial> res = Polynomial::create(value);
         mpz_clear(value);
         return res;
     } else if (llvm::isa<llvm::Instruction>(V) || llvm::isa<llvm::Argument>(V) || llvm::isa<llvm::GlobalVariable>(V)) {
-        return new Polynomial(getVar(V));
+        return Polynomial::create(getVar(V));
     } else {
-        return new Polynomial(getNondef(V));
+        return Polynomial::create(getNondef(V));
     }
 }
 
-std::list<Polynomial*> Converter::getNewArgs(llvm::Value &V, Polynomial *p)
+std::list<ref<Polynomial> > Converter::getNewArgs(llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<Polynomial*> res;
+    std::list<ref<Polynomial> > res;
     std::string Vname = getVar(&V);
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         if (Vname == *i) {
             res.push_back(p);
@@ -320,10 +320,10 @@ std::list<Polynomial*> Converter::getNewArgs(llvm::Value &V, Polynomial *p)
     return res;
 }
 
-std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
+std::list<ref<Polynomial> > Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap)
 {
-    std::list<Polynomial*> res;
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> > res;
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -339,7 +339,7 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
             if (m_boundedIntegers) {
                 m_bitwidthMap.insert(std::make_pair(nondef, llvm::cast<llvm::IntegerType>(zapType)->getBitWidth()));
             }
-            res.push_back(new Polynomial(nondef));
+            res.push_back(Polynomial::create(nondef));
         } else {
             res.push_back(*pp);
         }
@@ -347,11 +347,11 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
     return res;
 }
 
-std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, Polynomial *p)
+std::list<ref<Polynomial> > Converter::getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p)
 {
-    std::list<Polynomial*> res;
+    std::list<ref<Polynomial> > res;
     std::string Vname = getVar(&V);
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
         bool doZap = false;
         const llvm::Type *zapType = NULL;
@@ -367,7 +367,7 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
             if (m_boundedIntegers) {
                 m_bitwidthMap.insert(std::make_pair(nondef, llvm::cast<llvm::IntegerType>(zapType)->getBitWidth()));
             }
-            res.push_back(new Polynomial(nondef));
+            res.push_back(Polynomial::create(nondef));
         } else if (Vname == *i) {
             res.push_back(p);
         } else {
@@ -377,10 +377,10 @@ std::list<Polynomial*> Converter::getZappedArgs(std::set<llvm::GlobalVariable*> 
     return res;
 }
 
-Constraint *Converter::getConditionFromValue(llvm::Value *cond)
+ref<Constraint> Converter::getConditionFromValue(llvm::Value *cond)
 {
     if (llvm::isa<llvm::ConstantInt>(cond)) {
-        return new Atom(getPolynomial(cond), Polynomial::null, Atom::Neq);
+        return Atom::create(getPolynomial(cond), Polynomial::null, Atom::Neq);
     }
     if (!llvm::isa<llvm::Instruction>(cond)) {
         cond->dump();
@@ -391,20 +391,20 @@ Constraint *Converter::getConditionFromValue(llvm::Value *cond)
     return getConditionFromInstruction(I);
 }
 
-Constraint *Converter::getConditionFromInstruction(llvm::Instruction *I)
+ref<Constraint> Converter::getConditionFromInstruction(llvm::Instruction *I)
 {
     if (llvm::isa<llvm::ZExtInst>(I)) {
         return getConditionFromValue(I->getOperand(0));
     }
     if (I->getType() != m_boolType) {
-        return new Atom(getPolynomial(I), Polynomial::null, Atom::Neq);
+        return Atom::create(getPolynomial(I), Polynomial::null, Atom::Neq);
     }
     if (llvm::isa<llvm::CmpInst>(I)) {
         llvm::CmpInst *cmp = llvm::cast<llvm::CmpInst>(I);
         if (cmp->getOperand(0)->getType()->isPointerTy()) {
-            return new Nondef();
+            return Nondef::create();
         } else if (cmp->getOperand(0)->getType()->isFloatingPointTy()) {
-            return new Nondef();
+            return Nondef::create();
         } else {
             llvm::CmpInst::Predicate pred = cmp->getPredicate();
             if (m_boundedIntegers && !m_unsignedEncoding && (pred == llvm::CmpInst::ICMP_UGT || pred == llvm::CmpInst::ICMP_UGE || pred == llvm::CmpInst::ICMP_ULT || pred == llvm::CmpInst::ICMP_ULE)) {
@@ -413,15 +413,15 @@ Constraint *Converter::getConditionFromInstruction(llvm::Instruction *I)
                 unsigned int bitwidth = llvm::cast<llvm::IntegerType>(cmp->getOperand(0)->getType())->getBitWidth();
                 return getSignedComparisonForUnsignedBounded(pred, getPolynomial(cmp->getOperand(0)), getPolynomial(cmp->getOperand(1)), bitwidth);
             } else {
-                return new Atom(getPolynomial(cmp->getOperand(0)), getPolynomial(cmp->getOperand(1)), getAtomType(pred));
+                return Atom::create(getPolynomial(cmp->getOperand(0)), getPolynomial(cmp->getOperand(1)), getAtomType(pred));
             }
         }
     }
     std::string opcodeName = I->getOpcodeName();
     if (opcodeName == "and") {
-        return new Operator(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(1)), Operator::And);
+        return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(1)), Operator::And);
     } else if (opcodeName == "or") {
-        return new Operator(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(1)), Operator::Or);
+        return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(1)), Operator::Or);
     } else if (opcodeName == "xor") {
         llvm::ConstantInt *ci;
         unsigned int realIdx;
@@ -433,7 +433,7 @@ Constraint *Converter::getConditionFromInstruction(llvm::Instruction *I)
             realIdx = 0;
         }
         if (ci->isOne()) {
-            return new Negation(getConditionFromValue(I->getOperand(realIdx)));
+            return Negation::create(getConditionFromValue(I->getOperand(realIdx)));
         } else {
             return getConditionFromValue(I->getOperand(realIdx));
         }
@@ -454,29 +454,29 @@ Constraint *Converter::getConditionFromInstruction(llvm::Instruction *I)
         } else {
             otype = Operator::And;
         }
-        return new Operator(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(realIdx)), otype);
+        return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(realIdx)), otype);
     } else {
-        return new Nondef();
+        return Nondef::create();
     }
 }
 
-Constraint *Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y)
+ref<Constraint> Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y)
 {
     switch (pred) {
     case llvm::CmpInst::ICMP_UGT:
     case llvm::CmpInst::ICMP_UGE: {
-        Atom *xge = new Atom(x, Polynomial::null, Atom::Geq);
-        Atom *yge = new Atom(y, Polynomial::null, Atom::Geq);
-        Atom *xlt = new Atom(x, Polynomial::null, Atom::Lss);
-        Atom *ylt = new Atom(y, Polynomial::null, Atom::Lss);
-        Constraint *gege = new Operator(xge, yge, Operator::And);
-        Constraint *ltlt = new Operator(xlt, ylt, Operator::And);
-        Constraint *ltge = new Operator(xlt, yge, Operator::And);
-        Constraint *disj1 = new Operator(gege, new Atom(x, y, getAtomType(pred)), Operator::And);
-        Constraint *disj2 = new Operator(ltlt, new Atom(x, y, getAtomType(pred)), Operator::And);
-        Constraint *disj3 = ltge;
-        Constraint *tmp = new Operator(disj1, disj2, Operator::Or);
-        return new Operator(tmp, disj3, Operator::Or);
+        ref<Constraint> xge = Atom::create(x, Polynomial::null, Atom::Geq);
+        ref<Constraint> yge = Atom::create(y, Polynomial::null, Atom::Geq);
+        ref<Constraint> xlt = Atom::create(x, Polynomial::null, Atom::Lss);
+        ref<Constraint> ylt = Atom::create(y, Polynomial::null, Atom::Lss);
+        ref<Constraint> gege = Operator::create(xge, yge, Operator::And);
+        ref<Constraint> ltlt = Operator::create(xlt, ylt, Operator::And);
+        ref<Constraint> ltge = Operator::create(xlt, yge, Operator::And);
+        ref<Constraint> disj1 = Operator::create(gege, Atom::create(x, y, getAtomType(pred)), Operator::And);
+        ref<Constraint> disj2 = Operator::create(ltlt, Atom::create(x, y, getAtomType(pred)), Operator::And);
+        ref<Constraint> disj3 = ltge;
+        ref<Constraint> tmp = Operator::create(disj1, disj2, Operator::Or);
+        return Operator::create(tmp, disj3, Operator::Or);
     }
     case llvm::CmpInst::ICMP_ULT:
         return getUnsignedComparisonForSignedBounded(llvm::CmpInst::ICMP_UGT, y, x);
@@ -512,24 +512,24 @@ Constraint *Converter::getUnsignedComparisonForSignedBounded(llvm::CmpInst::Pred
     }
 }
 
-Constraint *Converter::getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y, unsigned int bitwidth)
+ref<Constraint> Converter::getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y, unsigned int bitwidth)
 {
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
     switch (pred) {
     case llvm::CmpInst::ICMP_SGT:
     case llvm::CmpInst::ICMP_SGE: {
-        Atom *xle = new Atom(x, maxpos, Atom::Leq);
-        Atom *yle = new Atom(y, maxpos, Atom::Leq);
-        Atom *xgt = new Atom(x, maxpos, Atom::Gtr);
-        Atom *ygt = new Atom(y, maxpos, Atom::Gtr);
-        Constraint *lele = new Operator(xle, yle, Operator::And);
-        Constraint *gtgt = new Operator(xgt, ygt, Operator::And);
-        Constraint *legt = new Operator(xle, ygt, Operator::And);
-        Constraint *disj1 = new Operator(lele, new Atom(x, y, getAtomType(pred)), Operator::And);
-        Constraint *disj2 = new Operator(gtgt, new Atom(x, y, getAtomType(pred)), Operator::And);
-        Constraint *disj3 = legt;
-        Constraint *tmp = new Operator(disj1, disj2, Operator::Or);
-        return new Operator(tmp, disj3, Operator::Or);
+        ref<Constraint> xle = Atom::create(x, maxpos, Atom::Leq);
+        ref<Constraint> yle = Atom::create(y, maxpos, Atom::Leq);
+        ref<Constraint> xgt = Atom::create(x, maxpos, Atom::Gtr);
+        ref<Constraint> ygt = Atom::create(y, maxpos, Atom::Gtr);
+        ref<Constraint> lele = Operator::create(xle, yle, Operator::And);
+        ref<Constraint> gtgt = Operator::create(xgt, ygt, Operator::And);
+        ref<Constraint> legt = Operator::create(xle, ygt, Operator::And);
+        ref<Constraint> disj1 = Operator::create(lele, Atom::create(x, y, getAtomType(pred)), Operator::And);
+        ref<Constraint> disj2 = Operator::create(gtgt, Atom::create(x, y, getAtomType(pred)), Operator::And);
+        ref<Constraint> disj3 = legt;
+        ref<Constraint> tmp = Operator::create(disj1, disj2, Operator::Or);
+        return Operator::create(tmp, disj3, Operator::Or);
     }
     case llvm::CmpInst::ICMP_SLT:
         return getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SGT, y, x, bitwidth);
@@ -608,29 +608,29 @@ Atom::AType Converter::getAtomType(llvm::CmpInst::Predicate pred)
     }
 }
 
-Constraint *Converter::buildConjunction(std::set<llvm::Value*> &trues, std::set<llvm::Value*> &falses)
+ref<Constraint> Converter::buildConjunction(std::set<llvm::Value*> &trues, std::set<llvm::Value*> &falses)
 {
-    Constraint *res = Constraint::_true;
+    ref<Constraint> res = Constraint::_true;
     for (std::set<llvm::Value*>::iterator i = trues.begin(), e = trues.end(); i != e; ++i) {
-        Constraint *c = getConditionFromValue(*i)->toNNF(false);
-        res = new Operator(res, c, Operator::And);
+        ref<Constraint> c = getConditionFromValue(*i)->toNNF(false);
+        res = Operator::create(res, c, Operator::And);
     }
     for (std::set<llvm::Value*>::iterator i = falses.begin(), e = falses.end(); i != e; ++i) {
-        Constraint *c = getConditionFromValue(*i)->toNNF(true);
-        res = new Operator(res, c, Operator::And);
+        ref<Constraint> c = getConditionFromValue(*i)->toNNF(true);
+        res = Operator::create(res, c, Operator::And);
     }
     return res;
 }
 
-Constraint *Converter::buildBoundConjunction(std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> > &bounds)
+ref<Constraint> Converter::buildBoundConjunction(std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> > &bounds)
 {
-    Constraint *res = Constraint::_true;
+    ref<Constraint> res = Constraint::_true;
     for (std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> >::iterator i = bounds.begin(), e = bounds.end(); i != e; ++i) {
-        Polynomial *p = getPolynomial(i->first);
-        Polynomial *q1 = getPolynomial(i->third);
-        Polynomial *q2 = getPolynomial(i->fourth);
-        Constraint *c = new Atom(p, q1->add(q2), getAtomType(i->second));
-        res = new Operator(res, c, Operator::And);
+        ref<Polynomial> p = getPolynomial(i->first);
+        ref<Polynomial> q1 = getPolynomial(i->third);
+        ref<Polynomial> q2 = getPolynomial(i->fourth);
+        ref<Constraint> c = Atom::create(p, q1->add(q2), getAtomType(i->second));
+        res = Operator::create(res, c, Operator::And);
     }
     return res;
 }
@@ -639,9 +639,9 @@ void Converter::visitBB(llvm::BasicBlock *bb)
 {
     // start
     if (bb == m_entryBlock) {
-        Term *lhs = new Term(getEval(m_function, "start"), m_lhs);
-        Term *rhs = new Term(getEval(bb, "in"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(m_function, "start"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 
@@ -656,7 +656,7 @@ void Converter::visitBB(llvm::BasicBlock *bb)
 
     // jump from bb_in to first instruction or bb_out
     // get condition
-    Constraint *cond = NULL;
+    ref<Constraint> cond;
     TrueFalseMap::iterator it = m_tfMap.find(bb);
     if (it != m_tfMap.end()) {
         TrueFalsePair tfp = it->second;
@@ -669,8 +669,8 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     ConditionMap::iterator it2 = m_elcMap.find(bb);
     if (it2 != m_elcMap.end()) {
         std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> > bounds = it2->second;
-        Constraint *c_new = buildBoundConjunction(bounds);
-        cond = new Operator(cond, c_new, Operator::And);
+        ref<Constraint> c_new = buildBoundConjunction(bounds);
+        cond = Operator::create(cond, c_new, Operator::And);
     }
     // find first instruction
     llvm::Instruction *first = NULL;
@@ -684,14 +684,14 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         }
     }
     if (first != NULL) {
-        Term *lhs = new Term(getEval(bb, "in"), m_lhs);
-        Term *rhs = new Term(getEval(firstID), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, cond);
+        ref<Term> lhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(firstID), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, cond);
         m_rules.push_back(rule);
     } else {
-        Term *lhs = new Term(getEval(bb, "in"), m_lhs);
-        Term *rhs = new Term(getEval(bb, "out"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, cond);
+        ref<Term> lhs = Term::create(getEval(bb, "in"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, cond);
         m_rules.push_back(rule);
     }
 
@@ -710,10 +710,10 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         }
     }
     if (last != NULL) {
-        Term *lhs = new Term(getEval(lastID+1), m_lhs);
+        ref<Term> lhs = Term::create(getEval(lastID+1), m_lhs);
         m_counter++;
-        Term *rhs = new Term(getEval(bb, "out"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
 
@@ -721,35 +721,35 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     llvm::TerminatorInst *terminator = bb->getTerminator();
     if (llvm::isa<llvm::ReturnInst>(terminator)) {
     } else if (llvm::isa<llvm::UnreachableInst>(terminator)) {
-        Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-        Term *rhs = new Term(getEval(m_function, "stop"), m_lhs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+        ref<Term> rhs = Term::create(getEval(m_function, "stop"), m_lhs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     } else {
         llvm::BranchInst *branch = llvm::cast<llvm::BranchInst>(terminator);
         bool useCondition = (!m_onlyLoopConditions || m_loopConditionBlocks.find(bb) != m_loopConditionBlocks.end());
         if (branch->isUnconditional()) {
-            Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-            Term *rhs = new Term(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
-            Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+            ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+            ref<Term> rhs = Term::create(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
+            ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
             m_rules.push_back(rule);
         } else {
-            Term *lhs = new Term(getEval(bb, "out"), m_lhs);
-            Term *rhs1 = new Term(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
-            Term *rhs2 = new Term(getEval(branch->getSuccessor(1), "in"), getArgsWithPhis(bb, branch->getSuccessor(1)));
-            Constraint *c = getConditionFromValue(branch->getCondition());
-            Rule *rule1 = new Rule(lhs, rhs1, useCondition ? c->toNNF(false) : Constraint::_true);
+            ref<Term> lhs = Term::create(getEval(bb, "out"), m_lhs);
+            ref<Term> rhs1 = Term::create(getEval(branch->getSuccessor(0), "in"), getArgsWithPhis(bb, branch->getSuccessor(0)));
+            ref<Term> rhs2 = Term::create(getEval(branch->getSuccessor(1), "in"), getArgsWithPhis(bb, branch->getSuccessor(1)));
+            ref<Constraint> c = getConditionFromValue(branch->getCondition());
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, useCondition ? c->toNNF(false) : Constraint::_true);
             m_rules.push_back(rule1);
-            Rule *rule2 = new Rule(lhs, rhs2, useCondition ? c->toNNF(true) : Constraint::_true);
+            ref<Rule> rule2 = Rule::create(lhs, rhs2, useCondition ? c->toNNF(true) : Constraint::_true);
             m_rules.push_back(rule2);
         }
     }
 }
 
-std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
+std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
 {
-    std::list<Polynomial*> res;
-    std::map<std::string, Polynomial*> phiValues;
+    std::list<ref<Polynomial> > res;
+    std::map<std::string, ref<Polynomial> > phiValues;
     for (llvm::BasicBlock::iterator i = to->begin(), e = to->end(); i != e; ++i) {
         if (!llvm::isa<llvm::PHINode>(*i)) {
             break;
@@ -761,9 +761,9 @@ std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::
         std::string PHIName = getVar(phi);
         phiValues.insert(std::make_pair(PHIName, getPolynomial(phi->getIncomingValueForBlock(from))));
     }
-    std::list<Polynomial*>::iterator pp = m_lhs.begin();
+    std::list<ref<Polynomial> >::iterator pp = m_lhs.begin();
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i, ++pp) {
-        std::map<std::string, Polynomial*>::iterator found = phiValues.find(*i);
+        std::map<std::string, ref<Polynomial> >::iterator found = phiValues.find(*i);
         if (found == phiValues.end()) {
             res.push_back(*pp);
         } else {
@@ -776,17 +776,17 @@ std::list<Polynomial*> Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::
 void Converter::visitTerminatorInst(llvm::TerminatorInst&)
 {}
 
-void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<Polynomial*> newArgs, Constraint *c)
+void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial> > newArgs, ref<Constraint> c)
 {
     m_idMap.insert(std::make_pair(&I, m_counter));
-    Term *lhs = new Term(getEval(m_counter), m_lhs);
+    ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
     ++m_counter;
-    Term *rhs = new Term(getEval(m_counter), newArgs);
-    Rule *rule = new Rule(lhs, rhs, c);
+    ref<Term> rhs = Term::create(getEval(m_counter), newArgs);
+    ref<Rule> rule = Rule::create(lhs, rhs, c);
     m_blockRules.push_back(rule);
 }
 
-void Converter::visitGenericInstruction(llvm::Instruction &I, Polynomial *value, Constraint *c)
+void Converter::visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> value, ref<Constraint> c)
 {
     visitGenericInstruction(I, getNewArgs(I, value), c);
 }
@@ -799,8 +799,8 @@ void Converter::visitAdd(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->add(p2));
     }
 }
@@ -813,8 +813,8 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -827,181 +827,181 @@ void Converter::visitMul(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *p1 = getPolynomial(I.getOperand(0));
-        Polynomial *p2 = getPolynomial(I.getOperand(1));
+        ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+        ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         visitGenericInstruction(I, p1->mult(p2));
     }
 }
 
-Constraint *Converter::getSDivConstraint(DivConstraintStore &store)
+ref<Constraint> Converter::getSDivConstraint(DivConstraintStore &store)
 {
     // 1. x = 0 /\ z = 0
-    Constraint *case1 = new Operator(store.xEQnull, store.zEQnull, Operator::And);
+    ref<Constraint> case1 = Operator::create(store.xEQnull, store.zEQnull, Operator::And);
     // 2. y = 1 /\ z = x
-    Constraint *case2 = new Operator(store.yEQone, store.zEQx, Operator::And);
+    ref<Constraint> case2 = Operator::create(store.yEQone, store.zEQx, Operator::And);
     // 3. y = -1 /\ z = -x
-    Constraint *case3 = new Operator(store.yEQnegone, store.zEQnegx, Operator::And);
+    ref<Constraint> case3 = Operator::create(store.yEQnegone, store.zEQnegx, Operator::And);
     // 4. y > 1 /\ x > 0 /\ z >= 0 /\ z < x
-    Constraint *case41 = new Operator(store.yGTRone, store.xGTRnull, Operator::And);
-    Constraint *case42 = new Operator(case41, store.zGEQnull, Operator::And);
-    Constraint *case4 = new Operator(case42, store.zLSSx, Operator::And);
+    ref<Constraint> case41 = Operator::create(store.yGTRone, store.xGTRnull, Operator::And);
+    ref<Constraint> case42 = Operator::create(case41, store.zGEQnull, Operator::And);
+    ref<Constraint> case4 = Operator::create(case42, store.zLSSx, Operator::And);
     // 5. y > 1 /\ x < 0 /\ z <= 0 /\ z > x
-    Constraint *case51 = new Operator(store.yGTRone, store.xLSSnull, Operator::And);
-    Constraint *case52 = new Operator(case51, store.zLEQnull, Operator::And);
-    Constraint *case5 = new Operator(case52, store.zGTRx, Operator::And);
+    ref<Constraint> case51 = Operator::create(store.yGTRone, store.xLSSnull, Operator::And);
+    ref<Constraint> case52 = Operator::create(case51, store.zLEQnull, Operator::And);
+    ref<Constraint> case5 = Operator::create(case52, store.zGTRx, Operator::And);
     // 6. y < -1 /\ x > 0 /\ z <= 0 /\ z > -x
-    Constraint *case61 = new Operator(store.yLSSnegone, store.xGTRnull, Operator::And);
-    Constraint *case62 = new Operator(case61, store.zLEQnull, Operator::And);
-    Constraint *case6 = new Operator(case62, store.zGTRnegx, Operator::And);
+    ref<Constraint> case61 = Operator::create(store.yLSSnegone, store.xGTRnull, Operator::And);
+    ref<Constraint> case62 = Operator::create(case61, store.zLEQnull, Operator::And);
+    ref<Constraint> case6 = Operator::create(case62, store.zGTRnegx, Operator::And);
     // 7. y < -1 /\ x < 0 /\ z >= 0 /\ z < -x
-    Constraint *case71 = new Operator(store.yLSSnegone, store.xLSSnull, Operator::And);
-    Constraint *case72 = new Operator(case71, store.zGEQnull, Operator::And);
-    Constraint *case7 = new Operator(case72, store.zLSSnegx, Operator::And);
+    ref<Constraint> case71 = Operator::create(store.yLSSnegone, store.xLSSnull, Operator::And);
+    ref<Constraint> case72 = Operator::create(case71, store.zGEQnull, Operator::And);
+    ref<Constraint> case7 = Operator::create(case72, store.zLSSnegx, Operator::And);
     // disjunct...
-    Constraint *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
-    disj = new Operator(disj, case4, Operator::Or);
-    disj = new Operator(disj, case5, Operator::Or);
-    disj = new Operator(disj, case6, Operator::Or);
-    disj = new Operator(disj, case7, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
+    disj = Operator::create(disj, case4, Operator::Or);
+    disj = Operator::create(disj, case5, Operator::Or);
+    disj = Operator::create(disj, case6, Operator::Or);
+    disj = Operator::create(disj, case7, Operator::Or);
     return disj;
 }
 
-Constraint *Converter::getSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::negone;
-    Polynomial *negupper = upper->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::negone;
+    ref<Polynomial> negupper = upper->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negx = negupper;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negx = negupper;
 
     DivConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.yEQnegone = new Atom(y, negone, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.zEQx = new Atom(z, x, Atom::Equ);
-    store.zEQnegx = new Atom(z, negx, Atom::Equ);
-    store.yGTRone = new Atom(y, one, Atom::Gtr);
-    store.xGTRnull = new Atom(x, null, Atom::Gtr);
-    store.zGEQnull = new Atom(z, null, Atom::Geq);
-    store.zLSSx = new Atom(z, x, Atom::Lss);
-    store.xLSSnull = new Atom(x, null, Atom::Lss);
-    store.zLEQnull = new Atom(z, null, Atom::Leq);
-    store.zGTRx = new Atom(z, x, Atom::Gtr);
-    store.yLSSnegone = new Atom(y, negone, Atom::Lss);
-    store.zGTRnegx = new Atom(z, negx, Atom::Gtr);
-    store.zLSSnegx = new Atom(z, negx, Atom::Lss);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.yEQnegone = Atom::create(y, negone, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.zEQx = Atom::create(z, x, Atom::Equ);
+    store.zEQnegx = Atom::create(z, negx, Atom::Equ);
+    store.yGTRone = Atom::create(y, one, Atom::Gtr);
+    store.xGTRnull = Atom::create(x, null, Atom::Gtr);
+    store.zGEQnull = Atom::create(z, null, Atom::Geq);
+    store.zLSSx = Atom::create(z, x, Atom::Lss);
+    store.xLSSnull = Atom::create(x, null, Atom::Lss);
+    store.zLEQnull = Atom::create(z, null, Atom::Leq);
+    store.zGTRx = Atom::create(z, x, Atom::Gtr);
+    store.yLSSnegone = Atom::create(y, negone, Atom::Lss);
+    store.zGTRnegx = Atom::create(z, negx, Atom::Gtr);
+    store.zLSSnegx = Atom::create(z, negx, Atom::Lss);
 
     return getSDivConstraint(store);
 }
 
-Constraint *Converter::getSDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getSDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSDivConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getSDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth)
+ref<Constraint> Converter::getSDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::uimax(bitwidth);
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
-    Polynomial *minneg = Polynomial::simin_as_ui(bitwidth);
-    Polynomial *negupper = upper->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::uimax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> minneg = Polynomial::simin_as_ui(bitwidth);
+    ref<Polynomial> negupper = upper->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negx = negupper;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negx = negupper;
 
     DivConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.yEQnegone = new Atom(y, negone, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.zEQx = new Atom(z, x, Atom::Equ);
-    store.zEQnegx = new Atom(z, negx, Atom::Equ);
-    Atom *yGTRone1 = new Atom(y, one, Atom::Gtr);
-    Atom *yGTRone2 = new Atom(y, maxpos, Atom::Leq);
-    store.yGTRone = new Operator(yGTRone1, yGTRone2, Operator::And);
-    Atom *xGTRnull1 = new Atom(x, null, Atom::Gtr);
-    Atom *xGTRnull2 = new Atom(x, maxpos, Atom::Leq);
-    store.xGTRnull = new Operator(xGTRnull1, xGTRnull2, Operator::And);
-    store.zGEQnull = new Atom(z, maxpos, Atom::Leq);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.yEQnegone = Atom::create(y, negone, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.zEQx = Atom::create(z, x, Atom::Equ);
+    store.zEQnegx = Atom::create(z, negx, Atom::Equ);
+    ref<Constraint> yGTRone1 = Atom::create(y, one, Atom::Gtr);
+    ref<Constraint> yGTRone2 = Atom::create(y, maxpos, Atom::Leq);
+    store.yGTRone = Operator::create(yGTRone1, yGTRone2, Operator::And);
+    ref<Constraint> xGTRnull1 = Atom::create(x, null, Atom::Gtr);
+    ref<Constraint> xGTRnull2 = Atom::create(x, maxpos, Atom::Leq);
+    store.xGTRnull = Operator::create(xGTRnull1, xGTRnull2, Operator::And);
+    store.zGEQnull = Atom::create(z, maxpos, Atom::Leq);
     store.zLSSx = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SLT, z, x, bitwidth);
-    store.xLSSnull = new Atom(x, minneg, Atom::Geq);
-    Atom *zLEQnull1 = new Atom(z, minneg, Atom::Geq);
-    Atom *zLEQnull2 = new Atom(z, null, Atom::Equ);
-    store.zLEQnull = new Operator(zLEQnull1, zLEQnull2, Operator::Or);
+    store.xLSSnull = Atom::create(x, minneg, Atom::Geq);
+    ref<Constraint> zLEQnull1 = Atom::create(z, minneg, Atom::Geq);
+    ref<Constraint> zLEQnull2 = Atom::create(z, null, Atom::Equ);
+    store.zLEQnull = Operator::create(zLEQnull1, zLEQnull2, Operator::Or);
     store.zGTRx = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SGT, z, x, bitwidth);
-    Atom *yLSSnegone1 = new Atom(y, minneg, Atom::Geq);
-    Atom *yLSSnegone2 = new Atom(y, negone, Atom::Lss);
-    store.yLSSnegone = new Operator(yLSSnegone1, yLSSnegone2, Operator::And);
+    ref<Constraint> yLSSnegone1 = Atom::create(y, minneg, Atom::Geq);
+    ref<Constraint> yLSSnegone2 = Atom::create(y, negone, Atom::Lss);
+    store.yLSSnegone = Operator::create(yLSSnegone1, yLSSnegone2, Operator::And);
     store.zGTRnegx = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SGT, z, negx, bitwidth);
     store.zLSSnegx = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SLT, z, negx, bitwidth);
 
     return getSDivConstraint(store);
 }
 
-Constraint *Converter::getExactSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getExactSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     // x/y = z
-    Polynomial *px = upper;
-    Polynomial *py = lower;
-    Polynomial *pz = res;
-    Polynomial *pnegx = px->constMult(Polynomial::_negone);
-    Polynomial *pnegy = py->constMult(Polynomial::_negone);
-    Polynomial *pnull = Polynomial::null;
+    ref<Polynomial> px = upper;
+    ref<Polynomial> py = lower;
+    ref<Polynomial> pz = res;
+    ref<Polynomial> pnegx = px->constMult(Polynomial::_negone);
+    ref<Polynomial> pnegy = py->constMult(Polynomial::_negone);
+    ref<Polynomial> pnull = Polynomial::null;
     // 1. x = 0 /\ z = 0
-    Atom *pxnull = new Atom(px, pnull, Atom::Equ);
-    Atom *pznull = new Atom(pz, pnull, Atom::Equ);
-    Constraint *case1 = new Operator(pxnull, pznull, Operator::And);
+    ref<Constraint> pxnull = Atom::create(px, pnull, Atom::Equ);
+    ref<Constraint> pznull = Atom::create(pz, pnull, Atom::Equ);
+    ref<Constraint> case1 = Operator::create(pxnull, pznull, Operator::And);
     // 2. y > 0 /\ x > 0 /\ z >= 0 /\ x - y*z >= 0 /\ x - y*z < y
-    Atom *pygtrnull = new Atom(py, pnull, Atom::Gtr);
-    Atom *pxgtrnull = new Atom(px, pnull, Atom::Gtr);
-    Atom *pzgeqnull = new Atom(pz, pnull, Atom::Geq);
-    Polynomial *term2 = px->sub(py->mult(pz));
-    Atom *term2geqnull = new Atom(term2, pnull, Atom::Geq);
-    Atom *term2lssy = new Atom(term2, py, Atom::Lss);
-    Constraint *case21 = new Operator(pygtrnull, pxgtrnull, Operator::And);
-    Constraint *case22 = new Operator(case21, pzgeqnull, Operator::And);
-    Constraint *case23 = new Operator(case22, term2geqnull, Operator::And);
-    Constraint *case2 = new Operator(case23, term2lssy, Operator::And);
+    ref<Constraint> pygtrnull = Atom::create(py, pnull, Atom::Gtr);
+    ref<Constraint> pxgtrnull = Atom::create(px, pnull, Atom::Gtr);
+    ref<Constraint> pzgeqnull = Atom::create(pz, pnull, Atom::Geq);
+    ref<Polynomial> term2 = px->sub(py->mult(pz));
+    ref<Constraint> term2geqnull = Atom::create(term2, pnull, Atom::Geq);
+    ref<Constraint> term2lssy = Atom::create(term2, py, Atom::Lss);
+    ref<Constraint> case21 = Operator::create(pygtrnull, pxgtrnull, Operator::And);
+    ref<Constraint> case22 = Operator::create(case21, pzgeqnull, Operator::And);
+    ref<Constraint> case23 = Operator::create(case22, term2geqnull, Operator::And);
+    ref<Constraint> case2 = Operator::create(case23, term2lssy, Operator::And);
     // 3. y < 0 /\ x > 0 /\ z <= 0 /\ x - y*z >= 0 /\ x - y*z < -y
-    Atom *pylssnull = new Atom(py, pnull, Atom::Lss);
-    Atom *pzleqnull = new Atom(pz, pnull, Atom::Leq);
-    Atom *term2lssnegy = new Atom(term2, pnegy, Atom::Lss);
-    Constraint *case31 = new Operator(pylssnull, pxgtrnull, Operator::And);
-    Constraint *case32 = new Operator(case31, pzleqnull, Operator::And);
-    Constraint *case33 = new Operator(case32, term2geqnull, Operator::And);
-    Constraint *case3 = new Operator(case33, term2lssnegy, Operator::And);
+    ref<Constraint> pylssnull = Atom::create(py, pnull, Atom::Lss);
+    ref<Constraint> pzleqnull = Atom::create(pz, pnull, Atom::Leq);
+    ref<Constraint> term2lssnegy = Atom::create(term2, pnegy, Atom::Lss);
+    ref<Constraint> case31 = Operator::create(pylssnull, pxgtrnull, Operator::And);
+    ref<Constraint> case32 = Operator::create(case31, pzleqnull, Operator::And);
+    ref<Constraint> case33 = Operator::create(case32, term2geqnull, Operator::And);
+    ref<Constraint> case3 = Operator::create(case33, term2lssnegy, Operator::And);
     // 4. y > 0 /\ x < 0 /\ z <= 0 /\ -x + y*z >= 0 /\ -x + y*z < y
-    Atom *pxlssnull = new Atom(px, pnull, Atom::Lss);
-    Polynomial *term4 = pnegx->add(py->mult(pz));
-    Atom *term4geqnull = new Atom(term4, pnull, Atom::Geq);
-    Atom *term4lssy = new Atom(term4, py, Atom::Lss);
-    Constraint *case41 = new Operator(pygtrnull, pxlssnull, Operator::And);
-    Constraint *case42 = new Operator(case41, pzleqnull, Operator::And);
-    Constraint *case43 = new Operator(case42, term4geqnull, Operator::And);
-    Constraint *case4 = new Operator(case43, term4lssy, Operator::And);
+    ref<Constraint> pxlssnull = Atom::create(px, pnull, Atom::Lss);
+    ref<Polynomial> term4 = pnegx->add(py->mult(pz));
+    ref<Constraint> term4geqnull = Atom::create(term4, pnull, Atom::Geq);
+    ref<Constraint> term4lssy = Atom::create(term4, py, Atom::Lss);
+    ref<Constraint> case41 = Operator::create(pygtrnull, pxlssnull, Operator::And);
+    ref<Constraint> case42 = Operator::create(case41, pzleqnull, Operator::And);
+    ref<Constraint> case43 = Operator::create(case42, term4geqnull, Operator::And);
+    ref<Constraint> case4 = Operator::create(case43, term4lssy, Operator::And);
     // 5. y < 0 /\ x < 0 /\ z >= 0 /\ -x + y*z >= 0 /\ -x + y*z < -y
-    Atom *term4lssnegy = new Atom(term4, pnegy, Atom::Lss);
-    Constraint *case51 = new Operator(pylssnull, pxlssnull, Operator::And);
-    Constraint *case52 = new Operator(case51, pzgeqnull, Operator::And);
-    Constraint *case53 = new Operator(case52, term4geqnull, Operator::And);
-    Constraint *case5 = new Operator(case53, term4lssnegy, Operator::And);
+    ref<Constraint> term4lssnegy = Atom::create(term4, pnegy, Atom::Lss);
+    ref<Constraint> case51 = Operator::create(pylssnull, pxlssnull, Operator::And);
+    ref<Constraint> case52 = Operator::create(case51, pzgeqnull, Operator::And);
+    ref<Constraint> case53 = Operator::create(case52, term4geqnull, Operator::And);
+    ref<Constraint> case5 = Operator::create(case53, term4lssnegy, Operator::And);
     // disjunct...
-    Operator *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
-    disj = new Operator(disj, case4, Operator::Or);
-    disj = new Operator(disj, case5, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
+    disj = Operator::create(disj, case4, Operator::Or);
+    disj = Operator::create(disj, case5, Operator::Or);
     return disj;
 }
 
@@ -1013,10 +1013,10 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
-        Constraint *divC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+        ref<Constraint> divC;
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             divC = m_unsignedEncoding ? getSDivConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSDivConstraintForSignedBounded(upper, lower, nondef);
@@ -1027,75 +1027,75 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
     }
 }
 
-Constraint *Converter::getUDivConstraint(DivConstraintStore &store)
+ref<Constraint> Converter::getUDivConstraint(DivConstraintStore &store)
 {
     // 1. x = 0 /\ z = 0
-    Constraint *case1 = new Operator(store.xEQnull, store.zEQnull, Operator::And);
+    ref<Constraint> case1 = Operator::create(store.xEQnull, store.zEQnull, Operator::And);
     // 2. y = 1 /\ z = x
-    Constraint *case2 = new Operator(store.yEQone, store.zEQx, Operator::And);
+    ref<Constraint> case2 = Operator::create(store.yEQone, store.zEQx, Operator::And);
     // 3. y > 1 /\ x > 0 /\ z < x
-    Constraint *case31 = new Operator(store.yGTRone, store.xGTRnull, Operator::And);
-    Constraint *case3 = new Operator(case31, store.zLSSx, Operator::And);
+    ref<Constraint> case31 = Operator::create(store.yGTRone, store.xGTRnull, Operator::And);
+    ref<Constraint> case3 = Operator::create(case31, store.zLSSx, Operator::And);
     // disjunct...
-    Constraint *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
     return disj;
 }
 
-Constraint *Converter::getUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSDivConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getUDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getUDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     DivConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.zEQx = new Atom(z, x, Atom::Equ);
-    Atom *yGTRone1 = new Atom(y, one, Atom::Gtr);
-    Atom *yGTRone2 = new Atom(y, null, Atom::Lss);
-    store.yGTRone = new Operator(yGTRone1, yGTRone2, Operator::Or);
-    Atom *xGTRnull1 = new Atom(x, null, Atom::Gtr);
-    Atom *xGTRnull2 = new Atom(x, null, Atom::Lss);
-    store.xGTRnull = new Operator(xGTRnull1, xGTRnull2, Operator::Or);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.zEQx = Atom::create(z, x, Atom::Equ);
+    ref<Constraint> yGTRone1 = Atom::create(y, one, Atom::Gtr);
+    ref<Constraint> yGTRone2 = Atom::create(y, null, Atom::Lss);
+    store.yGTRone = Operator::create(yGTRone1, yGTRone2, Operator::Or);
+    ref<Constraint> xGTRnull1 = Atom::create(x, null, Atom::Gtr);
+    ref<Constraint> xGTRnull2 = Atom::create(x, null, Atom::Lss);
+    store.xGTRnull = Operator::create(xGTRnull1, xGTRnull2, Operator::Or);
     store.zLSSx = getUnsignedComparisonForSignedBounded(llvm::CmpInst::ICMP_ULT, z, x);
 
     return getUDivConstraint(store);
 }
 
-Constraint *Converter::getUDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getUDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     DivConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.zEQx = new Atom(z, x, Atom::Equ);
-    store.yGTRone = new Atom(y, one, Atom::Gtr);
-    store.xGTRnull = new Atom(x, null, Atom::Gtr);
-    store.zLSSx = new Atom(z, x, Atom::Lss);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.zEQx = Atom::create(z, x, Atom::Equ);
+    store.yGTRone = Atom::create(y, one, Atom::Gtr);
+    store.xGTRnull = Atom::create(x, null, Atom::Gtr);
+    store.zLSSx = Atom::create(z, x, Atom::Lss);
 
     return getUDivConstraint(store);
 }
 
-Constraint *Converter::getExactUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getExactUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getExactSDivConstraintForUnbounded(upper, lower, res);
 }
@@ -1108,10 +1108,10 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
-        Constraint *divC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+        ref<Constraint> divC;
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             divC = m_unsignedEncoding ? getUDivConstraintForUnsignedBounded(upper, lower, nondef) : getUDivConstraintForSignedBounded(upper, lower, nondef);
         } else {
@@ -1121,117 +1121,117 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
     }
 }
 
-Constraint *Converter::getSRemConstraint(RemConstraintStore &store)
+ref<Constraint> Converter::getSRemConstraint(RemConstraintStore &store)
 {
     // 1. x = 0 /\ z = 0
-    Constraint *case1 = new Operator(store.xEQnull, store.zEQnull, Operator::And);
+    ref<Constraint> case1 = Operator::create(store.xEQnull, store.zEQnull, Operator::And);
     // 2. y = 1 /\ z = 0
-    Constraint *case2 = new Operator(store.yEQone, store.zEQnull, Operator::And);
+    ref<Constraint> case2 = Operator::create(store.yEQone, store.zEQnull, Operator::And);
     // 3. y = -1 /\ z = 0
-    Constraint *case3 = new Operator(store.yEQnegone, store.zEQnull, Operator::And);
+    ref<Constraint> case3 = Operator::create(store.yEQnegone, store.zEQnull, Operator::And);
     // 4. y > 1 /\ x > 0 /\ z >= 0 /\ z < y
-    Constraint *case41 = new Operator(store.yGTRone, store.xGTRnull, Operator::And);
-    Constraint *case42 = new Operator(case41, store.zGEQnull, Operator::And);
-    Constraint *case4 = new Operator(case42, store.zLSSy, Operator::And);
+    ref<Constraint> case41 = Operator::create(store.yGTRone, store.xGTRnull, Operator::And);
+    ref<Constraint> case42 = Operator::create(case41, store.zGEQnull, Operator::And);
+    ref<Constraint> case4 = Operator::create(case42, store.zLSSy, Operator::And);
     // 5. y > 1 /\ x < 0 /\ z <= 0 /\ z > -y
-    Constraint *case51 = new Operator(store.yGTRone, store.xLSSnull, Operator::And);
-    Constraint *case52 = new Operator(case51, store.zLEQnull, Operator::And);
-    Constraint *case5 = new Operator(case52, store.zGTRnegy, Operator::And);
+    ref<Constraint> case51 = Operator::create(store.yGTRone, store.xLSSnull, Operator::And);
+    ref<Constraint> case52 = Operator::create(case51, store.zLEQnull, Operator::And);
+    ref<Constraint> case5 = Operator::create(case52, store.zGTRnegy, Operator::And);
     // 6. y < -1 /\ x > 0 /\ z >= 0 /\ z < -y
-    Constraint *case61 = new Operator(store.yLSSnegone, store.xGTRnull, Operator::And);
-    Constraint *case62 = new Operator(case61, store.zGEQnull, Operator::And);
-    Constraint *case6 = new Operator(case62, store.zLSSnegy, Operator::And);
+    ref<Constraint> case61 = Operator::create(store.yLSSnegone, store.xGTRnull, Operator::And);
+    ref<Constraint> case62 = Operator::create(case61, store.zGEQnull, Operator::And);
+    ref<Constraint> case6 = Operator::create(case62, store.zLSSnegy, Operator::And);
     // 7. y < -1 /\ x < 0 /\ z <= 0 /\ z > y
-    Constraint *case71 = new Operator(store.yLSSnegone, store.xLSSnull, Operator::And);
-    Constraint *case72 = new Operator(case71, store.zLEQnull, Operator::And);
-    Constraint *case7 = new Operator(case72, store.zGTRy, Operator::And);
+    ref<Constraint> case71 = Operator::create(store.yLSSnegone, store.xLSSnull, Operator::And);
+    ref<Constraint> case72 = Operator::create(case71, store.zLEQnull, Operator::And);
+    ref<Constraint> case7 = Operator::create(case72, store.zGTRy, Operator::And);
     // disjunct...
-    Operator *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
-    disj = new Operator(disj, case4, Operator::Or);
-    disj = new Operator(disj, case5, Operator::Or);
-    disj = new Operator(disj, case6, Operator::Or);
-    disj = new Operator(disj, case7, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
+    disj = Operator::create(disj, case4, Operator::Or);
+    disj = Operator::create(disj, case5, Operator::Or);
+    disj = Operator::create(disj, case6, Operator::Or);
+    disj = Operator::create(disj, case7, Operator::Or);
     return disj;
 }
 
-Constraint *Converter::getSRemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getSRemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::negone;
-    Polynomial *neglower = lower->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::negone;
+    ref<Polynomial> neglower = lower->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negy = neglower;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negy = neglower;
 
     RemConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.yEQnegone = new Atom(y, negone, Atom::Equ);
-    store.yGTRone = new Atom(y, one, Atom::Gtr);
-    store.xGTRnull = new Atom(x, null, Atom::Gtr);
-    store.zGEQnull = new Atom(z, null, Atom::Geq);
-    store.zLSSy = new Atom(z, y, Atom::Lss);
-    store.xLSSnull = new Atom(x, null, Atom::Lss);
-    store.zLEQnull = new Atom(z, null, Atom::Leq);
-    store.zGTRnegy = new Atom(z, negy, Atom::Gtr);
-    store.yLSSnegone = new Atom(y, negone, Atom::Lss);
-    store.zLSSnegy = new Atom(z, negy, Atom::Lss);
-    store.zGTRy = new Atom(z, y, Atom::Gtr);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.yEQnegone = Atom::create(y, negone, Atom::Equ);
+    store.yGTRone = Atom::create(y, one, Atom::Gtr);
+    store.xGTRnull = Atom::create(x, null, Atom::Gtr);
+    store.zGEQnull = Atom::create(z, null, Atom::Geq);
+    store.zLSSy = Atom::create(z, y, Atom::Lss);
+    store.xLSSnull = Atom::create(x, null, Atom::Lss);
+    store.zLEQnull = Atom::create(z, null, Atom::Leq);
+    store.zGTRnegy = Atom::create(z, negy, Atom::Gtr);
+    store.yLSSnegone = Atom::create(y, negone, Atom::Lss);
+    store.zLSSnegy = Atom::create(z, negy, Atom::Lss);
+    store.zGTRy = Atom::create(z, y, Atom::Gtr);
 
     return getSRemConstraint(store);
 }
 
-Constraint *Converter::getSRemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getSRemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSRemConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getSRemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth)
+ref<Constraint> Converter::getSRemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
-    Polynomial *negone = Polynomial::uimax(bitwidth);
-    Polynomial *maxpos = Polynomial::simax(bitwidth);
-    Polynomial *minneg = Polynomial::simin_as_ui(bitwidth);
-    Polynomial *neglower = lower->constMult(Polynomial::_negone);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
+    ref<Polynomial> negone = Polynomial::uimax(bitwidth);
+    ref<Polynomial> maxpos = Polynomial::simax(bitwidth);
+    ref<Polynomial> minneg = Polynomial::simin_as_ui(bitwidth);
+    ref<Polynomial> neglower = lower->constMult(Polynomial::_negone);
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
-    Polynomial *negy = neglower;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
+    ref<Polynomial> negy = neglower;
 
     RemConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.yEQnegone = new Atom(y, negone, Atom::Equ);
-    Atom *yGTRone1 = new Atom(y, one, Atom::Gtr);
-    Atom *yGTRone2 = new Atom(y, maxpos, Atom::Leq);
-    store.yGTRone = new Operator(yGTRone1, yGTRone2, Operator::And);
-    Atom *xGTRnull1 = new Atom(x, null, Atom::Gtr);
-    Atom *xGTRnull2 = new Atom(x, maxpos, Atom::Leq);
-    store.xGTRnull = new Operator(xGTRnull1, xGTRnull2, Operator::And);
-    store.zGEQnull = new Atom(z, maxpos, Atom::Leq);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.yEQnegone = Atom::create(y, negone, Atom::Equ);
+    ref<Constraint> yGTRone1 = Atom::create(y, one, Atom::Gtr);
+    ref<Constraint> yGTRone2 = Atom::create(y, maxpos, Atom::Leq);
+    store.yGTRone = Operator::create(yGTRone1, yGTRone2, Operator::And);
+    ref<Constraint> xGTRnull1 = Atom::create(x, null, Atom::Gtr);
+    ref<Constraint> xGTRnull2 = Atom::create(x, maxpos, Atom::Leq);
+    store.xGTRnull = Operator::create(xGTRnull1, xGTRnull2, Operator::And);
+    store.zGEQnull = Atom::create(z, maxpos, Atom::Leq);
     store.zLSSy = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SLT, z, y, bitwidth);
-    store.xLSSnull = new Atom(x, minneg, Atom::Geq);
-    Atom *zLEQnull1 = new Atom(z, minneg, Atom::Geq);
-    Atom *zLEQnull2 = new Atom(z, null, Atom::Equ);
-    store.zLEQnull = new Operator(zLEQnull1, zLEQnull2, Operator::Or);
+    store.xLSSnull = Atom::create(x, minneg, Atom::Geq);
+    ref<Constraint> zLEQnull1 = Atom::create(z, minneg, Atom::Geq);
+    ref<Constraint> zLEQnull2 = Atom::create(z, null, Atom::Equ);
+    store.zLEQnull = Operator::create(zLEQnull1, zLEQnull2, Operator::Or);
     store.zGTRnegy = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SGT, z, negy, bitwidth);
-    Atom *yLSSnegone1 = new Atom(y, minneg, Atom::Geq);
-    Atom *yLSSnegone2 = new Atom(y, negone, Atom::Lss);
-    store.yLSSnegone = new Operator(yLSSnegone1, yLSSnegone2, Operator::And);
+    ref<Constraint> yLSSnegone1 = Atom::create(y, minneg, Atom::Geq);
+    ref<Constraint> yLSSnegone2 = Atom::create(y, negone, Atom::Lss);
+    store.yLSSnegone = Operator::create(yLSSnegone1, yLSSnegone2, Operator::And);
     store.zLSSnegy = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SLT, z, negy, bitwidth);
     store.zGTRy = getSignedComparisonForUnsignedBounded(llvm::CmpInst::ICMP_SGT, z, y, bitwidth);
 
-    Constraint *ret = getSRemConstraint(store);
+    ref<Constraint> ret = getSRemConstraint(store);
     return ret;
 }
 
@@ -1243,10 +1243,10 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
-        Constraint *remC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+        ref<Constraint> remC;
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             unsigned int bitwidth = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             remC = m_unsignedEncoding ? getSRemConstraintForUnsignedBounded(upper, lower, nondef, bitwidth) : getSRemConstraintForSignedBounded(upper, lower, nondef);
@@ -1257,68 +1257,68 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
     }
 }
 
-Constraint *Converter::getURemConstraint(RemConstraintStore &store)
+ref<Constraint> Converter::getURemConstraint(RemConstraintStore &store)
 {
     // 1. x = 0 /\ z = 0
-    Constraint *case1 = new Operator(store.xEQnull, store.zEQnull, Operator::And);
+    ref<Constraint> case1 = Operator::create(store.xEQnull, store.zEQnull, Operator::And);
     // 2. y = 1 /\ z = 0
-    Constraint *case2 = new Operator(store.yEQone, store.zEQnull, Operator::And);
+    ref<Constraint> case2 = Operator::create(store.yEQone, store.zEQnull, Operator::And);
     // 3. y > 1 /\ x > 0 /\ z < y
-    Constraint *case31 = new Operator(store.yGTRone, store.xGTRnull, Operator::And);
-    Constraint *case3 = new Operator(case31, store.zLSSy, Operator::And);
+    ref<Constraint> case31 = Operator::create(store.yGTRone, store.xGTRnull, Operator::And);
+    ref<Constraint> case3 = Operator::create(case31, store.zLSSy, Operator::And);
     // disjunct...
-    Operator *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
     return disj;
 }
 
-Constraint *Converter::getURemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getURemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
     return getSRemConstraintForUnbounded(upper, lower, res);
 }
 
-Constraint *Converter::getURemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getURemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     RemConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    Atom *yGTRone1 = new Atom(y, one, Atom::Gtr);
-    Atom *yGTRone2 = new Atom(y, null, Atom::Lss);
-    store.yGTRone = new Operator(yGTRone1, yGTRone2, Operator::Or);
-    Atom *xGTRnull1 = new Atom(x, null, Atom::Gtr);
-    Atom *xGTRnull2 = new Atom(x, null, Atom::Lss);
-    store.xGTRnull = new  Operator(xGTRnull1, xGTRnull2, Operator::Or);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    ref<Constraint> yGTRone1 = Atom::create(y, one, Atom::Gtr);
+    ref<Constraint> yGTRone2 = Atom::create(y, null, Atom::Lss);
+    store.yGTRone = Operator::create(yGTRone1, yGTRone2, Operator::Or);
+    ref<Constraint> xGTRnull1 = Atom::create(x, null, Atom::Gtr);
+    ref<Constraint> xGTRnull2 = Atom::create(x, null, Atom::Lss);
+    store.xGTRnull = Operator::create(xGTRnull1, xGTRnull2, Operator::Or);
     store.zLSSy = getUnsignedComparisonForSignedBounded(llvm::CmpInst::ICMP_ULT, z, y);
 
     return getURemConstraint(store);
 }
 
-Constraint *Converter::getURemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res)
+ref<Constraint> Converter::getURemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res)
 {
-    Polynomial *null = Polynomial::null;
-    Polynomial *one = Polynomial::one;
+    ref<Polynomial> null = Polynomial::null;
+    ref<Polynomial> one = Polynomial::one;
 
-    Polynomial *x = upper;
-    Polynomial *y = lower;
-    Polynomial *z = res;
+    ref<Polynomial> x = upper;
+    ref<Polynomial> y = lower;
+    ref<Polynomial> z = res;
 
     RemConstraintStore store;
 
-    store.xEQnull = new Atom(x, null, Atom::Equ);
-    store.zEQnull = new Atom(z, null, Atom::Equ);
-    store.yEQone = new Atom(y, one, Atom::Equ);
-    store.yGTRone = new Atom(y, one, Atom::Gtr);
-    store.xGTRnull = new Atom(x, null, Atom::Gtr);
-    store.zLSSy = new Atom(z, y, Atom::Lss);
+    store.xEQnull = Atom::create(x, null, Atom::Equ);
+    store.zEQnull = Atom::create(z, null, Atom::Equ);
+    store.yEQone = Atom::create(y, one, Atom::Equ);
+    store.yGTRone = Atom::create(y, one, Atom::Gtr);
+    store.xGTRnull = Atom::create(x, null, Atom::Gtr);
+    store.zLSSy = Atom::create(z, y, Atom::Lss);
 
     return getURemConstraint(store);
 }
@@ -1331,10 +1331,10 @@ void Converter::visitURem(llvm::BinaryOperator &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
-        Constraint *remC = NULL;
-        Polynomial *upper = getPolynomial(I.getOperand(0));
-        Polynomial *lower = getPolynomial(I.getOperand(1));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+        ref<Constraint> remC;
+        ref<Polynomial> upper = getPolynomial(I.getOperand(0));
+        ref<Polynomial> lower = getPolynomial(I.getOperand(1));
         if (m_boundedIntegers) {
             remC = m_unsignedEncoding ? getURemConstraintForUnsignedBounded(upper, lower, nondef) : getURemConstraintForSignedBounded(upper, lower, nondef);
         } else {
@@ -1344,42 +1344,42 @@ void Converter::visitURem(llvm::BinaryOperator &I)
     }
 }
 
-Constraint *Converter::getAndConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res)
+ref<Constraint> Converter::getAndConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res)
 {
-    Atom *resLEQx = new Atom(res, x, Atom::Leq);
-    Atom *resLEQy = new Atom(res, y, Atom::Leq);
+    ref<Constraint> resLEQx = Atom::create(res, x, Atom::Leq);
+    ref<Constraint> resLEQy = Atom::create(res, y, Atom::Leq);
     if (m_unsignedEncoding) {
-        return new Operator(resLEQx, resLEQy, Operator::And);
+        return Operator::create(resLEQx, resLEQy, Operator::And);
     }
-    Polynomial *null = Polynomial::null;
-    Atom *xGEQnull = new Atom(x, null, Atom::Geq);
-    Atom *yGEQnull = new Atom(y, null, Atom::Geq);
-    Atom *resGEQnull = new Atom(res, null, Atom::Geq);
-    Atom *xLSSnull = new Atom(x, null, Atom::Lss);
-    Atom *yLSSnull = new Atom(y, null, Atom::Lss);
-    Atom *resLSSnull = new Atom(res, null, Atom::Lss);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Constraint> xGEQnull = Atom::create(x, null, Atom::Geq);
+    ref<Constraint> yGEQnull = Atom::create(y, null, Atom::Geq);
+    ref<Constraint> resGEQnull = Atom::create(res, null, Atom::Geq);
+    ref<Constraint> xLSSnull = Atom::create(x, null, Atom::Lss);
+    ref<Constraint> yLSSnull = Atom::create(y, null, Atom::Lss);
+    ref<Constraint> resLSSnull = Atom::create(res, null, Atom::Lss);
     // case 1: x >= 0 /\ y >= 0 /\ res >= 0 /\ res <= x /\ res <= y
-    Operator *case1 = new Operator(xGEQnull, yGEQnull, Operator::And);
-    case1 = new Operator(case1, resGEQnull, Operator::And);
-    case1 = new Operator(case1, resLEQx, Operator::And);
-    case1 = new Operator(case1, resLEQy, Operator::And);
+    ref<Constraint> case1 = Operator::create(xGEQnull, yGEQnull, Operator::And);
+    case1 = Operator::create(case1, resGEQnull, Operator::And);
+    case1 = Operator::create(case1, resLEQx, Operator::And);
+    case1 = Operator::create(case1, resLEQy, Operator::And);
     // case 2: x >= 0 /\ y < 0 /\ res >= 0 /\ res <= x
-    Operator *case2 = new Operator(xGEQnull, yLSSnull, Operator::And);
-    case2 = new Operator(case2, resGEQnull, Operator::And);
-    case2 = new Operator(case2, resLEQx, Operator::And);
+    ref<Constraint> case2 = Operator::create(xGEQnull, yLSSnull, Operator::And);
+    case2 = Operator::create(case2, resGEQnull, Operator::And);
+    case2 = Operator::create(case2, resLEQx, Operator::And);
     // case 3: x < 0 /\ y >= 0 /\ res >= 0 /\ res <= y
-    Operator *case3 = new Operator(xLSSnull, yGEQnull, Operator::And);
-    case3 = new Operator(case3, resGEQnull, Operator::And);
-    case3 = new Operator(case3, resLEQy, Operator::And);
+    ref<Constraint> case3 = Operator::create(xLSSnull, yGEQnull, Operator::And);
+    case3 = Operator::create(case3, resGEQnull, Operator::And);
+    case3 = Operator::create(case3, resLEQy, Operator::And);
     // case 4: x < 0 /\ y < 0 /\ res < 0 /\ res <= x /\ res <= y
-    Operator *case4 = new Operator(xLSSnull, yLSSnull, Operator::And);
-    case4 = new Operator(case4, resLSSnull, Operator::And);
-    case4 = new Operator(case4, resLEQx, Operator::And);
-    case4 = new Operator(case4, resLEQy, Operator::And);
+    ref<Constraint> case4 = Operator::create(xLSSnull, yLSSnull, Operator::And);
+    case4 = Operator::create(case4, resLSSnull, Operator::And);
+    case4 = Operator::create(case4, resLEQx, Operator::And);
+    case4 = Operator::create(case4, resLEQy, Operator::And);
     // disjunct...
-    Operator *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
-    disj = new Operator(disj, case4, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
+    disj = Operator::create(disj, case4, Operator::Or);
 
     return disj;
 }
@@ -1393,54 +1393,54 @@ void Converter::visitAnd(llvm::BinaryOperator &I)
         m_vars.push_back(getVar(&I));
     } else {
         if (m_boundedIntegers && m_bitwiseConditions) {
-            Polynomial *x = getPolynomial(I.getOperand(0));
-            Polynomial *y = getPolynomial(I.getOperand(1));
-            Polynomial *nondef = new Polynomial(getNondef(&I));
-            Constraint *c = getAndConstraintForBounded(x, y, nondef);
+            ref<Polynomial> x = getPolynomial(I.getOperand(0));
+            ref<Polynomial> y = getPolynomial(I.getOperand(1));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+            ref<Constraint> c = getAndConstraintForBounded(x, y, nondef);
             visitGenericInstruction(I, nondef, c);
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
 }
 
-Constraint *Converter::getOrConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res)
+ref<Constraint> Converter::getOrConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res)
 {
-    Atom *resGEQx = new Atom(res, x, Atom::Leq);
-    Atom *resGEQy = new Atom(res, y, Atom::Leq);
+    ref<Constraint> resGEQx = Atom::create(res, x, Atom::Leq);
+    ref<Constraint> resGEQy = Atom::create(res, y, Atom::Leq);
     if (m_unsignedEncoding) {
-        return new Operator(resGEQx, resGEQy, Operator::And);
+        return Operator::create(resGEQx, resGEQy, Operator::And);
     }
-    Polynomial *null = Polynomial::null;
-    Atom *xGEQnull = new Atom(x, null, Atom::Geq);
-    Atom *yGEQnull = new Atom(y, null, Atom::Geq);
-    Atom *resGEQnull = new Atom(res, null, Atom::Geq);
-    Atom *xLSSnull = new Atom(x, null, Atom::Lss);
-    Atom *yLSSnull = new Atom(y, null, Atom::Lss);
-    Atom *resLSSnull = new Atom(res, null, Atom::Lss);
+    ref<Polynomial> null = Polynomial::null;
+    ref<Constraint> xGEQnull = Atom::create(x, null, Atom::Geq);
+    ref<Constraint> yGEQnull = Atom::create(y, null, Atom::Geq);
+    ref<Constraint> resGEQnull = Atom::create(res, null, Atom::Geq);
+    ref<Constraint> xLSSnull = Atom::create(x, null, Atom::Lss);
+    ref<Constraint> yLSSnull = Atom::create(y, null, Atom::Lss);
+    ref<Constraint> resLSSnull = Atom::create(res, null, Atom::Lss);
     // case 1: x >= 0 /\ y >= 0 /\ res >= 0 /\ res >= x /\ res >= y
-    Operator *case1 = new Operator(xGEQnull, yGEQnull, Operator::And);
-    case1 = new Operator(case1, resGEQnull, Operator::And);
-    case1 = new Operator(case1, resGEQx, Operator::And);
-    case1 = new Operator(case1, resGEQy, Operator::And);
+    ref<Constraint> case1 = Operator::create(xGEQnull, yGEQnull, Operator::And);
+    case1 = Operator::create(case1, resGEQnull, Operator::And);
+    case1 = Operator::create(case1, resGEQx, Operator::And);
+    case1 = Operator::create(case1, resGEQy, Operator::And);
     // case 2: x >= 0 /\ y < 0 /\ res < 0 /\ res >= y
-    Operator *case2 = new Operator(xGEQnull, yLSSnull, Operator::And);
-    case2 = new Operator(case2, resLSSnull, Operator::And);
-    case2 = new Operator(case2, resGEQy, Operator::And);
+    ref<Constraint> case2 = Operator::create(xGEQnull, yLSSnull, Operator::And);
+    case2 = Operator::create(case2, resLSSnull, Operator::And);
+    case2 = Operator::create(case2, resGEQy, Operator::And);
     // case 3: x < 0 /\ y >= 0 /\ res < 0 /\ res >= x
-    Operator *case3 = new Operator(xLSSnull, yGEQnull, Operator::And);
-    case3 = new Operator(case3, resLSSnull, Operator::And);
-    case3 = new Operator(case3, resGEQx, Operator::And);
+    ref<Constraint> case3 = Operator::create(xLSSnull, yGEQnull, Operator::And);
+    case3 = Operator::create(case3, resLSSnull, Operator::And);
+    case3 = Operator::create(case3, resGEQx, Operator::And);
     // case 4: x < 0 /\ y < 0 /\ res < 0 /\ res >= x /\ res >= y
-    Operator *case4 = new Operator(xLSSnull, yLSSnull, Operator::And);
-    case4 = new Operator(case4, resLSSnull, Operator::And);
-    case4 = new Operator(case4, resGEQx, Operator::And);
-    case4 = new Operator(case4, resGEQy, Operator::And);
+    ref<Constraint> case4 = Operator::create(xLSSnull, yLSSnull, Operator::And);
+    case4 = Operator::create(case4, resLSSnull, Operator::And);
+    case4 = Operator::create(case4, resGEQx, Operator::And);
+    case4 = Operator::create(case4, resGEQy, Operator::And);
     // disjunct...
-    Operator *disj = new Operator(case1, case2, Operator::Or);
-    disj = new Operator(disj, case3, Operator::Or);
-    disj = new Operator(disj, case4, Operator::Or);
+    ref<Constraint> disj = Operator::create(case1, case2, Operator::Or);
+    disj = Operator::create(disj, case3, Operator::Or);
+    disj = Operator::create(disj, case4, Operator::Or);
 
     return disj;
 }
@@ -1454,13 +1454,13 @@ void Converter::visitOr(llvm::BinaryOperator &I)
         m_vars.push_back(getVar(&I));
     } else {
         if (m_boundedIntegers && m_bitwiseConditions) {
-            Polynomial *x = getPolynomial(I.getOperand(0));
-            Polynomial *y = getPolynomial(I.getOperand(1));
-            Polynomial *nondef = new Polynomial(getNondef(&I));
-            Constraint *c = getOrConstraintForBounded(x, y, nondef);
+            ref<Polynomial> x = getPolynomial(I.getOperand(0));
+            ref<Polynomial> y = getPolynomial(I.getOperand(1));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+            ref<Constraint> c = getOrConstraintForBounded(x, y, nondef);
             visitGenericInstruction(I, nondef, c);
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
@@ -1476,11 +1476,11 @@ void Converter::visitXor(llvm::BinaryOperator &I)
     } else {
         if (llvm::isa<llvm::ConstantInt>(I.getOperand(1)) && llvm::cast<llvm::ConstantInt>(I.getOperand(1))->isAllOnesValue()) {
             // it is xor %i, -1 --> actually, it is -%i - 1
-            Polynomial *p1 = getPolynomial(I.getOperand(0));
-            Polynomial *p2 = Polynomial::one;
+            ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
+            ref<Polynomial> p2 = Polynomial::one;
             visitGenericInstruction(I, p1->constMult(Polynomial::_negone)->sub(p2));
         } else {
-            Polynomial *nondef = new Polynomial(getNondef(&I));
+            ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
             visitGenericInstruction(I, nondef);
         }
     }
@@ -1501,11 +1501,11 @@ void Converter::visitCallInst(llvm::CallInst &I)
                 if (m_assumeIsControl) {
                     m_controlPoints.insert(getEval(m_counter));
                 }
-                Constraint *c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(callSite.getArgument(0));
+                ref<Constraint> c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(callSite.getArgument(0));
                 visitGenericInstruction(I, m_lhs, c->toNNF(false));
                 return;
             } else if (functionName.startswith("__kittel_nondef")) {
-                Polynomial *nondef = new Polynomial(getNondef(&I));
+                ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
                 visitGenericInstruction(I, nondef);
                 return;
             }
@@ -1525,11 +1525,11 @@ void Converter::visitCallInst(llvm::CallInst &I)
             }
             std::set<llvm::GlobalVariable*> toZap;
             m_idMap.insert(std::make_pair(&I, m_counter));
-            Term *lhs = new Term(getEval(m_counter), m_lhs);
+            ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
             for (std::list<llvm::Function*>::iterator cf = callees.begin(), cfe = callees.end(); cf != cfe; ++cf) {
                 llvm::Function *callee = *cf;
                 if (m_scc.find(callee) != m_scc.end() || m_complexityTuples) {
-                    std::list<Polynomial*> callArgs;
+                    std::list<ref<Polynomial> > callArgs;
                     for (llvm::CallSite::arg_iterator i = callSite.arg_begin(), e = callSite.arg_end(); i != e; ++i) {
                         llvm::Value *arg = *i;
                         if (arg->getType() != m_boolType && arg->getType()->isIntegerTy()) {
@@ -1540,8 +1540,8 @@ void Converter::visitCallInst(llvm::CallInst &I)
                         callArgs.push_back(getPolynomial(*i));
                     }
                     m_controlPoints.insert(getEval(callee, "start"));
-                    Term *rhs2 = new Term(getEval(callee, "start"), callArgs);
-                    Rule *rule2 = new Rule(lhs, rhs2, Constraint::_true);
+                    ref<Term> rhs2 = Term::create(getEval(callee, "start"), callArgs);
+                    ref<Rule> rule2 = Rule::create(lhs, rhs2, Constraint::_true);
                     m_blockRules.push_back(rule2);
                 }
                 if (callee->isDeclaration()) {
@@ -1558,15 +1558,15 @@ void Converter::visitCallInst(llvm::CallInst &I)
             }
             m_counter++;
             // zap!
-            std::list<Polynomial*> newArgs;
+            std::list<ref<Polynomial> > newArgs;
             if (I.getType()->isIntegerTy() && I.getType() != m_boolType) {
-                Polynomial *nondef = new Polynomial(getNondef(&I));
+                ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
                 newArgs = getZappedArgs(toZap, I, nondef);
             } else {
                 newArgs = getZappedArgs(toZap);
             }
-            Term *rhs1 = new Term(getEval(m_counter), newArgs);
-            Rule *rule1 = new Rule(lhs, rhs1, Constraint::_true);
+            ref<Term> rhs1 = Term::create(getEval(m_counter), newArgs);
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, Constraint::_true);
             m_blockRules.push_back(rule1);
             return;
         } else {
@@ -1615,14 +1615,14 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
             m_controlPoints.insert(getEval(m_counter));
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         m_counter++;
-        Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, getPolynomial(I.getTrueValue())));
-        Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, getPolynomial(I.getFalseValue())));
-        Constraint *c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(I.getCondition());
-        Rule *rule1 = new Rule(lhs, rhs1, c->toNNF(false));
+        ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getTrueValue())));
+        ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getFalseValue())));
+        ref<Constraint> c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(I.getCondition());
+        ref<Rule> rule1 = Rule::create(lhs, rhs1, c->toNNF(false));
         m_blockRules.push_back(rule1);
-        Rule *rule2 = new Rule(lhs, rhs2, c->toNNF(true));
+        ref<Rule> rule2 = Rule::create(lhs, rhs2, c->toNNF(true));
         m_blockRules.push_back(rule2);
     }
 }
@@ -1654,7 +1654,7 @@ void Converter::visitBitCastInst(llvm::BitCastInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *value = getPolynomial(&I);
+        ref<Polynomial> value = getPolynomial(&I);
         visitGenericInstruction(I, value);
     }
 }
@@ -1664,7 +1664,7 @@ void Converter::visitPtrToIntInst(llvm::PtrToIntInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1685,19 +1685,19 @@ void Converter::visitLoadInst(llvm::LoadInst &I)
         MayMustPair mmp = it->second;
         std::set<llvm::GlobalVariable*> mays = mmp.first;
         std::set<llvm::GlobalVariable*> musts = mmp.second;
-        Polynomial* newArg = NULL;
+        ref<Polynomial> newArg;
         if (musts.size() == 1 && mays.size() == 0) {
             // unique!
-            newArg = new Polynomial(getVar(*musts.begin()));
+            newArg = Polynomial::create(getVar(*musts.begin()));
         } else {
             // nondef...
-            newArg = new Polynomial(getNondef(&I));
+            newArg = Polynomial::create(getNondef(&I));
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
-        Term *rhs = new Term(getEval(m_counter), getNewArgs(I, newArg));
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, newArg));
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }
@@ -1715,7 +1715,7 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
         MayMustPair mmp = it->second;
         std::set<llvm::GlobalVariable*> mays = mmp.first;
         std::set<llvm::GlobalVariable*> musts = mmp.second;
-        std::list<Polynomial*> newArgs;
+        std::list<ref<Polynomial> > newArgs;
         if (musts.size() == 1 && mays.size() == 0) {
             // unique!
             newArgs = getNewArgs(**musts.begin(), getPolynomial(val));
@@ -1727,10 +1727,10 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
             newArgs = getZappedArgs(mays);
         }
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
-        Term *rhs = new Term(getEval(m_counter), newArgs);
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), newArgs);
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }
@@ -1743,7 +1743,7 @@ void Converter::visitFPToSIInst(llvm::FPToSIInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1753,7 +1753,7 @@ void Converter::visitFPToUIInst(llvm::FPToUIInst &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1766,7 +1766,7 @@ void Converter::visitInstruction(llvm::Instruction &I)
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
     } else {
-        Polynomial *nondef = new Polynomial(getNondef(&I));
+        ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);
     }
 }
@@ -1777,29 +1777,29 @@ void Converter::visitSExtInst(llvm::SExtInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
-        Polynomial *copy = getPolynomial(I.getOperand(0));
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
+        ref<Polynomial> copy = getPolynomial(I.getOperand(0));
         ++m_counter;
         if (m_boundedIntegers && m_unsignedEncoding) {
             unsigned int bitwidthNew = llvm::cast<llvm::IntegerType>(I.getType())->getBitWidth();
             unsigned int bitwidthOld = llvm::cast<llvm::IntegerType>(I.getOperand(0)->getType())->getBitWidth();
-            Polynomial *sizeNew = Polynomial::power_of_two(bitwidthNew);
-            Polynomial *sizeOld = Polynomial::power_of_two(bitwidthOld);
-            Polynomial *sizeDiff = sizeNew->sub(sizeOld);
-            Polynomial *intmaxOld = Polynomial::simax(bitwidthOld);
-            Polynomial *converted = sizeDiff->add(copy);
-            Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, copy));
-            Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, converted));
-            Constraint *c1 = new Atom(copy, intmaxOld, Atom::Leq);
-            Constraint *c2 = new Atom(copy, intmaxOld, Atom::Gtr);
-            Rule *rule1 = new Rule(lhs, rhs1, c1);
-            Rule *rule2 = new Rule(lhs, rhs2, c2);
+            ref<Polynomial> sizeNew = Polynomial::power_of_two(bitwidthNew);
+            ref<Polynomial> sizeOld = Polynomial::power_of_two(bitwidthOld);
+            ref<Polynomial> sizeDiff = sizeNew->sub(sizeOld);
+            ref<Polynomial> intmaxOld = Polynomial::simax(bitwidthOld);
+            ref<Polynomial> converted = sizeDiff->add(copy);
+            ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
+            ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
+            ref<Constraint> c1 = Atom::create(copy, intmaxOld, Atom::Leq);
+            ref<Constraint> c2 = Atom::create(copy, intmaxOld, Atom::Gtr);
+            ref<Rule> rule1 = Rule::create(lhs, rhs1, c1);
+            ref<Rule> rule2 = Rule::create(lhs, rhs2, c2);
             m_blockRules.push_back(rule1);
             m_blockRules.push_back(rule2);
         } else {
             // mathematical integers or bounded integers with signed encoding
-            Term *rhs = new Term(getEval(m_counter), getNewArgs(I, copy));
-            Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+            ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, copy));
+            ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
             m_blockRules.push_back(rule);
         }
     }
@@ -1814,37 +1814,37 @@ void Converter::visitZExtInst(llvm::ZExtInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         ++m_counter;
         if (I.getOperand(0)->getType() == m_boolType) {
-            Polynomial *zero = Polynomial::null;
-            Polynomial *one = Polynomial::one;
-            Term *rhszero = new Term(getEval(m_counter), getNewArgs(I, zero));
-            Term *rhsone = new Term(getEval(m_counter), getNewArgs(I, one));
-            Constraint *c = getConditionFromValue(I.getOperand(0));
-            Rule *rulezero = new Rule(lhs, rhszero, c->toNNF(true));
-            Rule *ruleone = new Rule(lhs, rhsone, c->toNNF(false));
+            ref<Polynomial> zero = Polynomial::null;
+            ref<Polynomial> one = Polynomial::one;
+            ref<Term> rhszero = Term::create(getEval(m_counter), getNewArgs(I, zero));
+            ref<Term> rhsone = Term::create(getEval(m_counter), getNewArgs(I, one));
+            ref<Constraint> c = getConditionFromValue(I.getOperand(0));
+            ref<Rule> rulezero = Rule::create(lhs, rhszero, c->toNNF(true));
+            ref<Rule> ruleone = Rule::create(lhs, rhsone, c->toNNF(false));
             m_blockRules.push_back(rulezero);
             m_blockRules.push_back(ruleone);
         } else {
-            Polynomial *copy = getPolynomial(I.getOperand(0));
+            ref<Polynomial> copy = getPolynomial(I.getOperand(0));
             if (m_boundedIntegers && !m_unsignedEncoding) {
                 unsigned int bitwidthOld = llvm::cast<llvm::IntegerType>(I.getOperand(0)->getType())->getBitWidth();
-                Polynomial *shifter = Polynomial::power_of_two(bitwidthOld);
-                Polynomial *converted = shifter->add(copy);
-                Term *rhs1 = new Term(getEval(m_counter), getNewArgs(I, copy));
-                Term *rhs2 = new Term(getEval(m_counter), getNewArgs(I, converted));
-                Polynomial *zero = Polynomial::null;
-                Constraint *c1 = new Atom(copy, zero, Atom::Geq);
-                Constraint *c2 = new Atom(copy, zero, Atom::Lss);
-                Rule *rule1 = new Rule(lhs, rhs1, c1);
-                Rule *rule2 = new Rule(lhs, rhs2, c2);
+                ref<Polynomial> shifter = Polynomial::power_of_two(bitwidthOld);
+                ref<Polynomial> converted = shifter->add(copy);
+                ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, copy));
+                ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, converted));
+                ref<Polynomial> zero = Polynomial::null;
+                ref<Constraint> c1 = Atom::create(copy, zero, Atom::Geq);
+                ref<Constraint> c2 = Atom::create(copy, zero, Atom::Lss);
+                ref<Rule> rule1 = Rule::create(lhs, rhs1, c1);
+                ref<Rule> rule2 = Rule::create(lhs, rhs2, c2);
                 m_blockRules.push_back(rule1);
                 m_blockRules.push_back(rule2);
             } else {
                 // mathematical integers of bounded integers with unsigned encoding
-                Term *rhs = new Term(getEval(m_counter), getNewArgs(I, copy));
-                Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+                ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, copy));
+                ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
                 m_blockRules.push_back(rule);
             }
         }
@@ -1860,16 +1860,16 @@ void Converter::visitTruncInst(llvm::TruncInst &I)
         m_vars.push_back(getVar(&I));
     } else {
         m_idMap.insert(std::make_pair(&I, m_counter));
-        Term *lhs = new Term(getEval(m_counter), m_lhs);
-        Polynomial *val = NULL;
+        ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
+        ref<Polynomial> val;
         if (m_boundedIntegers) {
-            val = new Polynomial(getNondef(&I));
+            val = Polynomial::create(getNondef(&I));
         } else {
             val = getPolynomial(I.getOperand(0));
         }
         m_counter++;
-        Term *rhs = new Term(getEval(m_counter), getNewArgs(I, val));
-        Rule *rule = new Rule(lhs, rhs, Constraint::_true);
+        ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, val));
+        ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_blockRules.push_back(rule);
     }
 }

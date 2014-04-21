@@ -56,10 +56,10 @@ Slicer::~Slicer()
 }
 
 /*
-static void printRules(std::string header, std::list<Rule*> rules)
+static void printRules(std::string header, std::list<ref<Rule> > rules)
 {
     std::cout << header << std::endl;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         std::cout << (*i)->toString() << std::endl;
     }
     std::cout << header << std::endl;
@@ -76,22 +76,22 @@ std::set<unsigned int> Slicer::getSet(unsigned int size)
     return res;
 }
 
-std::list<Rule*> Slicer::sliceUsage(std::list<Rule*> rules)
+std::list<ref<Rule> > Slicer::sliceUsage(std::list<ref<Rule> > rules)
 {
     if (rules.empty()) {
         return rules;
     }
-    std::list<Rule*> res;
+    std::list<ref<Rule> > res;
     std::vector<std::string> vars;
-    std::list<Polynomial*> var_args = (*rules.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
-        Polynomial *tmp = *i;
+    std::list<ref<Polynomial> > var_args = (*rules.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial> >::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
+        ref<Polynomial> tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
     unsigned int arity = static_cast<unsigned int>(vars.size());
     std::set<unsigned int> notNeeded = getSet(arity);
-    for (std::list<Rule*>::iterator it = rules.begin(), et = rules.end(); it != et; ++it) {
-        Rule *tmp = *it;
+    for (std::list<ref<Rule> >::iterator it = rules.begin(), et = rules.end(); it != et; ++it) {
+        ref<Rule> tmp = *it;
         std::set<std::string> *c_vars = tmp->getConstraint()->getVariables();
         std::vector<std::set<std::string>*> rhsVars;
         std::set<std::string> *allRhsVars = NULL;
@@ -149,28 +149,28 @@ std::list<Rule*> Slicer::sliceUsage(std::list<Rule*> rules)
         }
     }
 
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         if (!isRecursiveCall(rule->getRight()->getFunctionSymbol())) {
             res.push_back(rule->dropArgs(notNeeded));
         } else {
-            res.push_back(new Rule(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
+          res.push_back(Rule::create(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
         }
     }
     return res;
 }
 
 // Constraint
-std::list<Rule*> Slicer::sliceConstraint(std::list<Rule*> rules)
+std::list<ref<Rule> > Slicer::sliceConstraint(std::list<ref<Rule> > rules)
 {
     if (rules.empty()) {
         return rules;
     }
-    std::list<Rule*> res;
+    std::list<ref<Rule> > res;
     std::vector<std::string> vars;
-    std::list<Polynomial*> var_args = (*rules.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
-        Polynomial *tmp = *i;
+    std::list<ref<Polynomial> > var_args = (*rules.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial> >::iterator i = var_args.begin(), e = var_args.end(); i != e; ++i) {
+        ref<Polynomial> tmp = *i;
         vars.push_back(*(tmp->getVariables()->begin()));
     }
     m_numVars = static_cast<unsigned int>(vars.size());
@@ -208,8 +208,8 @@ std::list<Rule*> Slicer::sliceConstraint(std::list<Rule*> rules)
         m_idxVar.insert(std::make_pair(idx, v));
         ++idx;
     }
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::set<std::string> *vv = rule->getConstraint()->getVariables();
         c_vars.insert(vv->begin(), vv->end());
         if (isRecursiveCall(rule->getRight()->getFunctionSymbol())) {
@@ -217,12 +217,12 @@ std::list<Rule*> Slicer::sliceConstraint(std::list<Rule*> rules)
             c_vars.insert(rv->begin(), rv->end());
             continue;
         }
-        std::list<Polynomial*> rhsArgs = rule->getRight()->getArgs();
-        std::list<Polynomial*>::iterator ri = rhsArgs.begin();
+        std::list<ref<Polynomial> > rhsArgs = rule->getRight()->getArgs();
+        std::list<ref<Polynomial> >::iterator ri = rhsArgs.begin();
         for (std::vector<std::string>::iterator it = vars.begin(), et = vars.end(); it != et; ++it, ++ri) {
             std::string lvar = *it;
             unsigned int lvarIdx = getIdxVar(lvar);
-            Polynomial *inRhs = *ri;
+            ref<Polynomial> inRhs = *ri;
             std::set<std::string> *tmp = inRhs->getVariables();
             for (std::set<std::string>::iterator ii = tmp->begin(), ee = tmp->end(); ii != ee; ++ii) {
                 if (!isNondef(*ii)) {
@@ -259,12 +259,12 @@ std::list<Rule*> Slicer::sliceConstraint(std::list<Rule*> rules)
         }
     }
 
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         if (!isRecursiveCall(rule->getRight()->getFunctionSymbol())) {
             res.push_back(rule->dropArgs(notNeeded));
         } else {
-            res.push_back(new Rule(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
+          res.push_back(Rule::create(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
         }
     }
     return res;
@@ -285,9 +285,9 @@ std::string Slicer::getEval(std::string startstop)
     return tmp.str();
 }
 
-void Slicer::setUpPreceeds(std::list<Rule*> rules)
+void Slicer::setUpPreceeds(std::list<ref<Rule> > rules)
 {
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         m_functions.insert((*i)->getLeft()->getFunctionSymbol());
         m_functions.insert((*i)->getRight()->getFunctionSymbol());
     }
@@ -314,8 +314,8 @@ void Slicer::setUpPreceeds(std::list<Rule*> rules)
         todo.pop();
         visited.insert(v);
         std::list<std::string> succs;
-        for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-            Rule *rule = *i;
+        for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+            ref<Rule> rule = *i;
             if (rule->getLeft()->getFunctionSymbol() == v) {
                 bool have = false;
                 std::string succ = rule->getRight()->getFunctionSymbol();
@@ -354,7 +354,7 @@ void Slicer::setUpPreceeds(std::list<Rule*> rules)
 */
 }
 
-std::set<std::string> Slicer::computeReachableFuns(std::list<Rule*> rules)
+std::set<std::string> Slicer::computeReachableFuns(std::list<ref<Rule> > rules)
 {
     std::set<std::string> res;
     std::queue<std::string> todo;
@@ -365,8 +365,8 @@ std::set<std::string> Slicer::computeReachableFuns(std::list<Rule*> rules)
         todo.pop();
         res.insert(v);
         std::list<std::string> succs;
-        for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-            Rule *rule = *i;
+        for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+            ref<Rule> rule = *i;
             if (rule->getLeft()->getFunctionSymbol() == v) {
                 bool have = false;
                 std::string succ = rule->getRight()->getFunctionSymbol();
@@ -392,11 +392,11 @@ std::set<std::string> Slicer::computeReachableFuns(std::list<Rule*> rules)
     return res;
 }
 
-std::list<Rule*> Slicer::sliceDefined(std::list<Rule*> rules)
+std::list<ref<Rule> > Slicer::sliceDefined(std::list<ref<Rule> > rules)
 {
     std::set<std::string> reachableFuns = computeReachableFuns(rules);
-    std::list<Rule*> reachable;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > reachable;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         if (reachableFuns.find((*i)->getLeft()->getFunctionSymbol()) != reachableFuns.end()) {
             reachable.push_back(*i);
         }
@@ -419,20 +419,20 @@ std::list<Rule*> Slicer::sliceDefined(std::list<Rule*> rules)
         }
     }
     m_defined.insert(std::make_pair(getEval("start"), initial));
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *tmp = *i;
-        Term *left = tmp->getLeft();
-        Term *right = tmp->getRight();
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> tmp = *i;
+        ref<Term> left = tmp->getLeft();
+        ref<Term> right = tmp->getRight();
         if (m_defined.find(right->getFunctionSymbol()) != m_defined.end() || isRecursiveCall(right->getFunctionSymbol())) {
             // already have this one
             continue;
         }
-        std::list<Polynomial*> largs = left->getArgs();
-        std::list<Polynomial*> rargs = right->getArgs();
+        std::list<ref<Polynomial> > largs = left->getArgs();
+        std::list<ref<Polynomial> > rargs = right->getArgs();
         std::set<std::string> defs;
-        for (std::list<Polynomial*>::iterator li = largs.begin(), le = largs.end(), ri = rargs.begin(); li != le; ++li, ++ri) {
-            Polynomial *lpol = *li;
-            Polynomial *rpol = *ri;
+        for (std::list<ref<Polynomial> >::iterator li = largs.begin(), le = largs.end(), ri = rargs.begin(); li != le; ++li, ++ri) {
+            ref<Polynomial> lpol = *li;
+            ref<Polynomial> rpol = *ri;
             std::string lvar = *lpol->getVariables()->begin();
             if (!rpol->isVar()) {
                 defs.insert(lvar);
@@ -473,14 +473,14 @@ std::list<Rule*> Slicer::sliceDefined(std::list<Rule*> rules)
     }
 */
 
-    std::list<Rule*> res;
+    std::list<ref<Rule> > res;
     std::list<std::string> vars;
-    std::list<Polynomial*> polys = (*reachable.begin())->getLeft()->getArgs();
-    for (std::list<Polynomial*>::iterator i = polys.begin(), e = polys.end(); i != e; ++i) {
+    std::list<ref<Polynomial> > polys = (*reachable.begin())->getLeft()->getArgs();
+    for (std::list<ref<Polynomial> >::iterator i = polys.begin(), e = polys.end(); i != e; ++i) {
         vars.push_back(*(*i)->getVariables()->begin());
     }
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::set<unsigned int> lnotneeded = getNotNeeded(rule->getLeft()->getFunctionSymbol(), vars);
         std::set<unsigned int> rnotneeded;
         if (rule->getRight()->getFunctionSymbol() == getEval("stop")) {
@@ -490,7 +490,7 @@ std::list<Rule*> Slicer::sliceDefined(std::list<Rule*> rules)
         } else {
             rnotneeded = getNotNeeded(rule->getRight()->getFunctionSymbol(), vars);
         }
-        Rule *newRule = new Rule(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
+      ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
         res.push_back(newRule);
     }
 
@@ -527,9 +527,9 @@ std::set<std::string> Slicer::getKnownVars(std::string f)
 }
 
 // Still Used
-void Slicer::setUpCalls(std::list<Rule*> rules)
+void Slicer::setUpCalls(std::list<ref<Rule> > rules)
 {
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         m_functions.insert((*i)->getLeft()->getFunctionSymbol());
         m_functions.insert((*i)->getRight()->getFunctionSymbol());
     }
@@ -556,8 +556,8 @@ void Slicer::setUpCalls(std::list<Rule*> rules)
         todo.pop();
         visited.insert(v);
         std::list<std::string> succs;
-        for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-            Rule *rule = *i;
+        for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+            ref<Rule> rule = *i;
             if (rule->getLeft()->getFunctionSymbol() == v) {
                 bool have = false;
                 std::string succ = rule->getRight()->getFunctionSymbol();
@@ -596,11 +596,11 @@ void Slicer::setUpCalls(std::list<Rule*> rules)
 */
 }
 
-std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservative)
+std::list<ref<Rule> > Slicer::sliceStillUsed(std::list<ref<Rule> > rules, bool conservative)
 {
     std::set<std::string> reachableFuns = computeReachableFuns(rules);
-    std::list<Rule*> reachable;
-    for (std::list<Rule*>::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    std::list<ref<Rule> > reachable;
+    for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         if (reachableFuns.find((*i)->getLeft()->getFunctionSymbol()) != reachableFuns.end()) {
             reachable.push_back(*i);
         }
@@ -628,14 +628,14 @@ std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservativ
     m_stillUsed.insert(std::make_pair(getEval("start"), initial));
 
     // rules
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *tmp = *i;
-        Term *left = tmp->getLeft();
-        Term *right = tmp->getRight();
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> tmp = *i;
+        ref<Term> left = tmp->getLeft();
+        ref<Term> right = tmp->getRight();
         std::set<std::string> *c_vars = tmp->getConstraint()->getVariables();
-        std::list<Polynomial*> largs = left->getArgs();
+        std::list<ref<Polynomial> > largs = left->getArgs();
         size_t largsSize = largs.size();
-        std::list<Polynomial*> rargs = right->getArgs();
+        std::list<ref<Polynomial> > rargs = right->getArgs();
         std::set<std::string> used;
         std::set<std::string> interestingVars;
         std::set<std::string> seenVars;
@@ -644,8 +644,8 @@ std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservativ
             std::set<std::string> *vars = right->getVariables();
             interestingVars.insert(vars->begin(), vars->end());
         } else {
-            for (std::list<Polynomial*>::iterator ri = rargs.begin(), re = rargs.end(), li = largs.begin(); ri != re; ++ri, ++li, ++counter) {
-                Polynomial *rpol = *ri;
+            for (std::list<ref<Polynomial> >::iterator ri = rargs.begin(), re = rargs.end(), li = largs.begin(); ri != re; ++ri, ++li, ++counter) {
+                ref<Polynomial> rpol = *ri;
                 if (rpol->isVar()) {
                     std::string rvar = *rpol->getVariables()->begin();
                     if (counter >= largsSize) {
@@ -673,8 +673,8 @@ std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservativ
                 }
             }
         }
-        for (std::list<Polynomial*>::iterator li = largs.begin(), le = largs.end(); li != le; ++li) {
-            Polynomial *lpol = *li;
+        for (std::list<ref<Polynomial> >::iterator li = largs.begin(), le = largs.end(); li != le; ++li) {
+            ref<Polynomial> lpol = *li;
             std::string lvar = *lpol->getVariables()->begin();
             if (c_vars->find(lvar) != c_vars->end() || interestingVars.find(lvar) != interestingVars.end()) {
                 used.insert(lvar);
@@ -717,27 +717,27 @@ std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservativ
     }
 */
 
-    std::list<Rule*> res;
+    std::list<ref<Rule> > res;
     std::map<std::string, std::set<std::string> > stillusedMap;
     std::map<std::string, std::set<unsigned int> > notneededMap;
     std::map<std::string, std::list<std::string> > varsMap;
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string leftF = rule->getLeft()->getFunctionSymbol();
         if (stillusedMap.find(leftF) == stillusedMap.end()) {
             stillusedMap.insert(std::make_pair(leftF, getStillUsed(leftF)));
         }
         if (varsMap.find(leftF) == varsMap.end()) {
-            std::list<Polynomial*> polys = rule->getLeft()->getArgs();
+            std::list<ref<Polynomial> > polys = rule->getLeft()->getArgs();
             std::list<std::string> vars;
-            for (std::list<Polynomial*>::iterator it = polys.begin(), et = polys.end(); it != et; ++it) {
+            for (std::list<ref<Polynomial> >::iterator it = polys.begin(), et = polys.end(); it != et; ++it) {
                 vars.push_back(*(*it)->getVariables()->begin());
             }
             varsMap.insert(std::make_pair(leftF, vars));
         }
     }
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::string rightF = rule->getRight()->getFunctionSymbol();
         if (stillusedMap.find(rightF) == stillusedMap.end()) {
             if (isRecursiveCall(rightF) && notneededMap.find(rightF) == notneededMap.end()) {
@@ -767,11 +767,11 @@ std::list<Rule*> Slicer::sliceStillUsed(std::list<Rule*> rules, bool conservativ
             notneededMap.insert(std::make_pair(f, notneeded));
         }
     }
-    for (std::list<Rule*>::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
-        Rule *rule = *i;
+    for (std::list<ref<Rule> >::iterator i = reachable.begin(), e = reachable.end(); i != e; ++i) {
+        ref<Rule> rule = *i;
         std::set<unsigned int> lnotneeded = notneededMap.find(rule->getLeft()->getFunctionSymbol())->second;
         std::set<unsigned int> rnotneeded = notneededMap.find(rule->getRight()->getFunctionSymbol())->second;
-        Rule *newRule = new Rule(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
+      ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
         res.push_back(newRule);
     }
 

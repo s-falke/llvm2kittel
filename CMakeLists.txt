@@ -159,6 +159,7 @@ add_library(llvm2kittelUtil STATIC
   include/llvm2kittel/Util/CommandLine.h
   include/llvm2kittel/Util/gmp_kittel.h
   include/llvm2kittel/Util/quadruple.h
+  include/llvm2kittel/Util/Ref.h
   include/llvm2kittel/Util/Version.h
   include/WARN_OFF.h
   include/WARN_ON.h

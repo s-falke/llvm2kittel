@@ -8,6 +8,8 @@
 #ifndef UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 #define UNIFORM_COMPLEXITY_TUPLE_PRINTER_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <set>
@@ -16,6 +18,6 @@
 
 class Rule;
 
-void printUniformComplexityTuples(std::list<Rule*> &rules, std::set<std::string> &complexityLHSs, std::string &startFun, std::ostream &stream);
+void printUniformComplexityTuples(std::list<ref<Rule> > &rules, std::set<std::string> &complexityLHSs, std::string &startFun, std::ostream &stream);
 
 #endif // UNIFORM_COMPLEXITY_TUPLE_PRINTER_H

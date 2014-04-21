@@ -8,11 +8,13 @@
 #ifndef CONSTRAINT_SIMPLIFIER_H
 #define CONSTRAINT_SIMPLIFIER_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 
 class Rule;
 
-std::list<Rule*> simplifyConstraints(std::list<Rule*> rules);
+std::list<ref<Rule> > simplifyConstraints(std::list<ref<Rule> > rules);
 
 #endif // CONSTRAINT_SIMPLIFIER_H

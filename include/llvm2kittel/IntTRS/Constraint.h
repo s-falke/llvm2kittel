@@ -8,6 +8,8 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <map>
@@ -18,6 +20,11 @@ class Polynomial;
 
 class Constraint
 {
+public:
+  unsigned refCount;
+
+protected:
+  Constraint();
 
 public:
     enum CType {
@@ -37,26 +44,26 @@ public:
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
 
-    virtual Constraint *instantiate(std::map<std::string, Polynomial*> *bindings) = 0;
+    virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
-    virtual Constraint *toNNF(bool negate) = 0;
-    virtual Constraint *toDNF() = 0; // formula needs to be in NNF!
-    virtual std::list<Constraint*> getDualClauses() = 0; // formula needs to be in DNF!
+    virtual ref<Constraint> toNNF(bool negate) = 0;
+    virtual ref<Constraint> toDNF() = 0; // formula needs to be in NNF!
+    virtual std::list<ref<Constraint> > getDualClauses() = 0; // formula needs to be in DNF!
 
-    virtual std::list<Constraint*> getAtomics() = 0;
+    virtual std::list<ref<Constraint> > getAtomics() = 0;
 
-    virtual Constraint *eliminateNeq() = 0;
-    virtual Constraint *evaluateTrivialAtoms() = 0;
+    virtual ref<Constraint> eliminateNeq() = 0;
+    virtual ref<Constraint> evaluateTrivialAtoms() = 0;
 
     virtual std::set<std::string> *getVariables() = 0;
 
-    virtual bool equals(Constraint *c);
+    virtual bool equals(ref<Constraint> c);
 
-    static Constraint *_true;
-    static Constraint *_false;
+    static ref<Constraint> _true;
+    static ref<Constraint> _false;
 
 protected:
-    virtual bool equalsInternal(Constraint *c) = 0;
+    virtual bool equalsInternal(ref<Constraint> c) = 0;
 
 private:
     static bool __init;
@@ -67,92 +74,100 @@ private:
 // Truth values
 class True : public Constraint
 {
+protected:
+    True();
 
 public:
+    static ref<Constraint> create();
     CType getCType();
 
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 };
 
 class False : public Constraint
 {
+protected:
+    False();
 
 public:
+    static ref<Constraint> create();
     CType getCType();
 
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 };
 
 class Nondef : public Constraint
 {
+protected:
+    Nondef();
 
 public:
+    static ref<Constraint> create();
     CType getCType();
 
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 };
 
 // Atoms
 class Atom : public Constraint
 {
-
 public:
     enum AType {
         Equ,
@@ -163,7 +178,11 @@ public:
         Lss
     };
 
-    Atom(Polynomial *lhs, Polynomial *rhs, AType type);
+protected:
+    Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type);
+
+public:
+    static ref<Constraint> create(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type);
     ~Atom();
 
     AType getAType();
@@ -174,28 +193,28 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
-    Polynomial *getLeft();
-    Polynomial *getRight();
+    ref<Polynomial> getLeft();
+    ref<Polynomial> getRight();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 private:
-    Polynomial *m_lhs;
-    Polynomial *m_rhs;
+    ref<Polynomial> m_lhs;
+    ref<Polynomial> m_rhs;
     AType m_type;
 
     std::string typeToString(AType type);
@@ -211,9 +230,11 @@ private:
 // Negation
 class Negation : public Constraint
 {
+protected:
+    Negation(ref<Constraint> c);
 
 public:
-    Negation(Constraint *c);
+    static ref<Constraint> create(ref<Constraint> c);
     ~Negation();
 
     CType getCType();
@@ -222,24 +243,24 @@ public:
     std::string toKittelString();
     std::string toCIntString();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 private:
-    Constraint *m_c;
+    ref<Constraint> m_c;
 
 private:
     Negation(const Negation &);
@@ -250,14 +271,17 @@ private:
 // Operators
 class Operator : public Constraint
 {
-
 public:
     enum OType {
         And,
         Or
     };
 
-    Operator(Constraint *lhs, Constraint *rhs, OType type);
+protected:
+    Operator(ref<Constraint> lhs, ref<Constraint> rhs, OType type);
+
+public:
+    static ref<Constraint> create(ref<Constraint> lhs, ref<Constraint> rhs, OType type);
     ~Operator();
 
     std::string toString();
@@ -268,28 +292,28 @@ public:
 
     CType getCType();
 
-    Constraint *instantiate(std::map<std::string, Polynomial*> *bindings);
+    ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    Constraint *toNNF(bool negate);
-    Constraint *toDNF();
-    std::list<Constraint*> getDualClauses();
+    ref<Constraint> toNNF(bool negate);
+    ref<Constraint> toDNF();
+    std::list<ref<Constraint> > getDualClauses();
 
-    std::list<Constraint*> getAtomics();
+    std::list<ref<Constraint> > getAtomics();
 
-    Constraint *eliminateNeq();
-    Constraint *evaluateTrivialAtoms();
+    ref<Constraint> eliminateNeq();
+    ref<Constraint> evaluateTrivialAtoms();
 
     std::set<std::string> *getVariables();
 
-    Constraint *getLeft();
-    Constraint *getRight();
+    ref<Constraint> getLeft();
+    ref<Constraint> getRight();
 
 protected:
-    bool equalsInternal(Constraint *c);
+    bool equalsInternal(ref<Constraint> c);
 
 private:
-    Constraint *m_lhs;
-    Constraint *m_rhs;
+    ref<Constraint> m_lhs;
+    ref<Constraint> m_rhs;
     OType m_type;
 
     std::string typeToString(OType type);

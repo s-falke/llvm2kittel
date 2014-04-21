@@ -8,6 +8,8 @@
 #ifndef BOUND_CONSTRAINER_H
 #define BOUND_CONSTRAINER_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 #include <map>
@@ -15,6 +17,6 @@
 
 class Rule;
 
-std::list<Rule*> addBoundConstraints(std::list<Rule*> rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding);
+std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<std::string, unsigned int> bitwidthMap, bool unsignedEncoding);
 
 #endif // BOUND_CONSTRAINER_H

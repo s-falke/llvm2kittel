@@ -14,6 +14,7 @@
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
 #include "llvm2kittel/Analysis/LoopConditionExplicitizer.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
+#include "llvm2kittel/Util/Ref.h"
 #include "llvm2kittel/Util/Version.h"
 
 // llvm includes
@@ -89,9 +90,9 @@ public:
 
     void visitInstruction(llvm::Instruction &I);
 
-    std::list<Rule*> getRules();
+    std::list<ref<Rule> > getRules();
 
-    std::list<Rule*> getCondensedRules();
+    std::list<ref<Rule> > getCondensedRules();
 
     std::set<std::string> getPhiVariables();
 
@@ -105,10 +106,10 @@ private:
 
     const llvm::Type *m_boolType;
 
-    std::list<Rule*> m_blockRules;
-    std::list<Rule*> m_rules;
+    std::list<ref<Rule> > m_blockRules;
+    std::list<ref<Rule> > m_rules;
     std::list<std::string> m_vars;
-    std::list<Polynomial*> m_lhs;
+    std::list<ref<Polynomial> > m_lhs;
     unsigned int m_counter;
     bool m_phase1;
 
@@ -124,15 +125,15 @@ private:
     std::string getEval(llvm::BasicBlock *bb, std::string inout);
     std::string getEval(llvm::Function *f, std::string startstop);
 
-    std::list<Polynomial*> getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
+    std::list<ref<Polynomial> > getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to);
 
-    void visitGenericInstruction(llvm::Instruction &I, std::list<Polynomial*> newArgs, Constraint *c=Constraint::_true);
-    void visitGenericInstruction(llvm::Instruction &I, Polynomial *value, Constraint *c=Constraint::_true);
+    void visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial> > newArgs, ref<Constraint> c=Constraint::_true);
+    void visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> value, ref<Constraint> c=Constraint::_true);
 
-    Polynomial *getPolynomial(llvm::Value *V);
-    std::list<Polynomial*> getNewArgs(llvm::Value &V, Polynomial *p);
-    std::list<Polynomial*> getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
-    std::list<Polynomial*> getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, Polynomial *p);
+    ref<Polynomial> getPolynomial(llvm::Value *V);
+    std::list<ref<Polynomial> > getNewArgs(llvm::Value &V, ref<Polynomial> p);
+    std::list<ref<Polynomial> > getZappedArgs(std::set<llvm::GlobalVariable*> toZap);
+    std::list<ref<Polynomial> > getZappedArgs(std::set<llvm::GlobalVariable*> toZap, llvm::Value &V, ref<Polynomial> p);
 
     std::list<llvm::BasicBlock*> m_returns;
     std::map<llvm::Instruction*, unsigned int> m_idMap;
@@ -140,10 +141,10 @@ private:
     unsigned int m_nondef;
     std::string getNondef(llvm::Value *V);
 
-    Constraint *getConditionFromValue(llvm::Value *cond);
-    Constraint *getConditionFromInstruction(llvm::Instruction *I);
-    Constraint *getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y);
-    Constraint *getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, Polynomial *x, Polynomial *y, unsigned int bitwidth);
+    ref<Constraint> getConditionFromValue(llvm::Value *cond);
+    ref<Constraint> getConditionFromInstruction(llvm::Instruction *I);
+    ref<Constraint> getUnsignedComparisonForSignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y);
+    ref<Constraint> getSignedComparisonForUnsignedBounded(llvm::CmpInst::Predicate pred, ref<Polynomial> x, ref<Polynomial> y, unsigned int bitwidth);
     Atom::AType getAtomType(llvm::CmpInst::Predicate pred);
 
     bool m_assumeIsControl;
@@ -151,30 +152,30 @@ private:
     bool m_onlyMultiPredIsControl;
     std::set<std::string> m_controlPoints;
 
-    Constraint *getSDivConstraint(DivConstraintStore &store);
-    Constraint *getSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth);
-    Constraint *getExactSDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    ref<Constraint> getSDivConstraint(DivConstraintStore &store);
+    ref<Constraint> getSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getSDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getSDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth);
+    ref<Constraint> getExactSDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
-    Constraint *getUDivConstraint(DivConstraintStore &store);
-    Constraint *getUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getUDivConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getUDivConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getExactUDivConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    ref<Constraint> getUDivConstraint(DivConstraintStore &store);
+    ref<Constraint> getUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getUDivConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getUDivConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getExactUDivConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
-    Constraint *getSRemConstraint(RemConstraintStore &store);
-    Constraint *getSRemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSRemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getSRemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res, unsigned int bitwidth);
+    ref<Constraint> getSRemConstraint(RemConstraintStore &store);
+    ref<Constraint> getSRemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getSRemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getSRemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res, unsigned int bitwidth);
 
-    Constraint *getURemConstraint(RemConstraintStore &store);
-    Constraint *getURemConstraintForUnbounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getURemConstraintForSignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
-    Constraint *getURemConstraintForUnsignedBounded(Polynomial *upper, Polynomial *lower, Polynomial *res);
+    ref<Constraint> getURemConstraint(RemConstraintStore &store);
+    ref<Constraint> getURemConstraintForUnbounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getURemConstraintForSignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
+    ref<Constraint> getURemConstraintForUnsignedBounded(ref<Polynomial> upper, ref<Polynomial> lower, ref<Polynomial> res);
 
-    Constraint *getAndConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res);
-    Constraint *getOrConstraintForBounded(Polynomial *x, Polynomial *y, Polynomial *res);
+    ref<Constraint> getAndConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res);
+    ref<Constraint> getOrConstraintForBounded(ref<Polynomial> x, ref<Polynomial> y, ref<Polynomial> res);
 
     bool m_trivial;
 
@@ -195,8 +196,8 @@ private:
 
     std::map<std::string, unsigned int> m_bitwidthMap;
 
-    Constraint *buildConjunction(std::set<llvm::Value*> &trues, std::set<llvm::Value*> &falses);
-    Constraint *buildBoundConjunction(std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> > &bounds);
+    ref<Constraint> buildConjunction(std::set<llvm::Value*> &trues, std::set<llvm::Value*> &falses);
+    ref<Constraint> buildBoundConjunction(std::set<quadruple<llvm::Value*, llvm::CmpInst::Predicate, llvm::Value*, llvm::Value*> > &bounds);
 
     bool m_onlyLoopConditions;
     std::set<llvm::BasicBlock*> m_loopConditionBlocks;

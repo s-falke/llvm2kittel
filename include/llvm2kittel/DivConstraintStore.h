@@ -8,26 +8,28 @@
 #ifndef DIV_CONSTRAINT_STORE
 #define DIV_CONSTRAINT_STORE
 
+#include "llvm2kittel/Util/Ref.h"
+
 class Constraint;
 
 struct DivConstraintStore
 {
-    Constraint *xEQnull;
-    Constraint *yEQone;
-    Constraint *yEQnegone;
-    Constraint *zEQnull;
-    Constraint *zEQx;
-    Constraint *zEQnegx;
-    Constraint *yGTRone;
-    Constraint *xGTRnull;
-    Constraint *zGEQnull;
-    Constraint *zLSSx;
-    Constraint *xLSSnull;
-    Constraint *zLEQnull;
-    Constraint *zGTRx;
-    Constraint *yLSSnegone;
-    Constraint *zGTRnegx;
-    Constraint *zLSSnegx;
+    ref<Constraint> xEQnull;
+    ref<Constraint> yEQone;
+    ref<Constraint> yEQnegone;
+    ref<Constraint> zEQnull;
+    ref<Constraint> zEQx;
+    ref<Constraint> zEQnegx;
+    ref<Constraint> yGTRone;
+    ref<Constraint> xGTRnull;
+    ref<Constraint> zGEQnull;
+    ref<Constraint> zLSSx;
+    ref<Constraint> xLSSnull;
+    ref<Constraint> zLEQnull;
+    ref<Constraint> zGTRx;
+    ref<Constraint> yLSSnegone;
+    ref<Constraint> zGTRnegx;
+    ref<Constraint> zLSSnegx;
 };
 
 #endif // DIV_CONSTRAINT_STORE

@@ -13,20 +13,24 @@
 #include <iostream>
 #include <cstdlib>
 
-Constraint *Constraint::_true;
-Constraint *Constraint::_false;
+ref<Constraint> Constraint::_true;
+ref<Constraint> Constraint::_false;
+
+Constraint::Constraint()
+  : refCount(0)
+{}
 
 bool Constraint::__init = init();
 
 bool Constraint::init()
 {
-    Constraint::_true = new True();
-    Constraint::_false = new False();
+    Constraint::_true = True::create();
+    Constraint::_false = False::create();
     return true;
 }
 
 // base class
-bool Constraint::equals(Constraint *c)
+bool Constraint::equals(ref<Constraint> c)
 {
     if (getCType() != c->getCType()) {
         return false;
@@ -36,6 +40,13 @@ bool Constraint::equals(Constraint *c)
 }
 
 // True
+True::True()
+{}
+
+ref<Constraint> True::create() {
+    return new True();
+}
+
 Constraint::CType True::getCType()
 {
     return CTrue;
@@ -58,12 +69,12 @@ std::string True::toCIntString()
     exit(217);
 }
 
-Constraint *True::instantiate(std::map<std::string, Polynomial*> *)
+ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_true;
 }
 
-Constraint *True::toNNF(bool negate)
+ref<Constraint> True::toNNF(bool negate)
 {
     if (negate) {
         return Constraint::_false;
@@ -72,31 +83,31 @@ Constraint *True::toNNF(bool negate)
     }
 }
 
-Constraint *True::toDNF()
+ref<Constraint> True::toDNF()
 {
     return Constraint::_true;
 }
 
-std::list<Constraint*> True::getDualClauses()
+std::list<ref<Constraint> > True::getDualClauses()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<Constraint*> True::getAtomics()
+std::list<ref<Constraint> > True::getAtomics()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-Constraint *True::eliminateNeq()
+ref<Constraint> True::eliminateNeq()
 {
     return Constraint::_true;
 }
 
-Constraint *True::evaluateTrivialAtoms()
+ref<Constraint> True::evaluateTrivialAtoms()
 {
     return Constraint::_true;
 }
@@ -107,12 +118,19 @@ std::set<std::string> *True::getVariables()
     return res;
 }
 
-bool True::equalsInternal(Constraint*)
+bool True::equalsInternal(ref<Constraint>)
 {
     return true;
 }
 
 // False
+False::False()
+{}
+
+ref<Constraint> False::create() {
+    return new False();
+}
+
 Constraint::CType False::getCType()
 {
     return CFalse;
@@ -135,12 +153,12 @@ std::string False::toCIntString()
     exit(217);
 }
 
-Constraint *False::instantiate(std::map<std::string, Polynomial*> *)
+ref<Constraint> False::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_false;
 }
 
-Constraint *False::toNNF(bool negate)
+ref<Constraint> False::toNNF(bool negate)
 {
     if (negate) {
         return Constraint::_true;
@@ -149,31 +167,31 @@ Constraint *False::toNNF(bool negate)
     }
 }
 
-Constraint *False::toDNF()
+ref<Constraint> False::toDNF()
 {
     return Constraint::_false;
 }
 
-std::list<Constraint*> False::getDualClauses()
+std::list<ref<Constraint> > False::getDualClauses()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<Constraint*> False::getAtomics()
+std::list<ref<Constraint> > False::getAtomics()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-Constraint *False::eliminateNeq()
+ref<Constraint> False::eliminateNeq()
 {
     return Constraint::_false;
 }
 
-Constraint *False::evaluateTrivialAtoms()
+ref<Constraint> False::evaluateTrivialAtoms()
 {
     return Constraint::_false;
 }
@@ -184,12 +202,19 @@ std::set<std::string> *False::getVariables()
     return res;
 }
 
-bool False::equalsInternal(Constraint*)
+bool False::equalsInternal(ref<Constraint>)
 {
     return true;
 }
 
 // Nondef
+Nondef::Nondef()
+{}
+
+ref<Constraint> Nondef::create() {
+    return new Nondef();
+}
+
 Constraint::CType Nondef::getCType()
 {
     return CNondef;
@@ -212,43 +237,43 @@ std::string Nondef::toCIntString()
     exit(217);
 }
 
-Constraint *Nondef::instantiate(std::map<std::string, Polynomial*> *)
+ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return new Nondef();
 }
 
-Constraint *Nondef::toNNF(bool)
+ref<Constraint> Nondef::toNNF(bool)
 {
-    return new Nondef();
+    return this;
 }
 
-Constraint *Nondef::toDNF()
+ref<Constraint> Nondef::toDNF()
 {
-    return new Nondef();
+    return this;
 }
 
-std::list<Constraint*> Nondef::getDualClauses()
+std::list<ref<Constraint> > Nondef::getDualClauses()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<Constraint*> Nondef::getAtomics()
+std::list<ref<Constraint> > Nondef::getAtomics()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-Constraint *Nondef::eliminateNeq()
+ref<Constraint> Nondef::eliminateNeq()
 {
-    return new Nondef();
+    return this;
 }
 
-Constraint *Nondef::evaluateTrivialAtoms()
+ref<Constraint> Nondef::evaluateTrivialAtoms()
 {
-    return new Nondef();
+    return this;
 }
 
 std::set<std::string> *Nondef::getVariables()
@@ -257,23 +282,25 @@ std::set<std::string> *Nondef::getVariables()
     return res;
 }
 
-bool Nondef::equalsInternal(Constraint *c)
+bool Nondef::equalsInternal(ref<Constraint> c)
 {
-    return this == c;
+    return this == c.get();
 }
 
 // Atom
-Atom::Atom(Polynomial *lhs, Polynomial *rhs, AType type)
+Atom::Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type)
   : m_lhs(lhs),
     m_rhs(rhs),
     m_type(type)
 {}
 
-Atom::~Atom()
-{
-    delete m_lhs;
-    delete m_rhs;
+ref<Constraint> Atom::create(ref<Polynomial> lhs, ref<Polynomial> rhs,
+                             Atom::AType type) {
+    return new Atom(lhs, rhs, type);
 }
+
+Atom::~Atom()
+{}
 
 Atom::AType Atom::getAType()
 {
@@ -359,12 +386,12 @@ std::string Atom::toCIntString()
     return res.str();
 }
 
-Constraint *Atom::instantiate(std::map<std::string, Polynomial*> *bindings)
+ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
-    return new Atom(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
+    return create(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
 
-Constraint *Atom::toNNF(bool negate)
+ref<Constraint> Atom::toNNF(bool negate)
 {
     AType newType = m_type;
     if (negate) {
@@ -382,40 +409,40 @@ Constraint *Atom::toNNF(bool negate)
             newType = Geq;
         }
     }
-    return new Atom(m_lhs, m_rhs, newType);
+    return create(m_lhs, m_rhs, newType);
 }
 
-Constraint *Atom::toDNF()
+ref<Constraint> Atom::toDNF()
 {
-    return new Atom(m_lhs, m_rhs, m_type);
+    return this;
 }
 
-std::list<Constraint*> Atom::getDualClauses()
+std::list<ref<Constraint> > Atom::getDualClauses()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<Constraint*> Atom::getAtomics()
+std::list<ref<Constraint> > Atom::getAtomics()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-Constraint *Atom::eliminateNeq()
+ref<Constraint> Atom::eliminateNeq()
 {
     if (m_type == Neq) {
-        Atom *lss = new Atom(m_lhs, m_rhs, Lss);
-        Atom *gtr = new Atom(m_lhs, m_rhs, Gtr);
-        return new Operator(lss, gtr, Operator::Or);
+        ref<Constraint> lss = create(m_lhs, m_rhs, Lss);
+        ref<Constraint> gtr = create(m_lhs, m_rhs, Gtr);
+        return Operator::create(lss, gtr, Operator::Or);
     } else {
-        return new Atom(m_lhs, m_rhs, m_type);
+        return this;
     }
 }
 
-Constraint *Atom::evaluateTrivialAtoms()
+ref<Constraint> Atom::evaluateTrivialAtoms()
 {
     if (m_lhs->isConst() && m_rhs->isConst()) {
         mpz_t lconst, rconst;
@@ -457,31 +484,33 @@ std::set<std::string> *Atom::getVariables()
     return res;
 }
 
-bool Atom::equalsInternal(Constraint *c)
+bool Atom::equalsInternal(ref<Constraint> c)
 {
-    Atom *atom = static_cast<Atom*>(c);
+    ref<Atom> atom = static_cast<Atom*>(c.get());
     return m_type == atom->m_type && m_lhs->equals(atom->m_lhs) && m_rhs->equals(atom->m_rhs);
 }
 
-Polynomial *Atom::getLeft()
+ref<Polynomial> Atom::getLeft()
 {
     return m_lhs;
 }
 
-Polynomial *Atom::getRight()
+ref<Polynomial> Atom::getRight()
 {
     return m_rhs;
 }
 
 // Negation
-Negation::Negation(Constraint *c)
+ref<Constraint> Negation::create(ref<Constraint> c) {
+    return new Negation(c);
+}
+
+Negation::Negation(ref<Constraint> c)
   : m_c(c)
 {}
 
 Negation::~Negation()
-{
-    delete m_c;
-}
+{}
 
 Constraint::CType Negation::getCType()
 {
@@ -507,42 +536,42 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
-Constraint *Negation::instantiate(std::map<std::string, Polynomial*> *bindings)
+ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
-    return new Negation(m_c->instantiate(bindings));
+    return create(m_c->instantiate(bindings));
 }
 
-Constraint *Negation::toNNF(bool negate)
+ref<Constraint> Negation::toNNF(bool negate)
 {
     return m_c->toNNF(!negate);
 }
 
-Constraint *Negation::toDNF()
+ref<Constraint> Negation::toDNF()
 {
     std::cerr << "Internal error in Negation::toDNF (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(77);
 }
 
-std::list<Constraint*> Negation::getDualClauses()
+std::list<ref<Constraint> > Negation::getDualClauses()
 {
-    std::list<Constraint*> res;
+    std::list<ref<Constraint> > res;
     res.push_back(this);
     return res;
 }
 
-std::list<Constraint*> Negation::getAtomics()
+std::list<ref<Constraint> > Negation::getAtomics()
 {
     return m_c->getAtomics();
 }
 
-Constraint *Negation::eliminateNeq()
+ref<Constraint> Negation::eliminateNeq()
 {
-    return new Negation(m_c->eliminateNeq());
+    return create(m_c->eliminateNeq());
 }
 
-Constraint *Negation::evaluateTrivialAtoms()
+ref<Constraint> Negation::evaluateTrivialAtoms()
 {
-    return new Negation(m_c->evaluateTrivialAtoms());
+    return create(m_c->evaluateTrivialAtoms());
 }
 
 std::set<std::string> *Negation::getVariables()
@@ -550,24 +579,26 @@ std::set<std::string> *Negation::getVariables()
     return m_c->getVariables();
 }
 
-bool Negation::equalsInternal(Constraint *c)
+bool Negation::equalsInternal(ref<Constraint> c)
 {
-    Negation *neg = static_cast<Negation*>(c);
+    ref<Negation> neg = static_cast<Negation*>(c.get());
     return m_c->equals(neg->m_c);
 }
 
 // Operator
-Operator::Operator(Constraint *lhs, Constraint *rhs, OType type)
+Operator::Operator(ref<Constraint> lhs, ref<Constraint> rhs, OType type)
   : m_lhs(lhs),
     m_rhs(rhs),
     m_type(type)
 {}
 
-Operator::~Operator()
-{
-    delete m_lhs;
-    delete m_rhs;
+ref<Constraint> Operator::create(ref<Constraint> lhs, ref<Constraint> rhs,
+                                 Operator::OType type) {
+    return new Operator(lhs, rhs, type);
 }
+
+Operator::~Operator()
+{}
 
 std::string Operator::typeToString(OType type)
 {
@@ -619,12 +650,12 @@ std::string Operator::toCIntString()
     return res.str();
 }
 
-Constraint *Operator::instantiate(std::map<std::string, Polynomial*> *bindings)
+ref<Constraint> Operator::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
-    return new Operator(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
+    return create(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
 }
 
-Constraint *Operator::toNNF(bool negate)
+ref<Constraint> Operator::toNNF(bool negate)
 {
     OType newType = m_type;
     if (negate) {
@@ -637,30 +668,30 @@ Constraint *Operator::toNNF(bool negate)
             exit(42);
         }
     }
-    return new Operator(m_lhs->toNNF(negate), m_rhs->toNNF(negate), newType);
+    return create(m_lhs->toNNF(negate), m_rhs->toNNF(negate), newType);
 }
 
-Constraint *Operator::toDNF()
+ref<Constraint> Operator::toDNF()
 {
     if (m_type == Or) {
-        return new Operator(m_lhs->toDNF(), m_rhs->toDNF(), Or);
+        return create(m_lhs->toDNF(), m_rhs->toDNF(), Or);
     } else if (m_type == And) {
-        Constraint *lhsdnf = m_lhs->toDNF();
-        Constraint *rhsdnf = m_rhs->toDNF();
-        std::list<Constraint*> lhsdcs = lhsdnf->getDualClauses();
-        std::list<Constraint*> rhsdcs = rhsdnf->getDualClauses();
-        std::list<Constraint*> combined;
-        for (std::list<Constraint*>::iterator outeri = lhsdcs.begin(), outere = lhsdcs.end(); outeri != outere; ++outeri) {
-            Constraint *outerdc = *outeri;
-            for (std::list<Constraint*>::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
-                Constraint *innerdc = *inneri;
-                combined.push_back(new Operator(outerdc, innerdc, And));
+        ref<Constraint> lhsdnf = m_lhs->toDNF();
+        ref<Constraint> rhsdnf = m_rhs->toDNF();
+        std::list<ref<Constraint> > lhsdcs = lhsdnf->getDualClauses();
+        std::list<ref<Constraint> > rhsdcs = rhsdnf->getDualClauses();
+        std::list<ref<Constraint> > combined;
+        for (std::list<ref<Constraint> >::iterator outeri = lhsdcs.begin(), outere = lhsdcs.end(); outeri != outere; ++outeri) {
+            ref<Constraint> outerdc = *outeri;
+            for (std::list<ref<Constraint> >::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
+                ref<Constraint> innerdc = *inneri;
+                combined.push_back(create(outerdc, innerdc, And));
             }
         }
-        Constraint *res = *combined.rbegin();
+        ref<Constraint> res = *combined.rbegin();
         combined.erase(--combined.end());
-        for (std::list<Constraint*>::reverse_iterator ri = combined.rbegin(), re = combined.rend(); ri != re; ++ri) {
-            res = new Operator(*ri, res, Or);
+        for (std::list<ref<Constraint> >::reverse_iterator ri = combined.rbegin(), re = combined.rend(); ri != re; ++ri) {
+            res = create(*ri, res, Or);
         }
         return res;
     } else {
@@ -669,16 +700,16 @@ Constraint *Operator::toDNF()
     }
 }
 
-std::list<Constraint*> Operator::getDualClauses()
+std::list<ref<Constraint> > Operator::getDualClauses()
 {
     if (m_type == And) {
-        std::list<Constraint*> res;
+        std::list<ref<Constraint> > res;
         res.push_back(this);
         return res;
     } else if (m_type == Or) {
-        std::list<Constraint*> res;
-        std::list<Constraint*> tmp1 = m_lhs->getDualClauses();
-        std::list<Constraint*> tmp2 = m_rhs->getDualClauses();
+        std::list<ref<Constraint> > res;
+        std::list<ref<Constraint> > tmp1 = m_lhs->getDualClauses();
+        std::list<ref<Constraint> > tmp2 = m_rhs->getDualClauses();
         res.insert(res.begin(), tmp2.begin(), tmp2.end());
         res.insert(res.begin(), tmp1.begin(), tmp1.end());
         return res;
@@ -688,24 +719,24 @@ std::list<Constraint*> Operator::getDualClauses()
     }
 }
 
-std::list<Constraint*> Operator::getAtomics()
+std::list<ref<Constraint> > Operator::getAtomics()
 {
-    std::list<Constraint*> res;
-    std::list<Constraint*> tmp1 = m_lhs->getAtomics();
-    std::list<Constraint*> tmp2 = m_rhs->getAtomics();
+    std::list<ref<Constraint> > res;
+    std::list<ref<Constraint> > tmp1 = m_lhs->getAtomics();
+    std::list<ref<Constraint> > tmp2 = m_rhs->getAtomics();
     res.insert(res.begin(), tmp2.begin(), tmp2.end());
     res.insert(res.begin(), tmp1.begin(), tmp1.end());
     return res;
 }
 
-Constraint *Operator::eliminateNeq()
+ref<Constraint> Operator::eliminateNeq()
 {
-    return new Operator(m_lhs->eliminateNeq(), m_rhs->eliminateNeq(), m_type);
+    return create(m_lhs->eliminateNeq(), m_rhs->eliminateNeq(), m_type);
 }
 
-Constraint *Operator::evaluateTrivialAtoms()
+ref<Constraint> Operator::evaluateTrivialAtoms()
 {
-    return new Operator(m_lhs->evaluateTrivialAtoms(), m_rhs->evaluateTrivialAtoms(), m_type);
+    return create(m_lhs->evaluateTrivialAtoms(), m_rhs->evaluateTrivialAtoms(), m_type);
 }
 
 std::set<std::string> *Operator::getVariables()
@@ -718,18 +749,18 @@ std::set<std::string> *Operator::getVariables()
     return res;
 }
 
-Constraint *Operator::getLeft()
+ref<Constraint> Operator::getLeft()
 {
     return m_lhs;
 }
 
-Constraint *Operator::getRight()
+ref<Constraint> Operator::getRight()
 {
     return m_rhs;
 }
 
-bool Operator::equalsInternal(Constraint *c)
+bool Operator::equalsInternal(ref<Constraint> c)
 {
-    Operator *op = static_cast<Operator*>(c);
+    ref<Operator> op = static_cast<Operator*>(c.get());
     return m_type == op->m_type && m_lhs->equals(op->m_lhs) && m_rhs->equals(op->m_rhs);
 }

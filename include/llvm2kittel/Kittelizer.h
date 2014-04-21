@@ -8,11 +8,13 @@
 #ifndef KITTELIZER_H
 #define KITTELIZER_H
 
+#include "llvm2kittel/Util/Ref.h"
+
 // C++ includes
 #include <list>
 
 class Rule;
 
-std::list<Rule*> kittelize(std::list<Rule*> rules);
+std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules);
 
 #endif // KITTELIZER_H
