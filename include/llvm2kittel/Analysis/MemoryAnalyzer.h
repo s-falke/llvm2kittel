@@ -58,15 +58,24 @@ public:
     void visitLoadInst(llvm::LoadInst &I);
     void visitStoreInst(llvm::StoreInst &I);
 
-    virtual const char *getPassName() const { return "Obtain memory alias analysis results"; }
+    virtual const char *getPassName() const
+    {
+        return "Obtain memory alias analysis results";
+    }
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 
     static char ID;
 
-    MayMustMap getMayMustMap() { return m_map; }
+    MayMustMap getMayMustMap()
+    {
+        return m_map;
+    }
 
-    std::set<llvm::GlobalVariable*> getMayZap() { return m_mayZap; }
+    std::set<llvm::GlobalVariable*> getMayZap()
+    {
+        return m_mayZap;
+    }
 
 private:
     std::set<llvm::GlobalVariable*> m_globals;

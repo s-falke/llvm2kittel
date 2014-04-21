@@ -167,7 +167,7 @@ void HierarchyBuilder::tarjan(unsigned int v, std::map<unsigned int, unsigned in
             }
         }
     }
-    if(lowlinkMap.find(v)->second == indexMap.find(v)->second) {
+    if (lowlinkMap.find(v)->second == indexMap.find(v)->second) {
         std::list<llvm::Function*> component;
         unsigned int n;
         do {
@@ -202,7 +202,8 @@ llvm::Function *HierarchyBuilder::getFunction(unsigned int idx)
     }
 }
 
-unsigned int HierarchyBuilder::getIdx(llvm::Function *f) {
+unsigned int HierarchyBuilder::getIdx(llvm::Function *f)
+{
     std::map<llvm::Function*, unsigned int>::iterator found = m_functionIdx.find(f);
     if (found == m_functionIdx.end()) {
         std::cerr << "Internal error in HierarchyBuilder::getIdx (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;

@@ -43,7 +43,8 @@ bool Constraint::equals(ref<Constraint> c)
 True::True()
 {}
 
-ref<Constraint> True::create() {
+ref<Constraint> True::create()
+{
     return new True();
 }
 
@@ -127,7 +128,8 @@ bool True::equalsInternal(ref<Constraint>)
 False::False()
 {}
 
-ref<Constraint> False::create() {
+ref<Constraint> False::create()
+{
     return new False();
 }
 
@@ -211,7 +213,8 @@ bool False::equalsInternal(ref<Constraint>)
 Nondef::Nondef()
 {}
 
-ref<Constraint> Nondef::create() {
+ref<Constraint> Nondef::create()
+{
     return new Nondef();
 }
 
@@ -294,8 +297,8 @@ Atom::Atom(ref<Polynomial> lhs, ref<Polynomial> rhs, AType type)
     m_type(type)
 {}
 
-ref<Constraint> Atom::create(ref<Polynomial> lhs, ref<Polynomial> rhs,
-                             Atom::AType type) {
+ref<Constraint> Atom::create(ref<Polynomial> lhs, ref<Polynomial> rhs, Atom::AType type)
+{
     return new Atom(lhs, rhs, type);
 }
 
@@ -501,7 +504,8 @@ ref<Polynomial> Atom::getRight()
 }
 
 // Negation
-ref<Constraint> Negation::create(ref<Constraint> c) {
+ref<Constraint> Negation::create(ref<Constraint> c)
+{
     return new Negation(c);
 }
 
@@ -592,8 +596,8 @@ Operator::Operator(ref<Constraint> lhs, ref<Constraint> rhs, OType type)
     m_type(type)
 {}
 
-ref<Constraint> Operator::create(ref<Constraint> lhs, ref<Constraint> rhs,
-                                 Operator::OType type) {
+ref<Constraint> Operator::create(ref<Constraint> lhs, ref<Constraint> rhs, Operator::OType type)
+{
     return new Operator(lhs, rhs, type);
 }
 

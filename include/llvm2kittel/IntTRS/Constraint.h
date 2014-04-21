@@ -36,7 +36,8 @@ public:
         COperator
     };
 
-    virtual ~Constraint() {}
+    virtual ~Constraint()
+    {}
 
     virtual CType getCType() = 0;
 

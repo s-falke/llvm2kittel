@@ -19,7 +19,8 @@ Monomial::Monomial(std::string x)
     m_powers.push_back(std::make_pair(x, 1));
 }
 
-ref<Monomial> Monomial::create(std::string x) {
+ref<Monomial> Monomial::create(std::string x)
+{
     return new Monomial(x);
 }
 
@@ -251,7 +252,8 @@ Polynomial::Polynomial(std::string x)
     m_monos.push_back(std::make_pair(mpz_class(Polynomial::_one), Monomial::create(x)));
 }
 
-ref<Polynomial> Polynomial::create(std::string x) {
+ref<Polynomial> Polynomial::create(std::string x)
+{
     return new Polynomial(x);
 }
 
@@ -263,7 +265,8 @@ Polynomial::Polynomial(mpz_t c)
     mpz_set(m_constant, c);
 }
 
-ref<Polynomial> Polynomial::create(mpz_t c) {
+ref<Polynomial> Polynomial::create(mpz_t c)
+{
     return new Polynomial(c);
 }
 
@@ -275,7 +278,8 @@ Polynomial::Polynomial(ref<Monomial> mono)
     m_monos.push_back(std::make_pair(mpz_class(Polynomial::_one), mono));
 }
 
-ref<Polynomial> Polynomial::create(ref<Monomial> mono) {
+ref<Polynomial> Polynomial::create(ref<Monomial> mono)
+{
     return new Polynomial(mono);
 }
 

@@ -37,11 +37,17 @@ public:
 
     bool runOnLoop(llvm::Loop *L, llvm::LPPassManager &LPM);
 
-    virtual const char *getPassName() const { return "Collect loop condition blocks"; }
+    virtual const char *getPassName() const
+    {
+        return "Collect loop condition blocks";
+    }
 
     static char ID;
 
-    std::set<llvm::BasicBlock*> getLoopConditionBlocks() { return m_conditionBlocks; }
+    std::set<llvm::BasicBlock*> getLoopConditionBlocks()
+    {
+        return m_conditionBlocks;
+    }
 
 private:
     std::set<llvm::BasicBlock*> m_conditionBlocks;

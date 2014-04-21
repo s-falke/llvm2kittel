@@ -18,7 +18,8 @@ Term::Term(std::string f, std::list<ref<Polynomial> > args)
     m_vars()
 {}
 
-ref<Term> Term::create(std::string f, std::list<ref<Polynomial> > args) {
+ref<Term> Term::create(std::string f, std::list<ref<Polynomial> > args)
+{
     return new Term(f, args);
 }
 

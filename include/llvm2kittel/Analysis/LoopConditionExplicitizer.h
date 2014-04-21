@@ -39,9 +39,15 @@ public:
 
     bool runOnLoop(llvm::Loop *L, llvm::LPPassManager &);
 
-    ConditionMap getConditionMap() { return m_map; }
+    ConditionMap getConditionMap()
+    {
+        return m_map;
+    }
 
-    virtual const char *getPassName() const { return "LoopConditionExplicitizer"; }
+    virtual const char *getPassName() const
+    {
+        return "LoopConditionExplicitizer";
+    }
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 

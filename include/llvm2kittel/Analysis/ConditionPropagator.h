@@ -40,9 +40,15 @@ public:
 
     bool runOnFunction(llvm::Function &F);
 
-    TrueFalseMap getTrueFalseMap() { return m_map; }
+    TrueFalseMap getTrueFalseMap()
+    {
+        return m_map;
+    }
 
-    virtual const char *getPassName() const { return "ConditionPropagator"; }
+    virtual const char *getPassName() const
+    {
+        return "ConditionPropagator";
+    }
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 
