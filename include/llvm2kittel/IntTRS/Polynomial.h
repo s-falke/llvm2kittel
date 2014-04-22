@@ -46,7 +46,7 @@ public:
     std::string getFirst();
     ref<Monomial> lowerFirst();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 private:
     std::list<std::pair<std::string, unsigned int> > m_powers;
@@ -91,7 +91,7 @@ public:
 
     ref<Polynomial> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     long int normStepsNeeded();
 

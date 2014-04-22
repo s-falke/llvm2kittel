@@ -113,7 +113,8 @@ static std::map<unsigned int, ref<Polynomial> > getNonNormalArgPositions(ref<Ter
 static std::list<ref<Polynomial> > getNonNormalAtomPolynomials(ref<Constraint> c)
 {
     std::list<ref<Polynomial> > res;
-    std::list<ref<Constraint> > atomics = c->getAtomics();
+    std::list<ref<Constraint> > atomics;
+    c->addAtomicsToList(atomics);
     for (std::list<ref<Constraint> >::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
         ref<Constraint> cc = *i;
         if (cc->getCType() == Constraint::CAtom) {
@@ -137,7 +138,9 @@ static std::string get(std::list<ref<Polynomial> > args, unsigned int c)
     for (unsigned int i = 0; i < c; ++i) {
         ++tmp;
     }
-    return *((*tmp)->getVariables()->begin());
+    std::set<std::string> vars;
+    (*tmp)->addVariablesToSet(vars);
+    return *(vars.begin());
 }
 
 static ref<Term> getNormRhs(ref<Term> lhs, unsigned int c, ref<Polynomial> addTerm, bool doAdd)
@@ -213,7 +216,9 @@ static ref<Rule> chainRules(ref<Rule> rule1, ref<Rule> rule2)
     std::list<ref<Polynomial> > lhs2args = lhs2->getArgs();
     for (std::list<ref<Polynomial> >::iterator i1 = rhs1args.begin(), e1 = rhs1args.end(), i2 = lhs2args.begin(); i1 != e1; ++i1, ++i2) {
         ref<Polynomial> p = *i1;
-        std::string var = *((*i2)->getVariables()->begin());
+        std::set<std::string> vars;
+        (*i2)->addVariablesToSet(vars);
+        std::string var = *(vars.begin());
         subby.insert(std::make_pair(var, p));
     }
     return Rule::create(rule1->getLeft(), rule2->getRight()->instantiate(&subby), Operator::create(rule1->getConstraint(), rule2->getConstraint()->instantiate(&subby), Operator::And));
@@ -477,12 +482,10 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
         std::map<unsigned int, ref<Polynomial> > nonNormal = getNonNormalArgPositions(rhs);
         std::list<ref<Polynomial> > nonNormalAtomPolys = getNonNormalAtomPolynomials(c);
         if (nonNormal.empty() && nonNormalAtomPolys.empty()) {
-            // rule only needs bound constraints
-            std::set<std::string> *lhsVars = lhs->getVariables();
-            std::set<std::string> *rhsVars = rhs->getVariables();
+            // rule only needs bound conditions
             std::set<std::string> vars;
-            vars.insert(lhsVars->begin(), lhsVars->end());
-            vars.insert(rhsVars->begin(), rhsVars->end());
+            lhs->addVariablesToSet(vars);
+            rhs->addVariablesToSet(vars);
             ref<Constraint> bounds = getBoundConstraints(vars, bitwidthMap, unsignedEncoding);
             ref<Constraint> conj = Operator::create(c, bounds, Operator::And);
             ref<Rule> newRule = Rule::create(lhs, rhs, conj);
@@ -510,7 +513,9 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
                 std::string var = getNewVar(counter++);
                 condNormArgs.push_back(Polynomial::create(var));
                 atomPolyToVarMap.insert(std::make_pair(pol.get(), var));
-                std::string tmpvar = *(pol->getVariables()->begin());
+                std::set<std::string> tmpVars;
+                pol->addVariablesToSet(tmpVars);
+                std::string tmpvar = *(tmpVars.begin());
                 std::map<std::string, unsigned int>::iterator tmpvari = bitwidthMap.find(tmpvar);
                 if (tmpvari == bitwidthMap.end()) {
                     std::cerr << "Did not find bitwidth information for " << var << " in \"getBoundConstraints\"!" << std::endl;
@@ -522,7 +527,9 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
             // rule needs bound constraints and normalization
 
             // lhs -> rhs_cond_norm [ bounds ]
-            ref<Constraint> bounds1 = getBoundConstraints(*(lhs->getVariables()), bitwidthMap, unsignedEncoding);
+            std::set<std::string> bounds1Vars;
+            lhs->addVariablesToSet(bounds1Vars);
+            ref<Constraint> bounds1 = getBoundConstraints(bounds1Vars, bitwidthMap, unsignedEncoding);
             std::list<ref<Polynomial> > cond_norm_args = lhs->getArgs();
             cond_norm_args.insert(cond_norm_args.end(), nonNormalAtomPolys.begin(), nonNormalAtomPolys.end());
             ref<Term> rhs_cond_norm = Term::create(cond_norm, cond_norm_args);
@@ -534,7 +541,9 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
             cond_norm_done_args.insert(cond_norm_done_args.end(), condNormArgs.begin(), condNormArgs.end());
             ref<Term> rhs_cond_norm_done = Term::create(cond_norm, cond_norm_done_args);
             ref<Term> block = Term::create(blocker, lhs->getArgs());
-            ref<Constraint> bounds2 = getBoundConstraints(*(rhs_cond_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
+            std::set<std::string> bounds2Vars;
+            rhs_cond_norm_done->addVariablesToSet(bounds2Vars);
+            ref<Constraint> bounds2 = getBoundConstraints(bounds2Vars, bitwidthMap, unsignedEncoding);
             ref<Constraint> newC = Operator::create(mapPolysToVars(c, atomPolyToVarMap), bounds2, Operator::And);
             ref<Rule> rule2 = Rule::create(rhs_cond_norm_done, block, newC);
 
@@ -545,7 +554,9 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
             // rhs_rule_norm -> rhs [ bounds ]
             ref<Term> rhs_rule_norm_done = Term::create(rule_norm, ruleNormArgs);
             ref<Term> normRhs = Term::create(rhsFun, ruleNormArgs);
-            ref<Constraint> bounds3 = getBoundConstraints(*(rhs_rule_norm_done->getVariables()), bitwidthMap, unsignedEncoding);
+            std::set<std::string> bounds3Vars;
+            rhs_rule_norm_done->addVariablesToSet(bounds3Vars);
+            ref<Constraint> bounds3 = getBoundConstraints(bounds3Vars, bitwidthMap, unsignedEncoding);
             ref<Rule> rule4 = Rule::create(rhs_rule_norm_done, normRhs, bounds3);
 
             // do normalization for both
@@ -555,7 +566,9 @@ std::list<ref<Rule> > addBoundConstraints(std::list<ref<Rule> > rules, std::map<
                 if (pol->isConst()) {
                     continue;
                 }
-                std::string var = *(pol->getVariables()->begin());
+                std::set<std::string> vars;
+                pol->addVariablesToSet(vars);
+                std::string var = *(vars.begin());
                 if (isCNorm(var)) {
                     std::list<ref<Rule> > normRules = getNormRules(rhs_cond_norm_done, count, bitwidthMap, unsignedEncoding);
                     res.insert(res.end(), normRules.begin(), normRules.end());

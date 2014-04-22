@@ -39,9 +39,9 @@ public:
 
     ref<Term> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
-    std::set<std::string> *getVariables(unsigned int argpos);
+    void addVariablesToSet(unsigned int argpos, std::set<std::string> &res);
 
     ref<Term> dropArgs(std::set<unsigned int> drop);
 
@@ -51,7 +51,7 @@ private:
 
     std::string m_f;
     std::list<ref<Polynomial> > m_args;
-    std::vector<std::set<std::string>* > m_vars;
+    std::vector<std::set<std::string> > m_vars;
 
     void setupVars(void);
 

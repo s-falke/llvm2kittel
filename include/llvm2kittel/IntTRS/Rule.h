@@ -35,7 +35,7 @@ public:
     ref<Term> getLeft();
     ref<Term> getRight();
     ref<Constraint> getConstraint();
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     ref<Rule> dropArgs(std::set<unsigned int> drop);
 

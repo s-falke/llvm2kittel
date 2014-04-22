@@ -49,14 +49,14 @@ public:
 
     virtual ref<Constraint> toNNF(bool negate) = 0;
     virtual ref<Constraint> toDNF() = 0; // formula needs to be in NNF!
-    virtual std::list<ref<Constraint> > getDualClauses() = 0; // formula needs to be in DNF!
+    virtual void addDualClausesToList(std::list<ref<Constraint> > &res) = 0; // formula needs to be in DNF!
 
-    virtual std::list<ref<Constraint> > getAtomics() = 0;
+    virtual void addAtomicsToList(std::list<ref<Constraint> > &res) = 0;
 
     virtual ref<Constraint> eliminateNeq() = 0;
     virtual ref<Constraint> evaluateTrivialAtoms() = 0;
 
-    virtual std::set<std::string> *getVariables() = 0;
+    virtual void addVariablesToSet(std::set<std::string> &res) = 0;
 
     virtual bool equals(ref<Constraint> c);
 
@@ -90,14 +90,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -121,14 +121,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -152,14 +152,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -198,14 +198,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     ref<Polynomial> getLeft();
     ref<Polynomial> getRight();
@@ -248,14 +248,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
 protected:
     bool equalsInternal(ref<Constraint> c);
@@ -297,14 +297,14 @@ public:
 
     ref<Constraint> toNNF(bool negate);
     ref<Constraint> toDNF();
-    std::list<ref<Constraint> > getDualClauses();
+    void addDualClausesToList(std::list<ref<Constraint> > &res);
 
-    std::list<ref<Constraint> > getAtomics();
+    void addAtomicsToList(std::list<ref<Constraint> > &res);
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
 
-    std::set<std::string> *getVariables();
+    void addVariablesToSet(std::set<std::string> &res);
 
     ref<Constraint> getLeft();
     ref<Constraint> getRight();

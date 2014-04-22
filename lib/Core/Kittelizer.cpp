@@ -22,7 +22,8 @@ ref<Constraint> simplify(ref<Constraint> c)
     }
     ref<Operator> op = static_cast<Operator*>(c.get());
     if (op->getOType() == Operator::And) {
-        std::list<ref<Constraint> > atomics = op->getAtomics();
+        std::list<ref<Constraint> > atomics;
+        op->addAtomicsToList(atomics);
         std::list<ref<Constraint> > usedAtomics;
         for (std::list<ref<Constraint> >::iterator i = atomics.begin(), e = atomics.end(); i != e; ++i) {
             ref<Constraint> cc = *i;
@@ -58,7 +59,8 @@ std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules)
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
         ref<Constraint> con = rule->getConstraint()->evaluateTrivialAtoms()->eliminateNeq()->toDNF();
-        std::list<ref<Constraint> > dcs = con->getDualClauses();
+        std::list<ref<Constraint> > dcs;
+        con->addDualClausesToList(dcs);
         for (std::list<ref<Constraint> >::iterator ci = dcs.begin(), ce = dcs.end(); ci != ce; ++ci) {
             ref<Constraint> c = simplify(*ci);
             Constraint::CType type = c->getCType();

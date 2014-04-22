@@ -58,8 +58,7 @@ static void printVars(std::list<ref<Rule> > &rules, std::ostream &stream)
     std::set<std::string> varsSet;
 
     for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        std::set<std::string> *tmp = (*i)->getVariables();
-        varsSet.insert(tmp->begin(), tmp->end());
+        (*i)->addVariablesToSet(varsSet);
     }
 
     for (std::set<std::string>::iterator i = varsSet.begin(), e = varsSet.end(); i != e; ++i) {

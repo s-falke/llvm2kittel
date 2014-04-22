@@ -60,16 +60,11 @@ ref<Constraint> Rule::getConstraint()
     return m_c;
 }
 
-std::set<std::string> *Rule::getVariables()
+void Rule::addVariablesToSet(std::set<std::string> &res)
 {
-    std::set<std::string> *res = new std::set<std::string>();
-    std::set<std::string> *tmp = m_lhs->getVariables();
-    res->insert(tmp->begin(), tmp->end());
-    tmp = m_rhs->getVariables();
-    res->insert(tmp->begin(), tmp->end());
-    tmp = m_c->getVariables();
-    res->insert(tmp->begin(), tmp->end());
-    return res;
+    m_lhs->addVariablesToSet(res);
+    m_rhs->addVariablesToSet(res);
+    m_c->addVariablesToSet(res);
 }
 
 ref<Rule> Rule::dropArgs(std::set<unsigned int> drop)

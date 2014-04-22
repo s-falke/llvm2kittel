@@ -73,24 +73,19 @@ ref<Term> Term::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
     return create(m_f, newargs);
 }
 
-std::set<std::string> *Term::getVariables()
+void Term::addVariablesToSet(std::set<std::string> &res)
 {
     setupVars();
-    std::set<std::string> *res = new std::set<std::string>();
-    for (std::vector<std::set<std::string>*>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i) {
-        std::set<std::string> *tmp = *i;
-        res->insert(tmp->begin(), tmp->end());
+    for (std::vector<std::set<std::string> >::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i) {
+        res.insert(i->begin(), i->end());
     }
-    return res;
 }
 
-std::set<std::string> *Term::getVariables(unsigned int argpos)
+void Term::addVariablesToSet(unsigned int argpos, std::set<std::string> &res)
 {
     setupVars();
-    std::set<std::string> *res = new std::set<std::string>();
-    std::set<std::string> *tmp = m_vars[argpos];
-    res->insert(tmp->begin(), tmp->end());
-    return res;
+    std::set<std::string> &tmp = m_vars[argpos];
+    res.insert(tmp.begin(), tmp.end());
 }
 
 void Term::setupVars(void)
@@ -99,7 +94,9 @@ void Term::setupVars(void)
         m_vars.clear();
         for (std::list<ref<Polynomial> >::iterator i = m_args.begin(), e = m_args.end(); i != e; ++i) {
             ref<Polynomial> tmp = *i;
-            m_vars.push_back(tmp->getVariables());
+            std::set<std::string> vars;
+            tmp->addVariablesToSet(vars);
+            m_vars.push_back(vars);
         }
     }
 }

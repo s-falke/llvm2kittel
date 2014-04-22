@@ -121,8 +121,9 @@ static std::list<std::string> getVars(std::list<ref<Rule> > &rules)
     std::set<std::string> varsSet;
 
     for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        std::set<std::string> *tmp = (*i)->getVariables();
-        for (std::set<std::string>::iterator ii = tmp->begin(), ee = tmp->end(); ii != ee; ++ii) {
+        std::set<std::string> tmp;
+        (*i)->addVariablesToSet(tmp);
+        for (std::set<std::string>::iterator ii = tmp.begin(), ee = tmp.end(); ii != ee; ++ii) {
             if (ii->substr(0, 7) != "nondef."){
                 varsSet.insert(*ii);
             }
@@ -139,8 +140,7 @@ static std::list<std::string> getAllVars(std::list<ref<Rule> > &rules)
     std::set<std::string> varsSet;
 
     for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
-        std::set<std::string> *tmp = (*i)->getVariables();
-        varsSet.insert(tmp->begin(), tmp->end());
+        (*i)->addVariablesToSet(varsSet);
     }
 
     std::list<std::string> res;
@@ -162,7 +162,9 @@ static std::map<std::string, std::list<std::string> > getArgNames(std::list<ref<
                 std::cerr << "Internal error in UniformComplexityTuplePrinter (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
                 exit(0xAAAA);
             }
-            argNames.push_back(*(*ii)->getVariables()->begin());
+            std::set<std::string> vars;
+            (*ii)->addVariablesToSet(vars);
+            argNames.push_back(*vars.begin());
         }
         std::map<std::string, std::list<std::string> >::iterator found = res.find(lhsFun);
         if (found == res.end()) {
