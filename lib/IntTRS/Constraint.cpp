@@ -442,6 +442,8 @@ ref<Constraint> Atom::evaluateTrivialAtoms()
         } else if (m_type == Lss) {
             eval = (mpz_cmp(lconst, rconst) < 0);
         }
+        mpz_clear(lconst);
+        mpz_clear(rconst);
         if (eval) {
             return Constraint::_true;
         } else {
