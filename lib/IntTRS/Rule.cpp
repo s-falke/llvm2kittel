@@ -74,6 +74,5 @@ ref<Rule> Rule::dropArgs(std::set<unsigned int> drop)
 
 bool Rule::equals(ref<Rule> rule)
 {
-    return (m_lhs->equals(rule->m_lhs) && m_rhs->equals(rule->m_rhs) &&
-            m_c->equals(rule->m_c));
+    return (m_lhs->equals(rule->m_lhs) && m_rhs->equals(rule->m_rhs) && m_c->equals(rule->m_c));
 }
