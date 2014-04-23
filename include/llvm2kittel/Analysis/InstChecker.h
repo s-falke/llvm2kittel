@@ -47,6 +47,8 @@ public:
     void visitMul(llvm::BinaryOperator &I);
     void visitSDiv(llvm::BinaryOperator &I);
     void visitSRem(llvm::BinaryOperator &I);
+    void visitUDiv(llvm::BinaryOperator &I);
+    void visitURem(llvm::BinaryOperator &I);
 
     void visitAnd(llvm::BinaryOperator &I);
     void visitOr(llvm::BinaryOperator &I);

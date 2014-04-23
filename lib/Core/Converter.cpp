@@ -796,7 +796,7 @@ void Converter::visitGenericInstruction(llvm::Instruction &I, ref<Polynomial> va
 
 void Converter::visitAdd(llvm::BinaryOperator &I)
 {
-    if (I.getType() == m_boolType) {
+    if (I.getType() == m_boolType || I.getType()->isVectorTy()) {
         return;
     }
     if (m_phase1) {
@@ -810,7 +810,7 @@ void Converter::visitAdd(llvm::BinaryOperator &I)
 
 void Converter::visitSub(llvm::BinaryOperator &I)
 {
-    if (I.getType() == m_boolType) {
+    if (I.getType() == m_boolType || I.getType()->isVectorTy()) {
         return;
     }
     if (m_phase1) {
@@ -824,7 +824,7 @@ void Converter::visitSub(llvm::BinaryOperator &I)
 
 void Converter::visitMul(llvm::BinaryOperator &I)
 {
-    if (I.getType() == m_boolType) {
+    if (I.getType() == m_boolType || I.getType()->isVectorTy()) {
         return;
     }
     if (m_phase1) {
@@ -1010,7 +1010,7 @@ ref<Constraint> Converter::getExactSDivConstraintForUnbounded(ref<Polynomial> up
 
 void Converter::visitSDiv(llvm::BinaryOperator &I)
 {
-    if (I.getType() == m_boolType) {
+    if (I.getType() == m_boolType || I.getType()->isVectorTy()) {
         return;
     }
     if (m_phase1) {
@@ -1105,7 +1105,7 @@ ref<Constraint> Converter::getExactUDivConstraintForUnbounded(ref<Polynomial> up
 
 void Converter::visitUDiv(llvm::BinaryOperator &I)
 {
-    if (I.getType() == m_boolType) {
+    if (I.getType() == m_boolType || I.getType()->isVectorTy()) {
         return;
     }
     if (m_phase1) {
