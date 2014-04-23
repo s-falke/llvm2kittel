@@ -124,7 +124,7 @@ static std::list<std::string> getVars(std::list<ref<Rule> > &rules)
         std::set<std::string> tmp;
         (*i)->addVariablesToSet(tmp);
         for (std::set<std::string>::iterator ii = tmp.begin(), ee = tmp.end(); ii != ee; ++ii) {
-            if (ii->substr(0, 7) != "nondef."){
+            if (ii->substr(0, 7) != "nondef.") {
                 varsSet.insert(*ii);
             }
         }

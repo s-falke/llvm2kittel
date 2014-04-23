@@ -90,7 +90,7 @@ static ref<Constraint> makeConjunction(std::list<ref<Atom> > &atoms)
 {
     ref<Constraint> res = *(atoms.begin());
     for (std::list<ref<Atom> >::iterator i = ++(atoms.begin()), e = atoms.end(); i != e; ++i) {
-      res = Operator::create(res, *i, Operator::And);
+        res = Operator::create(res, *i, Operator::And);
     }
     return res;
 }

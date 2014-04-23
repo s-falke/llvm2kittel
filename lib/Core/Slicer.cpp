@@ -159,7 +159,7 @@ std::list<ref<Rule> > Slicer::sliceUsage(std::list<ref<Rule> > rules)
         if (!isRecursiveCall(rule->getRight()->getFunctionSymbol())) {
             res.push_back(rule->dropArgs(notNeeded));
         } else {
-          res.push_back(Rule::create(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
+            res.push_back(Rule::create(rule->getLeft()->dropArgs(notNeeded), rule->getRight(), rule->getConstraint()));
         }
     }
     return res;
@@ -502,7 +502,7 @@ std::list<ref<Rule> > Slicer::sliceDefined(std::list<ref<Rule> > rules)
         } else {
             rnotneeded = getNotNeeded(rule->getRight()->getFunctionSymbol(), vars);
         }
-      ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
+        ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
         res.push_back(newRule);
     }
 
@@ -790,7 +790,7 @@ std::list<ref<Rule> > Slicer::sliceStillUsed(std::list<ref<Rule> > rules, bool c
         ref<Rule> rule = *i;
         std::set<unsigned int> lnotneeded = notneededMap.find(rule->getLeft()->getFunctionSymbol())->second;
         std::set<unsigned int> rnotneeded = notneededMap.find(rule->getRight()->getFunctionSymbol())->second;
-      ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
+        ref<Rule> newRule = Rule::create(rule->getLeft()->dropArgs(lnotneeded), rule->getRight()->dropArgs(rnotneeded), rule->getConstraint());
         res.push_back(newRule);
     }
 

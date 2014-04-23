@@ -348,7 +348,7 @@ static std::list<ref<Rule> > eliminateBlocks(std::list<ref<Rule> > rules)
             for (std::list<ref<Rule> >::iterator ii = rules.begin(), ee = rules.end(); ii != ee; ++ii) {
                 ref<Rule> inner = *ii;
                 if (inner->getLeft()->getFunctionSymbol() == rhsFun) {
-                   res.push_back(chainRules(rule, inner));
+                    res.push_back(chainRules(rule, inner));
                 }
             }
         } else if (isBlockSymbol(lhsFun)) {
