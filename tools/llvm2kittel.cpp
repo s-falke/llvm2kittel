@@ -365,26 +365,23 @@ int main(int argc, char *argv[])
 
     llvm::Function *function = NULL;
     llvm::Function *firstFunction = NULL;
-    llvm::Module::iterator start = module->begin();
-    llvm::Module::iterator end = module->end();
     unsigned int numFunctions = 0;
     std::list<std::string> functionNames;
 
-    while (start != end) {
-        if (start->getName() == functionname) {
-            function = start;
+    for (llvm::Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
+        if (i->getName() == functionname) {
+            function = i;
             break;
-        } else if (functionname.empty() && start->getName() == "main") {
-            function = start;
+        } else if (functionname.empty() && i->getName() == "main") {
+            function = i;
             break;
-        } else if (!start->isDeclaration()) {
+        } else if (!i->isDeclaration()) {
             ++numFunctions;
-            functionNames.push_back(start->getName());
+            functionNames.push_back(i->getName());
             if (firstFunction == NULL) {
-                firstFunction = start;
+                firstFunction = i;
             }
         }
-        ++start;
     }
 
     if (function == NULL) {
