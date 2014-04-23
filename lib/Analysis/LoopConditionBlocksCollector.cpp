@@ -18,6 +18,11 @@ LoopConditionBlocksCollector::LoopConditionBlocksCollector()
 LoopConditionBlocksCollector::~LoopConditionBlocksCollector()
 {}
 
+void LoopConditionBlocksCollector::getAnalysisUsage(llvm::AnalysisUsage &AU) const
+{
+    AU.addRequired<llvm::LoopInfo>();
+}
+
 bool LoopConditionBlocksCollector::runOnLoop(llvm::Loop *L, llvm::LPPassManager&)
 {
     llvm::BasicBlock *header = L->getHeader();

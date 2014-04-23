@@ -42,6 +42,8 @@ public:
         return "Collect loop condition blocks";
     }
 
+    virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
+
     static char ID;
 
     std::set<llvm::BasicBlock*> getLoopConditionBlocks()
