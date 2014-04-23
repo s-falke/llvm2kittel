@@ -152,7 +152,7 @@ void InstChecker::visitCallInst(llvm::CallInst &I)
             return;
         }
     } else {
-        if (!I.getType()->isVoidTy() && !I.getType()->isFloatTy() && !I.getType()->isDoubleTy() && !llvm::isa<llvm::IntegerType>(I.getType()) && !llvm::isa<llvm::PointerType>(I.getType())) {
+        if (!I.getType()->isVoidTy() && !I.getType()->isFloatTy() && !I.getType()->isDoubleTy() && !I.getType()->isIntegerTy() && !I.getType()->isPointerTy() && !I.getType()->isVectorTy() && !I.getType()->isStructTy()) {
             addUnsuitable(I);
         }
     }
