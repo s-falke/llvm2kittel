@@ -87,6 +87,11 @@ llvm::Instruction *ConstantExprEliminator::replaceConstantExpr(llvm::ConstantExp
     } else if (opcodeName == "bitcast") {
         llvm::Instruction *instr = new llvm::BitCastInst(constantExpr->getOperand(0), constantExpr->getType(), constantExpr->getName(), before);
         return instr;
+#if LLVM_VERSION >= VERSION(3, 4)
+    } else if (opcodeName == "addrspacecast") {
+        llvm::Instruction *instr = new llvm::AddrSpaceCastInst(constantExpr->getOperand(0), constantExpr->getType(), constantExpr->getName(), before);
+        return instr;
+#endif
     } else if (opcodeName == "add") {
         if (constantExpr == llvm::ConstantExpr::getAdd(constantExpr->getOperand(0), constantExpr->getOperand(1))) {
             // no flag
