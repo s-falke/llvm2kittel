@@ -382,6 +382,9 @@ ref<Constraint> Converter::getConditionFromValue(llvm::Value *cond)
     if (llvm::isa<llvm::ConstantInt>(cond)) {
         return Atom::create(getPolynomial(cond), Polynomial::null, Atom::Neq);
     }
+    if (llvm::isa<llvm::Argument>(cond) && cond->getType() == m_boolType) {
+        return Nondef::create();
+    }
     if (!llvm::isa<llvm::Instruction>(cond)) {
         cond->dump();
         std::cerr << "Cannot handle non-instructions!" << std::endl;
