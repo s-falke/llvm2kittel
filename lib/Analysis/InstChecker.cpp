@@ -159,20 +159,7 @@ void InstChecker::visitCallInst(llvm::CallInst &I)
 }
 
 void InstChecker::visitSelectInst(llvm::SelectInst &I)
-{
-    if (I.getType() == m_boolType) {
-        if (llvm::isa<llvm::ConstantInt>(I.getOperand(1)) == llvm::isa<llvm::ConstantInt>(I.getOperand(2))) {
-            // otherwise, exactly one is a constant
-            addUnsuitable(I);
-        } else if (llvm::isa<llvm::ConstantInt>(I.getOperand(1)) && !llvm::cast<llvm::ConstantInt>(I.getOperand(1))->isOne()) {
-            // select phi, false, psi
-            addUnsuitable(I);
-        } else if (llvm::isa<llvm::ConstantInt>(I.getOperand(2)) && llvm::cast<llvm::ConstantInt>(I.getOperand(2))->isOne()) {
-            // select phi, psi, true
-            addUnsuitable(I);
-        }
-    }
-}
+{}
 
 void InstChecker::visitPHINode(llvm::PHINode &I)
 {

@@ -438,23 +438,26 @@ ref<Constraint> Converter::getConditionFromInstruction(llvm::Instruction *I)
             return getConditionFromValue(I->getOperand(realIdx));
         }
     } else if (opcodeName == "select") {
-        llvm::ConstantInt *ci;
-        unsigned int realIdx;
-        if (llvm::isa<llvm::ConstantInt>(I->getOperand(1))) {
-            ci = llvm::cast<llvm::ConstantInt>(I->getOperand(1));
-            realIdx = 2;
-        } else {
-            ci = llvm::cast<llvm::ConstantInt>(I->getOperand(2));
-            realIdx = 1;
-        }
-        Operator::OType otype;
-        if (ci->isOne()) {
+        llvm::ConstantInt *opOne = llvm::dyn_cast<llvm::ConstantInt>(I->getOperand(1));
+        llvm::ConstantInt *opTwo = llvm::dyn_cast<llvm::ConstantInt>(I->getOperand(2));
+        if (opOne != NULL && opOne->isOne() && opTwo != NULL && !opTwo->isOne()) {
+            // select ... true false (this actually occurs in some bitcode)
+            return getConditionFromValue(I->getOperand(0));
+        } else if (opOne != NULL && opOne->isOne()) {
+            // select ... true ...
             // true --> or
-            otype = Operator::Or;
+            return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(2)), Operator::Or);
+        } else if (opTwo != NULL && !opTwo->isOne()) {
+            // select ... ... false
+            return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(1)), Operator::And);
         } else {
-            otype = Operator::And;
+            // select ... ... ...
+            ref<Constraint> test = getConditionFromValue(I->getOperand(0));
+            ref<Constraint> negTest = Negation::create(test);
+            ref<Constraint> truePart = Operator::create(negTest, getConditionFromValue(I->getOperand(1)), Operator::Or);
+            ref<Constraint> falsePart = Operator::create(test, getConditionFromValue(I->getOperand(2)), Operator::Or);
+            return Operator::create(truePart, falsePart, Operator::And);
         }
-        return Operator::create(getConditionFromValue(I->getOperand(0)), getConditionFromValue(I->getOperand(realIdx)), otype);
     } else {
         return Nondef::create();
     }
