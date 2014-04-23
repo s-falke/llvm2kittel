@@ -916,10 +916,5 @@ bool Slicer::isRecursiveCall(std::string f)
 
 bool Slicer::isNondef(std::string v)
 {
-    unsigned int len = static_cast<unsigned int>(v.length());
-    if (len < 6) {
-        return false;
-    }
-    std::string begin = v.substr(0, 6);
-    return (begin == "nondef");
+    return (v.substr(0, 7) == "nondef.");
 }
