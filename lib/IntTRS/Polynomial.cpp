@@ -259,8 +259,7 @@ Polynomial::Polynomial(mpz_t c)
   : refCount(0),
     m_monos()
 {
-    mpz_init(m_constant);
-    mpz_set(m_constant, c);
+    mpz_init_set(m_constant, c);
 }
 
 ref<Polynomial> Polynomial::create(mpz_t c)
@@ -282,7 +281,9 @@ ref<Polynomial> Polynomial::create(ref<Monomial> mono)
 }
 
 Polynomial::~Polynomial()
-{}
+{
+    mpz_clear(m_constant);
+}
 
 void Polynomial::getCoeff(mpz_t res, ref<Monomial> mono)
 {
@@ -392,13 +393,9 @@ std::string Polynomial::toString()
 ref<Polynomial> Polynomial::add(ref<Polynomial> poly)
 {
     mpz_t newConstant;
-    mpz_t polyConstant;
-    mpz_init_set(newConstant, m_constant);
-    mpz_init(polyConstant);
-    poly->getConst(polyConstant);
-    mpz_add(newConstant, newConstant, polyConstant);
+    mpz_init(newConstant);
+    mpz_add(newConstant, m_constant, poly->m_constant);
     ref<Polynomial> res = create(newConstant);
-    mpz_clear(polyConstant);
     mpz_clear(newConstant);
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
         std::pair<mpz_class, ref<Monomial> > tmp = *i;
@@ -408,9 +405,11 @@ ref<Polynomial> Polynomial::add(ref<Polynomial> poly)
         mpz_t newCoeff;
         mpz_init(newCoeff);
         mpz_add(newCoeff, tmp.first.get_mpz_t(), otherCoeff);
+        mpz_clear(otherCoeff);
         if (mpz_cmp(newCoeff, Polynomial::_null) != 0) {
             res->m_monos.push_back(std::make_pair(mpz_class(newCoeff), tmp.second));
         }
+        mpz_clear(newCoeff); // The mpz_class constructor does not take ownership
     }
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = poly->m_monos.begin(), e = poly->m_monos.end(); i != e; ++i) {
         std::pair<mpz_class, ref<Monomial> > tmp = *i;
@@ -420,6 +419,7 @@ ref<Polynomial> Polynomial::add(ref<Polynomial> poly)
         if (mpz_cmp(coeff, Polynomial::_null) == 0) {
             res->m_monos.push_back(tmp);
         }
+        mpz_clear(coeff);
     }
     return res;
 }
@@ -435,16 +435,17 @@ ref<Polynomial> Polynomial::constMult(mpz_t d)
         return Polynomial::null;
     } else {
         mpz_t newConstant;
-        mpz_init_set(newConstant, m_constant);
-        mpz_mul(newConstant, newConstant, d);
+        mpz_init(newConstant);
+        mpz_mul(newConstant, m_constant, d);
         ref<Polynomial> res = create(newConstant);
         mpz_clear(newConstant);
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
             std::pair<mpz_class, ref<Monomial> > tmp = *i;
             mpz_t newCoeff;
-            mpz_init_set(newCoeff, tmp.first.get_mpz_t());
-            mpz_mul(newCoeff, newCoeff, d);
+            mpz_init(newCoeff);
+            mpz_mul(newCoeff, tmp.first.get_mpz_t(), d);
             res->m_monos.push_back(std::make_pair(mpz_class(newCoeff), tmp.second));
+            mpz_clear(newCoeff); // The mpz_class constructor does not take ownership
         }
         return res;
     }
@@ -453,11 +454,7 @@ ref<Polynomial> Polynomial::constMult(mpz_t d)
 ref<Polynomial> Polynomial::mult(ref<Polynomial> poly)
 {
     if (poly->isConst()) {
-        mpz_t constant;
-        mpz_init(constant);
-        poly->getConst(constant);
-        ref<Polynomial> res = this->constMult(constant);
-        mpz_clear(constant);
+        ref<Polynomial> res = this->constMult(poly->m_constant);
         return res;
     }
     ref<Polynomial> pp = Polynomial::null;
@@ -467,8 +464,8 @@ ref<Polynomial> Polynomial::mult(ref<Polynomial> poly)
             std::pair<mpz_class, ref<Monomial> > inner = *ii;
             ref<Polynomial> tmp = create(outer.second->mult(inner.second));
             mpz_t newCoeff;
-            mpz_init_set(newCoeff, outer.first.get_mpz_t());
-            mpz_mul(newCoeff, newCoeff, inner.first.get_mpz_t());
+            mpz_init(newCoeff);
+            mpz_mul(newCoeff, outer.first.get_mpz_t(), inner.first.get_mpz_t());
             if (mpz_cmp(newCoeff, Polynomial::_null) != 0) {
                 pp = pp->add(tmp->constMult(newCoeff));
             }
@@ -480,25 +477,18 @@ ref<Polynomial> Polynomial::mult(ref<Polynomial> poly)
     ref<Polynomial> cp = polyZero->constMult(m_constant);
     ref<Polynomial> thisZero = create(_null);
     thisZero->m_monos = m_monos;
-    mpz_t polyConstant;
-    mpz_init(polyConstant);
-    poly->getConst(polyConstant);
-    ref<Polynomial> pc = thisZero->constMult(polyConstant);
+    ref<Polynomial> pc = thisZero->constMult(poly->m_constant);
     mpz_t newConstant;
-    mpz_init_set(newConstant, m_constant);
-    mpz_mul(newConstant, newConstant, polyConstant);
+    mpz_init(newConstant);
+    mpz_mul(newConstant, m_constant, poly->m_constant);
     ref<Polynomial> cc = create(newConstant);
-    mpz_clear(polyConstant);
     mpz_clear(newConstant);
     return pp->add(cp->add(pc->add(cc)));
 }
 
 ref<Polynomial> Polynomial::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
-    mpz_t oldConstant;
-    mpz_init_set(oldConstant, m_constant);
-    ref<Polynomial> res = create(oldConstant);
-    mpz_clear(oldConstant);
+    ref<Polynomial> res = create(m_constant);
     for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
         ref<Polynomial> accu = Polynomial::one;
         std::pair<mpz_class, ref<Monomial> > tmp = *i;
@@ -567,11 +557,7 @@ bool Polynomial::equals(ref<Polynomial> p)
     ref<Polynomial> tmp = sub(p);
     bool res = false;
     if (tmp->isConst()) {
-        mpz_t constant;
-        mpz_init(constant);
-        tmp->getConst(constant);
-        res = (mpz_cmp(constant, Polynomial::_null) == 0);
-        mpz_clear(constant);
+        res = (mpz_cmp(tmp->m_constant, Polynomial::_null) == 0);
     }
     return res;
 }
