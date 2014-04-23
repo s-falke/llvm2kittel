@@ -420,7 +420,8 @@ ref<Constraint> Atom::eliminateNeq()
     }
 }
 
-ref<Constraint> Atom::evaluateTrivialAtoms() {
+ref<Constraint> Atom::evaluateTrivialAtoms()
+{
     return evaluateTrivialAtomsInternal(m_lhs, m_rhs, m_type);
 }
 
