@@ -38,6 +38,10 @@ public:
     Hoister();
 
     bool runOnLoop(llvm::Loop *L, llvm::LPPassManager &LPM);
+
+#if LLVM_VERSION >= VERSION(3, 3)
+    using llvm::Pass::doFinalization;
+#endif
     bool doFinalization();
 
     virtual const char *getPassName() const { return "Selective Hoister"; }
