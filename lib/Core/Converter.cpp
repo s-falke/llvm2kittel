@@ -454,9 +454,9 @@ ref<Constraint> Converter::getConditionFromInstruction(llvm::Instruction *I)
             // select ... ... ...
             ref<Constraint> test = getConditionFromValue(I->getOperand(0));
             ref<Constraint> negTest = Negation::create(test);
-            ref<Constraint> truePart = Operator::create(negTest, getConditionFromValue(I->getOperand(1)), Operator::Or);
-            ref<Constraint> falsePart = Operator::create(test, getConditionFromValue(I->getOperand(2)), Operator::Or);
-            return Operator::create(truePart, falsePart, Operator::And);
+            ref<Constraint> truePart = Operator::create(test, getConditionFromValue(I->getOperand(1)), Operator::And);
+            ref<Constraint> falsePart = Operator::create(negTest, getConditionFromValue(I->getOperand(2)), Operator::And);
+            return Operator::create(truePart, falsePart, Operator::Or);
         }
     } else {
         return Nondef::create();
