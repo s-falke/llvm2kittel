@@ -28,7 +28,10 @@ public:
 
     bool runOnBasicBlock(llvm::BasicBlock &bb);
 
-    virtual const char *getPassName() const { return "Strength increaser pass"; }
+    virtual const char *getPassName() const
+    {
+        return "Strength increaser pass";
+    }
 
     static char ID;
 };

@@ -37,7 +37,10 @@ public:
 
     static char ID;
 
-    virtual const char *getPassName() const { return "Extreme function inlining"; }
+    virtual const char *getPassName() const
+    {
+        return "Extreme function inliner";
+    }
 
 private:
     llvm::Function *m_function;

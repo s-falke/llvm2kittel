@@ -32,7 +32,10 @@ public:
 
     bool runOnFunction(llvm::Function &function);
 
-    virtual const char *getPassName() const { return "ConstantExpr elimination pass"; }
+    virtual const char *getPassName() const
+    {
+        return "ConstantExpr elimination pass";
+    }
 
     static char ID;
 

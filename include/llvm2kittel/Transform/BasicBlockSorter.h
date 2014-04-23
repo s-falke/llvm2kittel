@@ -35,7 +35,10 @@ public:
 
     bool runOnFunction(llvm::Function &function);
 
-    virtual const char *getPassName() const { return "Bring basic blocks into topological order"; }
+    virtual const char *getPassName() const
+    {
+        return "Bring basic blocks into topological order";
+    }
 
     static char ID;
 

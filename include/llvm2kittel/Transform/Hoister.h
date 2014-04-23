@@ -44,7 +44,10 @@ public:
 #endif
     bool doFinalization();
 
-    virtual const char *getPassName() const { return "Selective Hoister"; }
+    virtual const char *getPassName() const
+    {
+        return "Selective Hoister";
+    }
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 

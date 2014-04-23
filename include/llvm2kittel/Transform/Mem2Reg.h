@@ -42,7 +42,10 @@ public:
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 
-    virtual const char *getPassName() const { return "KITTeL mem2reg"; }
+    virtual const char *getPassName() const
+    {
+        return "llvm2KITTeL's mem2reg";
+    }
 
     static char ID;
 

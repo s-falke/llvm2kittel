@@ -37,7 +37,10 @@ public:
 
     static char ID;
 
-    virtual const char *getPassName() const { return "Eager function inlining"; }
+    virtual const char *getPassName() const
+    {
+        return "Eager function inliner";
+    }
 
 private:
     EagerInliner(const EagerInliner &);

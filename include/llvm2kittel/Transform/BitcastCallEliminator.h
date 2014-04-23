@@ -30,7 +30,10 @@ public:
 
     bool runOnFunction(llvm::Function &function);
 
-    virtual const char *getPassName() const { return "Bitcast call elimination pass"; }
+    virtual const char *getPassName() const
+    {
+        return "Bitcast call elimination pass";
+    }
 
     static char ID;
 
