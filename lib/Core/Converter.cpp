@@ -1519,7 +1519,7 @@ void Converter::visitCallInst(llvm::CallInst &I)
             m_complexityLHSs.insert(getEval(m_counter));
         }
         // "random" functions
-        if (I.getType()->isIntegerTy() || I.getType()->isVoidTy() || I.getType()->isFloatingPointTy() || I.getType()->isPointerTy()) {
+        if (I.getType()->isIntegerTy() || I.getType()->isVoidTy() || I.getType()->isFloatingPointTy() || I.getType()->isPointerTy() || I.getType()->isVectorTy() || I.getType()->isStructTy()) {
             std::list<llvm::Function*> callees;
             if (calledFunction != NULL) {
                 callees.push_back(calledFunction);
