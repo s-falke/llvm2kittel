@@ -42,7 +42,7 @@ ref<Constraint> simplify(ref<Constraint> c)
         ref<Constraint> res = *usedAtomics.rbegin();
         usedAtomics.erase(--usedAtomics.end());
         for (std::list<ref<Constraint> >::reverse_iterator ri = usedAtomics.rbegin(), re = usedAtomics.rend(); ri != re; ++ri) {
-          res = Operator::create(*ri, res, Operator::And);
+            res = Operator::create(*ri, res, Operator::And);
         }
         return res;
     } else {
@@ -68,10 +68,10 @@ std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules)
                 // no rule
             } else if (c->getCType() == Constraint::CNondef) {
                 // rule with "TRUE"
-              res.push_back(Rule::create(lhs, rhs, Constraint::_true));
+                res.push_back(Rule::create(lhs, rhs, Constraint::_true));
             } else {
                 // rule with c
-              res.push_back(Rule::create(lhs, rhs, c));
+                res.push_back(Rule::create(lhs, rhs, c));
             }
         }
     }
