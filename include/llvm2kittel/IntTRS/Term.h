@@ -45,6 +45,8 @@ public:
 
     ref<Term> dropArgs(std::set<unsigned int> drop);
 
+    bool equals(ref<Term> term);
+
 private:
     Term(const Term&);
     Term &operator=(const Term&);

@@ -600,7 +600,11 @@ int main(int argc, char *argv[])
             if (noSlicing) {
                 slicedRules = kittelizedRules;
             } else {
-                slicedRules = slicer.sliceStillUsed(slicer.sliceDefined(slicer.sliceConstraint(slicer.sliceUsage(kittelizedRules))), conservativeSlicing);
+                slicedRules = slicer.sliceUsage(kittelizedRules);
+                slicedRules = slicer.sliceConstraint(slicedRules);
+                slicedRules = slicer.sliceDefined(slicedRules);
+                slicedRules = slicer.sliceStillUsed(slicedRules, conservativeSlicing);
+                slicedRules = slicer.sliceDuplicates(slicedRules);
             }
             if (boundedIntegers) {
                 slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding));

@@ -39,6 +39,8 @@ public:
 
     ref<Rule> dropArgs(std::set<unsigned int> drop);
 
+    bool equals(ref<Rule> rule);
+
 private:
     Rule(const Rule&);
     Rule &operator=(const Rule&);
