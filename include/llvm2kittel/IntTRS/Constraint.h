@@ -21,10 +21,10 @@ class Polynomial;
 class Constraint
 {
 public:
-  unsigned int refCount;
+    unsigned int refCount;
 
 protected:
-  Constraint();
+    Constraint();
 
 public:
     enum CType {

@@ -20,7 +20,7 @@ class Term;
 class Rule
 {
 public:
-  unsigned int refCount;
+    unsigned int refCount;
 
 protected:
     Rule(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c);
