@@ -9,6 +9,7 @@
 #define CONVERTER_H
 
 #include "llvm2kittel/DivConstraintStore.h"
+#include "llvm2kittel/DivRemConstraintType.h"
 #include "llvm2kittel/RemConstraintStore.h"
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
@@ -49,7 +50,7 @@ class Converter : public llvm::InstVisitor<Converter>
 #include "WARN_ON.h"
 
 public:
-    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, bool exactDivision, bool dumbDivision, bool bitwiseConditions, bool complexityTuples);
+    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples);
 
     void phase1(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
     void phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
@@ -202,8 +203,7 @@ private:
     bool m_onlyLoopConditions;
     std::set<llvm::BasicBlock*> m_loopConditionBlocks;
 
-    bool m_exactDivision;
-    bool m_dumbDivision;
+    DivRemConstraintType m_divisionConstraintType;
 
     bool m_bitwiseConditions;
 

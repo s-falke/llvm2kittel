@@ -115,6 +115,7 @@ add_library(llvm2kittelCore STATIC
   include/llvm2kittel/ConstraintSimplifier.h
   include/llvm2kittel/Converter.h
   include/llvm2kittel/DivConstraintStore.h
+  include/llvm2kittel/DivRemConstraintType.h
   include/llvm2kittel/Kittelizer.h
   include/llvm2kittel/RemConstraintStore.h
   include/llvm2kittel/Slicer.h

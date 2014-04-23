@@ -8,6 +8,7 @@
 #include "llvm2kittel/BoundConstrainer.h"
 #include "llvm2kittel/ConstraintSimplifier.h"
 #include "llvm2kittel/Converter.h"
+#include "llvm2kittel/DivRemConstraintType.h"
 #include "llvm2kittel/Kittelizer.h"
 #include "llvm2kittel/Slicer.h"
 #include "llvm2kittel/Analysis/ConditionPropagator.h"
@@ -98,8 +99,15 @@ static cl::opt<bool> propagateConditions("propagate-conditions", cl::desc("Propa
 static cl::opt<bool> explicitizeLoopConditions("explicitize-loop-conditions", cl::desc("Derive certain loop conditions"), cl::init(false), cl::ReallyHidden);
 static cl::opt<bool> simplifyConds("simplify-conditions", cl::desc("Simplify conditions in the generated TRS"), cl::init(false));
 static cl::opt<bool> onlyLoopConditions("only-loop-conditions", cl::desc("Only encode loop conditions in the generated TRS"), cl::init(false));
-static cl::opt<bool> exactDivision("exact-division", cl::desc("Give tighter approximation of divions (only for mathematical integers)"), cl::init(false));
-static cl::opt<bool> dumbDivision("dumb-division", cl::desc("Division just yields nondef"), cl::init(false));
+static cl::opt<DivRemConstraintType> divisionConstraintType("division-constraint",
+                                                            cl::desc("Determine the constraint type generated for division and remainder operations:"),
+                                                            cl::init(Approximated),
+                                                            cl::values(
+                                                                       clEnumValN(Exact, "exact", "exactly model the semantics (only for mathematical integers)"),
+                                                                       clEnumValN(Approximated, "approximated", "approximately model the semantics (default)"),
+                                                                       clEnumValN(None, "none", "do not model the semantics"),
+                                                                       clEnumValEnd)
+                                                           );
 static cl::opt<bool> bitwiseConditions("bitwise-conditions", cl::desc("Add conditions for bitwise & and |"), cl::init(false));
 
 static cl::opt<bool> dumpLL("dump-ll", cl::desc("Dump transformed bitcode into a file"), cl::init(false));
@@ -313,8 +321,8 @@ int main(int argc, char *argv[])
     cl::SetVersionPrinter(&versionPrinter);
     cl::ParseCommandLineOptions(argc, argv, "llvm2kittel\n");
 
-    if (boundedIntegers && exactDivision) {
-        std::cerr << "Cannot use \"-exact-division\" in combination with \"-bounded-integers\"" << std::endl;
+    if (boundedIntegers && divisionConstraintType == Exact) {
+        std::cerr << "Cannot use \"-division-constraint=exact\" in combination with \"-bounded-integers\"" << std::endl;
         return 333;
     }
     if (!boundedIntegers && unsignedEncoding) {
@@ -569,7 +577,7 @@ int main(int argc, char *argv[])
 
         for (std::list<llvm::Function*>::iterator fi = scc.begin(), fe = scc.end(); fi != fe; ++fi) {
             llvm::Function *curr = *fi;
-            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, exactDivision, dumbDivision, bitwiseConditions, complexityTuples || uniformComplexityTuples);
+            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples);
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
             if (tmp1 == mmMap.end()) {
                 std::cerr << "Could not find alias information (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
