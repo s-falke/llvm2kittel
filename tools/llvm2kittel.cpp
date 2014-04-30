@@ -97,7 +97,7 @@ static cl::opt<bool> inlineVoids("inline-voids", cl::desc("Function with return 
 static cl::opt<bool> increaseStrength("increase-strength", cl::desc("Replace shifts by multiplication/division"), cl::init(false));
 static cl::opt<bool> noSlicing("no-slicing", cl::desc("Do not slice the generated TRS"), cl::init(false));
 static cl::opt<bool> conservativeSlicing("conservative-slicing", cl::desc("Be conservative in slicing the generated TRS"), cl::init(false));
-static cl::opt<bool> onlyMultiPredIsControl("multi-pred-control", cl::desc("Only basic block with multiple predecessors are control points"), cl::init(false));
+static cl::opt<bool> onlyMultiPredIsControl("multi-pred-control", cl::desc("Only basic blocks with multiple predecessors are control points"), cl::init(false));
 static cl::opt<bool> boundedIntegers("bounded-integers", cl::desc("Use bounded integers instead of mathematical integers"), cl::init(false));
 static cl::opt<bool> unsignedEncoding("unsigned-encoding", cl::desc("Use unsigned box for bounded integers"), cl::init(false));
 static cl::opt<bool> propagateConditions("propagate-conditions", cl::desc("Propagate branch conditions to successor basic blocks"), cl::init(false));
