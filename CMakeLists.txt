@@ -72,7 +72,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-include(FindGMP)
+find_package(GMP REQUIRED)
 
 execute_process(
   COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
@@ -85,6 +85,7 @@ configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm.in ${CMAKE_BINARY_DIR}/kittel-llv
 configure_file(${CMAKE_SOURCE_DIR}/kittel-llvm-bounded.in ${CMAKE_BINARY_DIR}/kittel-llvm-bounded @ONLY)
 
 include_directories(include)
+include_directories(${GMP_INCLUDE_DIR})
 
 add_library(llvm2kittelAnalysis STATIC
   lib/Analysis/ConditionPropagator.cpp
@@ -182,7 +183,7 @@ add_executable(llvm2kittel
 set_target_properties(
   llvm2kittel llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
   llvm2kittelIntTRS llvm2kittelTransform llvm2kittelUtil
-  PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS} ${GMP_CXXFLAGS}" ${WARN_FLAGS}
+  PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}" ${WARN_FLAGS}
 )
 
 target_link_libraries(llvm2kittelAnalysis
@@ -192,12 +193,10 @@ target_link_libraries(llvm2kittelComplexity
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
 )
 target_link_libraries(llvm2kittelCore
-  ${LLVM_LIBS} ${LLVM_LDFLAGS}
-  ${GMP_LIBS} ${GMP_LDFLAGS}
+  ${LLVM_LIBS} ${LLVM_LDFLAGS} ${GMP_LIBRARIES}
 )
 target_link_libraries(llvm2kittelIntTRS
-  ${LLVM_LIBS} ${LLVM_LDFLAGS}
-  ${GMP_LIBS} ${GMP_LDFLAGS}
+  ${LLVM_LIBS} ${LLVM_LDFLAGS} ${GMP_LIBRARIES}
 )
 target_link_libraries(llvm2kittelTransform
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
