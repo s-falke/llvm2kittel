@@ -62,6 +62,9 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/system_error.h>
+#if LLVM_VERSION >= VERSION(3, 5)
+  #include <llvm/Support/FileSystem.h>
+#endif
 #include "WARN_ON.h"
 
 // C++ includes
