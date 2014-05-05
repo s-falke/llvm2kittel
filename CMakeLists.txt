@@ -6,9 +6,6 @@ set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
 )
 
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-
 set(WARN_FLAGS
   "-Wall -Wextra -Wold-style-cast -Wshadow -Wconversion -Wsign-conversion"
   " -Weffc++ -Wswitch-default -Wswitch-enum -Wno-long-long -pedantic"
@@ -172,14 +169,22 @@ add_library(llvm2kittelUtil STATIC
   include/WARN_ON.h
 )
 
-configure_file(${CMAKE_SOURCE_DIR}/tools/GitSHA1.cpp.in
+add_custom_target(
+  make_git_sha1
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/make_git_sha1.sh GitSHA1.cpp
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+set_source_files_properties(
   ${CMAKE_BINARY_DIR}/GitSHA1.cpp
-  @ONLY
+  PROPERTIES GENERATED TRUE
 )
 add_executable(llvm2kittel
   tools/llvm2kittel.cpp
   ${CMAKE_BINARY_DIR}/GitSHA1.cpp
   tools/GitSHA1.h
+)
+add_dependencies(
+  llvm2kittel make_git_sha1
 )
 
 set_target_properties(
