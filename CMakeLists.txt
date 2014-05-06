@@ -171,8 +171,8 @@ add_library(llvm2kittelUtil STATIC
 
 add_custom_target(
   make_git_sha1
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/make_git_sha1.sh GitSHA1.cpp
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/make_git_sha1.sh ${CMAKE_BINARY_DIR}/GitSHA1.cpp
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 set_source_files_properties(
   ${CMAKE_BINARY_DIR}/GitSHA1.cpp
