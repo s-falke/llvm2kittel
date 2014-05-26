@@ -45,6 +45,9 @@
 #include <llvm/Config/config.h>
 #include <cerrno>
 #include <cstdlib>
+#if LLVM_VERSION >= VERSION(3, 5)
+  #include <memory>
+#endif
 
 using namespace llvm;
 using namespace cl;
@@ -512,7 +515,11 @@ static void ExpandResponseFiles(unsigned argc, const char*const* argv,
       // processed recursively.")
 
       // Mmap the response file into memory.
+#if LLVM_VERSION <= VERSION(3, 4)
       OwningPtr<MemoryBuffer> respFilePtr;
+#else
+      std::unique_ptr<MemoryBuffer> respFilePtr;
+#endif
       if (!MemoryBuffer::getFile(arg + 1, respFilePtr)) {
         ParseCStringVector(newArgv, respFilePtr->getBufferStart());
         continue;
