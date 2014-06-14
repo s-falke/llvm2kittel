@@ -61,7 +61,11 @@
 #endif
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/system_error.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/system_error.h>
+#else
+  #include <system_error>
+#endif
 #if LLVM_VERSION >= VERSION(3, 5)
   #include <llvm/Support/FileSystem.h>
 #endif
@@ -363,7 +367,7 @@ int main(int argc, char *argv[])
 #else
     llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer, context);
-    llvm::error_code ec = moduleOrError.getError();
+    std::error_code ec = moduleOrError.getError();
     if (ec) {
         errMsg = ec.message();
     } else {

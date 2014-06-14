@@ -34,7 +34,11 @@
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/system_error.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/Support/system_error.h>
+#else
+  #include <system_error>
+#endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Path.h>
 #include <llvm/ADT/OwningPtr.h>
