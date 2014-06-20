@@ -41,7 +41,9 @@
 #endif
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Path.h>
-#include <llvm/ADT/OwningPtr.h>
+#if LLVM_VERSION < VERSION(3, 5)
+  #include <llvm/ADT/OwningPtr.h>
+#endif
 #include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringMap.h>
