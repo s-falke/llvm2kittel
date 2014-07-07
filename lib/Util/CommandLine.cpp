@@ -523,14 +523,19 @@ static void ExpandResponseFiles(unsigned argc, const char*const* argv,
       // Mmap the response file into memory.
 #if LLVM_VERSION <= VERSION(3, 4)
       OwningPtr<MemoryBuffer> respFilePtr;
-#else
-      std::unique_ptr<MemoryBuffer> respFilePtr;
-#endif
       if (!MemoryBuffer::getFile(arg + 1, respFilePtr)) {
         ParseCStringVector(newArgv, respFilePtr->getBufferStart());
         continue;
       }
+#else
+      llvm::ErrorOr<std::unique_ptr<MemoryBuffer>> respFilePtr = MemoryBuffer::getFile(arg + 1);
+      if (!respFilePtr.getError()) {
+        ParseCStringVector(newArgv, respFilePtr->get()->getBufferStart());
+        continue;
+      }
+#endif
     }
+
     newArgv.push_back(strdup(arg));
   }
 }
