@@ -353,10 +353,8 @@ int main(int argc, char *argv[])
     llvm::MemoryBuffer *buffer = owningBuffer.get();
 #else
     llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> owningBuffer = llvm::MemoryBuffer::getFileOrSTDIN(filename);
-    std::error_code ec1 = owningBuffer.getError();
     llvm::MemoryBuffer *buffer = NULL;
-    if (ec1) {
-    } else {
+    if (!owningBuffer.getError()) {
         buffer = owningBuffer->get();
     }
 #endif
@@ -373,9 +371,9 @@ int main(int argc, char *argv[])
 #else
     llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer, context);
-    std::error_code ec2 = moduleOrError.getError();
-    if (ec2) {
-        errMsg = ec2.message();
+    std::error_code ec = moduleOrError.getError();
+    if (ec) {
+        errMsg = ec.message();
     } else {
         module = moduleOrError.get();
     }
