@@ -535,7 +535,6 @@ static void ExpandResponseFiles(unsigned argc, const char*const* argv,
       }
 #endif
     }
-
     newArgv.push_back(strdup(arg));
   }
 }
