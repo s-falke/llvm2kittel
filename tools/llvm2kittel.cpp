@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
     std::string errMsg;
 #if LLVM_VERSION < VERSION(3, 5)
     llvm::Module *module = llvm::ParseBitcodeFile(buffer, context, &errMsg);
-#else
+#elif LLVM_VERSION == VERSION(3, 5)
     llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer, context);
     std::error_code ec = moduleOrError.getError();
@@ -377,6 +377,15 @@ int main(int argc, char *argv[])
     } else {
         module = moduleOrError.get();
     }
+#else
+  llvm::Module *module = NULL;
+  llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
+  std::error_code ec = moduleOrError.getError();
+  if (ec) {
+    errMsg = ec.message();
+  } else {
+    module = moduleOrError.get();
+  }
 #endif
 
     // check if the file is a proper bitcode file and contains a module
@@ -466,23 +475,31 @@ int main(int argc, char *argv[])
 #endif
     }
     if (dumpLL) {
-        std::string errorInfo;
         std::string outFile = filename.substr(0, filename.length() - 3) + ".ll";
 #if LLVM_VERSION < VERSION(3, 5)
+        std::string errorInfo;
         llvm::raw_fd_ostream stream(outFile.data(), errorInfo);
-#else
-        llvm::raw_fd_ostream stream(outFile.data(), errorInfo, llvm::sys::fs::F_Text);
-#endif
         if (errorInfo.empty()) {
-#if LLVM_VERSION < VERSION(3, 5)
             llvm::PassManager dumpPass;
             dumpPass.add(llvm::createPrintModulePass(&stream));
             dumpPass.run(*module);
-#else
-            stream << *module << '\n';
-#endif
             stream.close();
         }
+#elif LLVM_VERSION == VERSION(3, 5)
+        std::string errorInfo;
+        llvm::raw_fd_ostream stream(outFile.data(), errorInfo, llvm::sys::fs::F_Text);
+        if (errorInfo.empty()) {
+            stream << *module << '\n';
+            stream.close();
+        }
+#else
+        std::error_code errorCode;
+        llvm::raw_fd_ostream stream(outFile.data(), errorCode, llvm::sys::fs::F_Text);
+        if (!errorCode) {
+            stream << *module << '\n';
+            stream.close();
+        }
+#endif
     }
 
     // check for junk
