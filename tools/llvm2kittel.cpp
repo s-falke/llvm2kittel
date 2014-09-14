@@ -135,18 +135,24 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
 #endif
 #if LLVM_VERSION < VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout();
-#else
+#elif LLVM_VERSION == VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout()->getStringRepresentation();
 #endif
-    if (!ModuleDataLayout.empty()) {
 #if LLVM_VERSION < VERSION(3, 2)
+    if (!ModuleDataLayout.empty()) {
         TD = new llvm::TargetData(ModuleDataLayout);
-#elif LLVM_VERSION < VERSION(3, 5)
-        TD = new llvm::DataLayout(ModuleDataLayout);
-#else
-        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
-#endif
     }
+#elif LLVM_VERSION < VERSION(3, 5)
+    if (!ModuleDataLayout.empty()) {
+        TD = new llvm::DataLayout(ModuleDataLayout);
+    }
+#elif LLVM_VERSION == VERSION(3, 5)
+    if (!ModuleDataLayout.empty()) {
+        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
+    }
+#else
+    TD = new llvm::DataLayoutPass();
+#endif
 
     // pass manager
     llvm::PassManager llvmPasses;
@@ -222,18 +228,24 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
 #endif
 #if LLVM_VERSION < VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout();
-#else
+#elif LLVM_VERSION == VERSION(3, 5)
     const std::string &ModuleDataLayout = module->getDataLayout()->getStringRepresentation();
 #endif
-    if (!ModuleDataLayout.empty()) {
 #if LLVM_VERSION < VERSION(3, 2)
+    if (!ModuleDataLayout.empty()) {
         TD = new llvm::TargetData(ModuleDataLayout);
-#elif LLVM_VERSION < VERSION(3, 5)
-        TD = new llvm::DataLayout(ModuleDataLayout);
-#else
-        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
-#endif
     }
+#elif LLVM_VERSION < VERSION(3, 5)
+    if (!ModuleDataLayout.empty()) {
+        TD = new llvm::DataLayout(ModuleDataLayout);
+    }
+#elif LLVM_VERSION == VERSION(3, 5)
+    if (!ModuleDataLayout.empty()) {
+        TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
+    }
+#else
+    TD = new llvm::DataLayoutPass();
+#endif
 
     // pass manager
     llvm::FunctionPassManager PM(module);
