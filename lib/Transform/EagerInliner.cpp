@@ -49,6 +49,10 @@ llvm::Pass *createEagerInlinerPass()
 #else
     llvm::initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
 #endif
+#if LLVM_VERSION >= VERSION(3, 6)
+    llvm::initializeAliasAnalysisAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+    llvm::initializeAssumptionTrackerPass(*llvm::PassRegistry::getPassRegistry());
+#endif
     return new EagerInliner();
 }
 
