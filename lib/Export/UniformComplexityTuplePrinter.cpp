@@ -5,7 +5,7 @@
 // Licensed under the University of Illinois/NCSA Open Source License.
 // See LICENSE for details.
 
-#include "llvm2kittel/Complexity/UniformComplexityTuplePrinter.h"
+#include "llvm2kittel/Export/UniformComplexityTuplePrinter.h"
 #include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
 #include "llvm2kittel/IntTRS/Rule.h"
