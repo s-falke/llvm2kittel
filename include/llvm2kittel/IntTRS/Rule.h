@@ -12,6 +12,7 @@
 #include "Term.h"
 // C++ includes
 #include <set>
+#include <map>
 #include <string>
 
 class Constraint;
@@ -37,6 +38,7 @@ public:
     void addVariablesToSet(std::set<std::string> &res);
 
     ref<Rule> dropArgs(std::set<unsigned int> drop);
+    ref<Rule> instantiate(std::map<std::string, ref<Polynomial> > *subst);
 
     bool equals(ref<Rule> rule);
 
