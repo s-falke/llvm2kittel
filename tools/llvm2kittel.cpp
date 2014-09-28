@@ -19,6 +19,7 @@
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Export/ComplexityTuplePrinter.h"
 #include "llvm2kittel/Export/UniformComplexityTuplePrinter.h"
+#include "llvm2kittel/Export/T2Export.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
 #include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Transform/BasicBlockSorter.h"
@@ -121,6 +122,7 @@ static cl::opt<bool> bitwiseConditions("bitwise-conditions", cl::desc("Add condi
 
 static cl::opt<bool> dumpLL("dump-ll", cl::desc("Dump transformed bitcode into a file"), cl::init(false));
 
+static cl::opt<bool> t2output("t2", cl::desc("Generate T2 format"), cl::init(false), cl::ReallyHidden);
 static cl::opt<bool> complexityTuples("complexity-tuples", cl::desc("Generate complexity tuples"), cl::init(false), cl::ReallyHidden);
 static cl::opt<bool> uniformComplexityTuples("uniform-complexity-tuples", cl::desc("Generate uniform complexity tuples"), cl::init(false), cl::ReallyHidden);
 
@@ -700,6 +702,9 @@ int main(int argc, char *argv[])
             startfun << "eval_" << getSccName(scc) << "_start";
             std::string name = startfun.str();
             printUniformComplexityTuples(allSlicedRules, complexityLHSs, name, std::cout);
+        } else if (t2output) {
+          auto startFun = "eval_" + getSccName(scc) + "_start";
+          printT2System(allSlicedRules, startFun, std::cout);
         } else {
             for (std::list<ref<Rule> >::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
                 ref<Rule> tmp = *i;

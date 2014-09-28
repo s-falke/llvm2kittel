@@ -103,8 +103,10 @@ add_library(llvm2kittelAnalysis STATIC
 )
 
 add_library(llvm2kittelExport STATIC
+  lib/Export/T2Export.cpp
   lib/Export/ComplexityTuplePrinter.cpp
   lib/Export/UniformComplexityTuplePrinter.cpp
+  include/llvm2kittel/Export/T2Export.h
   include/llvm2kittel/Export/ComplexityTuplePrinter.h
   include/llvm2kittel/Export/UniformComplexityTuplePrinter.h
 )
