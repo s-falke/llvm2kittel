@@ -47,6 +47,7 @@ execute_process(
 )
 
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
+set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
 
 execute_process(
