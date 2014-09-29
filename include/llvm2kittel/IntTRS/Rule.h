@@ -9,13 +9,14 @@
 #define RULE_H
 
 #include "llvm2kittel/Util/Ref.h"
-#include "Term.h"
 // C++ includes
 #include <set>
 #include <map>
 #include <string>
 
 class Constraint;
+class Term;
+class Polynomial;
 
 class Rule
 {
