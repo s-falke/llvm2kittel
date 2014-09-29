@@ -703,8 +703,8 @@ int main(int argc, char *argv[])
             std::string name = startfun.str();
             printUniformComplexityTuples(allSlicedRules, complexityLHSs, name, std::cout);
         } else if (t2output) {
-          auto startFun = "eval_" + getSccName(scc) + "_start";
-          printT2System(allSlicedRules, startFun, std::cout);
+            std::string startFun = "eval_" + getSccName(scc) + "_start";
+            printT2System(allSlicedRules, startFun, std::cout);
         } else {
             for (std::list<ref<Rule> >::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
                 ref<Rule> tmp = *i;
