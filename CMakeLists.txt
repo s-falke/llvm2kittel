@@ -1,6 +1,9 @@
 project(llvm2kittel)
 cmake_minimum_required(VERSION 2.8)
 
+# enable the following for T2 export.  Requires a C++11 compiler and LLVM version >= 3.0
+option(ENABLE_T2_EXPORT "Enable T2 export" OFF)
+
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
@@ -47,7 +50,10 @@ execute_process(
 )
 
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
-set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
+if(ENABLE_T2_EXPORT)
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
+  add_definitions("-DWANT_T2_EXPORT")
+endif()
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
 
 execute_process(
@@ -102,13 +108,21 @@ add_library(llvm2kittelAnalysis STATIC
   include/llvm2kittel/Analysis/MemoryAnalyzer.h
 )
 
-add_library(llvm2kittelExport STATIC
-  lib/Export/T2Export.cpp
+set(llvm2kittelExportFiles
   lib/Export/ComplexityTuplePrinter.cpp
   lib/Export/UniformComplexityTuplePrinter.cpp
-  include/llvm2kittel/Export/T2Export.h
   include/llvm2kittel/Export/ComplexityTuplePrinter.h
   include/llvm2kittel/Export/UniformComplexityTuplePrinter.h
+)
+if(ENABLE_T2_EXPORT)
+  set(llvm2kittelExportFiles
+    ${llvm2kittelExportFiles}
+    lib/Export/T2Export.cpp
+    include/llvm2kittel/Export/T2Export.h
+  )
+endif()
+add_library(llvm2kittelExport STATIC
+  ${llvm2kittelExportFiles}
 )
 
 add_library(llvm2kittelCore STATIC
