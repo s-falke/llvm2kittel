@@ -1,7 +1,7 @@
 project(llvm2kittel)
 cmake_minimum_required(VERSION 2.8)
 
-# enable the following for T2 export.  Requires a C++11 compiler and LLVM version >= 3.0
+# enable the following for T2 export.  Requires a C++11 compiler.
 option(ENABLE_T2_EXPORT "Enable T2 export" OFF)
 
 set(CMAKE_MODULE_PATH
@@ -51,7 +51,6 @@ execute_process(
 
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
 if(ENABLE_T2_EXPORT)
-  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
   add_definitions("-DWANT_T2_EXPORT")
 endif()
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
@@ -120,6 +119,7 @@ if(ENABLE_T2_EXPORT)
     lib/Export/T2Export.cpp
     include/llvm2kittel/Export/T2Export.h
   )
+  set_source_files_properties(lib/Export/T2Export.cpp PROPERTIES COMPILE_FLAGS "-std=c++11")
 endif()
 add_library(llvm2kittelExport STATIC
   ${llvm2kittelExportFiles}
