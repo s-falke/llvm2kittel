@@ -47,6 +47,7 @@ execute_process(
 )
 
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
+set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
 
 execute_process(
@@ -101,11 +102,13 @@ add_library(llvm2kittelAnalysis STATIC
   include/llvm2kittel/Analysis/MemoryAnalyzer.h
 )
 
-add_library(llvm2kittelComplexity STATIC
-  lib/Complexity/ComplexityTuplePrinter.cpp
-  lib/Complexity/UniformComplexityTuplePrinter.cpp
-  include/llvm2kittel/Complexity/ComplexityTuplePrinter.h
-  include/llvm2kittel/Complexity/UniformComplexityTuplePrinter.h
+add_library(llvm2kittelExport STATIC
+  lib/Export/T2Export.cpp
+  lib/Export/ComplexityTuplePrinter.cpp
+  lib/Export/UniformComplexityTuplePrinter.cpp
+  include/llvm2kittel/Export/T2Export.h
+  include/llvm2kittel/Export/ComplexityTuplePrinter.h
+  include/llvm2kittel/Export/UniformComplexityTuplePrinter.h
 )
 
 add_library(llvm2kittelCore STATIC
@@ -188,7 +191,7 @@ add_dependencies(
 )
 
 set_target_properties(
-  llvm2kittel llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
+  llvm2kittel llvm2kittelAnalysis llvm2kittelExport llvm2kittelCore
   llvm2kittelIntTRS llvm2kittelTransform llvm2kittelUtil
   PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}" ${WARN_FLAGS}
 )
@@ -196,7 +199,7 @@ set_target_properties(
 target_link_libraries(llvm2kittelAnalysis
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
 )
-target_link_libraries(llvm2kittelComplexity
+target_link_libraries(llvm2kittelExport
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
 )
 target_link_libraries(llvm2kittelCore
@@ -213,6 +216,6 @@ target_link_libraries(llvm2kittelUtil
 )
 
 target_link_libraries(llvm2kittel
-  llvm2kittelAnalysis llvm2kittelComplexity llvm2kittelCore
+  llvm2kittelAnalysis llvm2kittelExport llvm2kittelCore
   llvm2kittelIntTRS llvm2kittelTransform llvm2kittelUtil
 )

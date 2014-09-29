@@ -11,6 +11,7 @@
 
 // C++ includes
 #include <list>
+#include <map>
 #include <sstream>
 
 Rule::Rule(ref<Term> lhs, ref<Term> rhs, ref<Constraint> c)
@@ -75,4 +76,9 @@ ref<Rule> Rule::dropArgs(std::set<unsigned int> drop)
 bool Rule::equals(ref<Rule> rule)
 {
     return (m_lhs->equals(rule->m_lhs) && m_rhs->equals(rule->m_rhs) && m_c->equals(rule->m_c));
+}
+
+ref<Rule> Rule::instantiate(std::map<std::string, ref<Polynomial> > *subst)
+{
+  return create(m_lhs->instantiate(subst), m_rhs->instantiate(subst), m_c->instantiate(subst));
 }

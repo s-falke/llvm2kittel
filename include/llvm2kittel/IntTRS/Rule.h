@@ -9,13 +9,14 @@
 #define RULE_H
 
 #include "llvm2kittel/Util/Ref.h"
-
 // C++ includes
 #include <set>
+#include <map>
 #include <string>
 
 class Constraint;
 class Term;
+class Polynomial;
 
 class Rule
 {
@@ -38,6 +39,7 @@ public:
     void addVariablesToSet(std::set<std::string> &res);
 
     ref<Rule> dropArgs(std::set<unsigned int> drop);
+    ref<Rule> instantiate(std::map<std::string, ref<Polynomial> > *subst);
 
     bool equals(ref<Rule> rule);
 
