@@ -182,7 +182,13 @@ bool Hoister::canHoistInst(llvm::Instruction &I, llvm::AliasAnalysis *AA)
         if (LI->getType()->isSized()) {
             Size = AA->getTypeStoreSize(LI->getType());
         }
+#if LLVM_VERSION <= VERSION(3, 5)
         return !CurAST->getAliasSetForPointer(LI->getOperand(0), Size, LI->getMetadata(llvm::LLVMContext::MD_tbaa)).isMod();
+#else
+        llvm::AAMDNodes AAInfo;
+        LI->getAAMetadata(AAInfo);
+        return !CurAST->getAliasSetForPointer(LI->getOperand(0), Size, AAInfo).isMod();
+#endif
     } else if (llvm::CallInst *CI = llvm::dyn_cast<llvm::CallInst>(&I)) {
         // Handle obvious cases efficiently.
         llvm::AliasAnalysis::ModRefBehavior Behavior = AA->getModRefBehavior(CI);
