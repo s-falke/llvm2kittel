@@ -44,6 +44,10 @@
   #define IS_CLASS std::is_class
 #endif
 
+#if LLVM_VERSION >= VERSION(3, 6)
+  #define END_WITH_NULL LLVM_END_WITH_NULL
+#endif
+
 #include <llvm/Support/type_traits.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/ErrorHandling.h>
