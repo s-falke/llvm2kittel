@@ -396,14 +396,14 @@ int main(int argc, char *argv[])
         module = moduleOrError.get();
     }
 #else
-  llvm::Module *module = NULL;
-  llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
-  std::error_code ec = moduleOrError.getError();
-  if (ec) {
-    errMsg = ec.message();
-  } else {
-    module = moduleOrError.get();
-  }
+    llvm::Module *module = NULL;
+    llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
+    std::error_code ec = moduleOrError.getError();
+    if (ec) {
+        errMsg = ec.message();
+    } else {
+        module = moduleOrError.get();
+    }
 #endif
 
     // check if the file is a proper bitcode file and contains a module
