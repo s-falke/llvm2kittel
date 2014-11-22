@@ -142,7 +142,11 @@ static void GetOptionInfo(SmallVectorImpl<Option*> &PositionalOpts,
     // Handle named options.
     for (size_t i = 0, e = OptionNames.size(); i != e; ++i) {
       // Add argument to the argument map!
+#if LLVM_VERSION <= VERSION(3, 5)
       if (OptionsMap.GetOrCreateValue(OptionNames[i], O).second != O) {
+#else
+      if (!OptionsMap.insert(std::make_pair(OptionNames[i], O)).second) {
+#endif
         errs() << ProgramName << ": CommandLine Error: Argument '"
              << OptionNames[i] << "' defined more than once!\n";
       }
@@ -1220,7 +1224,11 @@ sortOpts(StringMap<Option*> &OptMap,
       continue;
 
     // If we've already seen this option, don't add it to the list again.
+#if LLVM_VERSION <= VERSION(3, 5)
     if (!OptionSet.insert(I->second))
+#else
+    if (!OptionSet.insert(I->second).second)
+#endif
       continue;
 
     Opts.push_back(std::pair<const char *, Option*>(I->getKey().data(),
