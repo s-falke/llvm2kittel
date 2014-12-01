@@ -107,7 +107,7 @@ static void printT2Rule(ref<Rule> rule, std::map<std::string, int> funToLocId, s
       sigma[*i] = Polynomial::create(preVarNameCopy);
     }
   }
-  
+
   //Step (3)
   std::set<std::string> freeVariables;
   rule->addVariablesToSet(freeVariables);
@@ -140,14 +140,14 @@ static void printT2Rule(ref<Rule> rule, std::map<std::string, int> funToLocId, s
       ++postVarNameIt;
     }
   }
-  
+
   stream << "TO: " << funToLocId[rhsFun] << ";" << std::endl;
 }
 
 void printT2System(std::list<ref<Rule> > &rules, std::string &startFun, std::ostream &stream)
 {
   std::pair<std::map<std::string, int>, std::map<std::string, std::list<std::string > > > t = getFunToLocIDAndLhsNames(rules);
-  std::map<std::basic_string<char>, int> funToLocId = t.first;
+  std::map<std::string, int> funToLocId = t.first;
 
   stream << "START: " << funToLocId[startFun] << ";" << std::endl << std::endl;
   for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
