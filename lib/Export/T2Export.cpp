@@ -24,26 +24,26 @@ static std::pair<std::map<std::string, int>, std::map<std::string, std::list<std
   std::map<std::string, int> funToLocId;
   std::map<std::string, std::list<std::string> > funToLhsNames;
   int nextLocId = 1;
-  for (ref<Rule> rule : rules) {
+  for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
     //Get the location IDs:
-    auto lhsFunSym = rule->getLeft()->getFunctionSymbol();
-    if (! funToLocId.count(lhsFunSym)) {
+    std::string lhsFunSym = (*i)->getLeft()->getFunctionSymbol();
+    if (!funToLocId.count(lhsFunSym)) {
       funToLocId[lhsFunSym] = nextLocId++;
     }
 
-    auto rhsFunSym = rule->getRight()->getFunctionSymbol();
-    if (! funToLocId.count(rhsFunSym)) {
+    std::string rhsFunSym = (*i)->getRight()->getFunctionSymbol();
+    if (!funToLocId.count(rhsFunSym)) {
       funToLocId[rhsFunSym] = nextLocId++;
     }
 
     //Now get the default parameter names:
-    auto lhsArgs = rule->getLeft()->getArgs();
+    std::list<ref<Polynomial> > lhsArgs = (*i)->getLeft()->getArgs();
     std::list<std::string> lhsNames;
-    for (auto lhsArg : lhsArgs) {
-      lhsNames.push_back(lhsArg->toString());
+    for (std::list<ref<Polynomial> >::iterator argi = lhsArgs.begin(), arge = lhsArgs.end(); argi != arge; ++argi) {
+      lhsNames.push_back((*argi)->toString());
     }
     if (funToLhsNames.count(lhsFunSym)) {
-      auto otherLhsNames = funToLhsNames[lhsFunSym];
+      std::list<std::string> otherLhsNames = funToLhsNames[lhsFunSym];
       if (lhsNames.size() != otherLhsNames.size()) {
         std::cerr << "Internal error in T2Printer (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(0xD000);
@@ -77,76 +77,80 @@ static void printT2Rule(ref<Rule> rule, std::map<std::string, int> funToLocId, s
    *       ...
    *       ym := sigma(tm)
    */
-  auto lhsFun = rule->getLeft()->getFunctionSymbol();
-  auto rhsFun = rule->getRight()->getFunctionSymbol();
-  auto preVarLhsNames = funToLhsNames[lhsFun];
-  auto postVarLhsNames = funToLhsNames[rhsFun];
+  std::string lhsFun = rule->getLeft()->getFunctionSymbol();
+  std::string rhsFun = rule->getRight()->getFunctionSymbol();
+  std::list<std::string> preVarLhsNames = funToLhsNames[lhsFun];
+  std::list<std::string> postVarLhsNames = funToLhsNames[rhsFun];
 
   stream << "FROM: " << funToLocId[lhsFun] << ";" << std::endl;
 
   std::set<std::string> changedPostVars;
   { //I blame not having boost, and don't want to polute the outside scope
-    auto postVarNameIt = postVarLhsNames.begin();
-    auto rhsArgs = rule->getRight()->getArgs();
-    auto rhsArgIt = rhsArgs.begin();
-    for(;rhsArgIt != rhsArgs.end() && postVarNameIt != postVarLhsNames.end();rhsArgIt++, postVarNameIt++) {
+    std::list<std::string>::iterator postVarNameIt = postVarLhsNames.begin();
+    std::list<ref<Polynomial> > rhsArgs = rule->getRight()->getArgs();
+    std::list<ref<Polynomial> >::iterator rhsArgIt = rhsArgs.begin();
+    while (rhsArgIt != rhsArgs.end() && postVarNameIt != postVarLhsNames.end()) {
       if ((*rhsArgIt)->toString().compare(*postVarNameIt) != 0) {
         changedPostVars.insert(*postVarNameIt);
       }
+      ++rhsArgIt;
+      ++postVarNameIt;
     }
   }
 
   //Step (2)
   std::map<std::string, ref<Polynomial> > sigma;
-  for (auto preVarName : preVarLhsNames) {
-    if (changedPostVars.count(preVarName)) {
-      auto preVarNameCopy = "kittel_old__" + preVarName;
-      stream << "  " << preVarNameCopy << " := " << preVarName << ";" << std::endl;
-      sigma[preVarName] = Polynomial::create(preVarNameCopy);
+  for (std::list<std::string>::iterator i = preVarLhsNames.begin(), e = preVarLhsNames.end(); i != e; ++i) {
+    if (changedPostVars.count(*i)) {
+      std::string preVarNameCopy = "kittel_old__" + *i;
+      stream << "  " << preVarNameCopy << " := " << *i << ";" << std::endl;
+      sigma[*i] = Polynomial::create(preVarNameCopy);
     }
   }
-  
+
   //Step (3)
   std::set<std::string> freeVariables;
   rule->addVariablesToSet(freeVariables);
-  for (auto lhsVar : preVarLhsNames) {
-    freeVariables.erase(lhsVar);
+  for (std::list<std::string>::iterator i = preVarLhsNames.begin(), e = preVarLhsNames.end(); i != e; ++i) {
+    freeVariables.erase(*i);
   }
-  for (auto freeVar : freeVariables) {
-    stream << "  " << freeVar << " := nondet();" << std::endl;
+  for (std::set<std::string>::iterator i = freeVariables.begin(), e = freeVariables.end(); i != e; ++i) {
+    stream << "  " << *i << " := nondet();" << std::endl;
   }
 
   //Step (4)
-  auto renamedRule = rule->instantiate(&sigma);
-  auto constraint = renamedRule->getConstraint();
+  ref<Rule> renamedRule = rule->instantiate(&sigma);
+  ref<Constraint> constraint = renamedRule->getConstraint();
   if (constraint->getCType() != Constraint::CTrue) {
     stream << "  assume(" << constraint->toString() << ");" << std::endl;
   }
 
   //Step (5)
-  auto renamedRhsArgs = renamedRule->getRight()->getArgs();
+  std::list<ref<Polynomial> > renamedRhsArgs = renamedRule->getRight()->getArgs();
   { // Again, I don't have boost
-    auto postVarNameIt = postVarLhsNames.begin();
-    auto rhsArgIt = renamedRhsArgs.begin();
-    for(;rhsArgIt != renamedRhsArgs.end() && postVarNameIt != postVarLhsNames.end(); rhsArgIt++, postVarNameIt++) {
-      auto postVarName = *postVarNameIt;
+    std::list<std::string>::iterator postVarNameIt = postVarLhsNames.begin();
+    std::list<ref<Polynomial> >::iterator rhsArgIt = renamedRhsArgs.begin();
+    while (rhsArgIt != renamedRhsArgs.end() && postVarNameIt != postVarLhsNames.end()) {
+      std::string postVarName = *postVarNameIt;
       if (changedPostVars.count(postVarName)) {
-        auto rhsArg = *rhsArgIt;
+        ref<Polynomial> rhsArg = *rhsArgIt;
         stream << "  " << postVarName << " := " << rhsArg->toString() << ";" << std::endl;
       }
+      ++rhsArgIt;
+      ++postVarNameIt;
     }
   }
-  
+
   stream << "TO: " << funToLocId[rhsFun] << ";" << std::endl;
 }
 
 void printT2System(std::list<ref<Rule> > &rules, std::string &startFun, std::ostream &stream)
 {
-  auto t = getFunToLocIDAndLhsNames(rules);
-  auto funToLocId = t.first;
+  std::pair<std::map<std::string, int>, std::map<std::string, std::list<std::string > > > t = getFunToLocIDAndLhsNames(rules);
+  std::map<std::string, int> funToLocId = t.first;
 
   stream << "START: " << funToLocId[startFun] << ";" << std::endl << std::endl;
-  for (auto rule : rules) {
-    printT2Rule(rule, funToLocId, t.second, stream);
+  for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
+    printT2Rule(*i, funToLocId, t.second, stream);
   }
 }
