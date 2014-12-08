@@ -81,6 +81,35 @@ std::string Monomial::toString()
     return sstr.str();
 }
 
+std::string Monomial::toSMTString()
+{
+    std::ostringstream sstr;
+    for (std::list<std::pair<std::string, unsigned int> >::iterator i = m_powers.begin(), e = m_powers.end(); i != e; ) {
+        std::pair<std::string, unsigned int> &tmp = *i;
+        if (m_powers.size() != 1) {
+            sstr << "(* ";
+        }
+        if (tmp.second == 1) {
+            sstr << tmp.first;
+        } else {
+            for (unsigned int c = 1; c < tmp.second; ++c) {
+                sstr << "(* " << tmp.first << " ";
+            }
+            sstr << tmp.first;
+            for (unsigned int c = 1; c < tmp.second; ++c) {
+                sstr << ")";
+            }
+        }
+        if (++i != e) {
+            sstr << ' ';
+        }
+    }
+    for (unsigned int c = 1; c < m_powers.size(); ++c) {
+        sstr << ")";
+    }
+    return sstr.str();
+}
+
 ref<Monomial> Monomial::mult(ref<Monomial> mono)
 {
     ref<Monomial> res = create("x");
@@ -350,6 +379,7 @@ std::string Polynomial::toString()
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ) {
             std::pair<mpz_class, ref<Monomial> > &tmp = *i;
             if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_one) == 0) {
+                // Do nothing
             } else if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_negone) == 0) {
                 if (isFirst) {
                     sstr << '-';
@@ -385,6 +415,44 @@ std::string Polynomial::toString()
             mpz_clear(abs);
         } else if (mpz_cmp(m_constant, Polynomial::_null) > 0) {
             sstr << " + " << m_constant;
+        }
+    }
+    return sstr.str();
+}
+
+std::string Polynomial::toSMTString()
+{
+    std::ostringstream sstr;
+    if (m_monos.empty()) {
+        sstr << m_constant;
+    } else {
+        for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
+            std::pair<mpz_class, ref<Monomial> > &tmp = *i;
+            sstr << "(+ (* ";
+            if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_null) < 0) {
+                sstr << "(- ";
+                mpz_t abs;
+                mpz_init(abs);
+                mpz_abs(abs, tmp.first.get_mpz_t());
+                sstr << abs << ") ";
+                mpz_clear(abs);
+            } else {
+                sstr << tmp.first.get_mpz_t() << " ";
+            }
+            sstr << tmp.second->toSMTString();
+            sstr << ") ";
+        }
+        if (mpz_cmp(m_constant, Polynomial::_null) < 0) {
+            mpz_t abs;
+            mpz_init(abs);
+            mpz_abs(abs, m_constant);
+            sstr << "(- " << abs << ")";
+            mpz_clear(abs);
+        } else {
+            sstr << m_constant;
+        }
+        for (unsigned int c = 0; c < m_monos.size(); ++c) {
+            sstr << ")";
         }
     }
     return sstr.str();

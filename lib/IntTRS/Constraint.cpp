@@ -70,6 +70,11 @@ std::string True::toCIntString()
     exit(217);
 }
 
+std::string True::toSMTString()
+{
+    return ""; // No need to output (assert true)
+}
+
 ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_true;
@@ -145,6 +150,12 @@ std::string False::toKittelString()
 std::string False::toCIntString()
 {
     std::cerr << "Internal error in creation of CInt string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
+}
+
+std::string False::toSMTString()
+{
+    std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(217);
 }
 
@@ -224,6 +235,11 @@ std::string Nondef::toCIntString()
 {
     std::cerr << "Internal error in creation of CInt string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(217);
+}
+
+std::string Nondef::toSMTString()
+{
+    return ""; // Can always chosen to be true; no need to output (assert true)
 }
 
 ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial> > *)
@@ -347,6 +363,23 @@ std::string Atom::typeToCIntString(AType type)
     }
 }
 
+std::string Atom::typeToSMTString(AType type)
+{
+    if (type == Equ) {
+        return "=";
+    } else if (type == Geq) {
+        return ">=";
+    } else if (type == Gtr) {
+        return ">";
+    } else if (type == Leq) {
+        return "<=";
+    } else if (type == Lss) {
+        return "<";
+    } else {
+        return "D'Oh!";
+    }
+}
+
 std::string Atom::toString()
 {
     std::ostringstream res;
@@ -365,6 +398,13 @@ std::string Atom::toCIntString()
 {
     std::ostringstream res;
     res << m_lhs->toString() << ' ' << typeToCIntString(m_type) << ' ' << m_rhs->toString();
+    return res.str();
+}
+
+std::string Atom::toSMTString()
+{
+    std::ostringstream res;
+    res << "(assert (" << typeToCIntString(m_type) << ' ' << m_lhs->toSMTString() << ' ' << m_rhs->toSMTString() << "))\n";
     return res.str();
 }
 
@@ -529,6 +569,12 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
+std::string Negation::toSMTString()
+{
+    std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
+}
+
 ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_c->instantiate(bindings));
@@ -660,6 +706,17 @@ std::string Operator::toCIntString()
     }
     std::ostringstream res;
     res << m_lhs->toCIntString() << " && " << m_rhs->toCIntString();
+    return res.str();
+}
+
+std::string Operator::toSMTString()
+{
+    if (m_type == Or) {
+        std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+        exit(217);
+    }
+    std::ostringstream res;
+    res << m_lhs->toSMTString() << m_rhs->toSMTString();
     return res.str();
 }
 

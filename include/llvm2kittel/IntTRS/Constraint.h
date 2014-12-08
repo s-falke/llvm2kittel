@@ -44,6 +44,7 @@ public:
     virtual std::string toString() = 0;
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
+    virtual std::string toSMTString() = 0; // only if no False, Negation, Or
 
     virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
@@ -85,6 +86,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -116,6 +118,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -147,6 +150,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -193,6 +197,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -222,6 +227,7 @@ private:
     std::string typeToString(AType type);
     std::string typeToKittelString(AType type);
     std::string typeToCIntString(AType type);
+    std::string typeToSMTString(AType type);
 
 private:
     Atom(const Atom &);
@@ -244,6 +250,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -289,6 +296,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString();
 
     OType getOType();
 

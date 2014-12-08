@@ -40,6 +40,7 @@ public:
     bool isUnivariateLinear();
 
     std::string toString();
+    std::string toSMTString();
 
     ref<Monomial> mult(ref<Monomial> mono);
 
@@ -83,6 +84,7 @@ public:
     bool isLinear();
 
     std::string toString();
+    std::string toSMTString();
 
     ref<Polynomial> add(ref<Polynomial> poly);
     ref<Polynomial> sub(ref<Polynomial> poly);
