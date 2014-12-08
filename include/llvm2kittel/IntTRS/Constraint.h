@@ -17,6 +17,7 @@
 #include <string>
 
 class Polynomial;
+class EliminateClass;
 
 class Constraint
 {
@@ -49,7 +50,7 @@ public:
     virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
     virtual ref<Constraint> toNNF(bool negate) = 0;
-    virtual ref<Constraint> toDNF() = 0; // formula needs to be in NNF!
+    virtual ref<Constraint> toDNF(EliminateClass *elim) = 0; // formula needs to be in NNF!
     virtual void addDualClausesToList(std::list<ref<Constraint> > &res) = 0; // formula needs to be in DNF!
 
     virtual void addAtomicsToList(std::list<ref<Constraint> > &res) = 0;
@@ -91,7 +92,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -123,7 +124,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -155,7 +156,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -202,7 +203,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -255,7 +256,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -305,7 +306,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);

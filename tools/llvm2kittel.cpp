@@ -6,6 +6,7 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/BoundConstrainer.h"
+#include "llvm2kittel/ConstraintEliminator.h"
 #include "llvm2kittel/ConstraintSimplifier.h"
 #include "llvm2kittel/Converter.h"
 #include "llvm2kittel/DivRemConstraintType.h"
@@ -118,6 +119,15 @@ static cl::opt<DivRemConstraintType> divisionConstraintType("division-constraint
                                                                        clEnumValN(None, "none", "do not model the semantics"),
                                                                        clEnumValEnd)
                                                            );
+static cl::opt<SMTSolver> smtSolver("smt-solver",
+                                    cl::desc("Use SMT solver to eliminate rules unsatisfiable with contraints"),
+                                    cl::init(NoSolver),
+                                    cl::values(
+                                               clEnumValN(CVC4Solver, "cvc4", "use CVC4"),
+                                               clEnumValN(Z3Solver, "z3", "use Z3"),
+                                               clEnumValN(NoSolver, "none", "do not eliminate unsatisfiable contraints"),
+                                               clEnumValEnd)
+                                    );
 static cl::opt<bool> bitwiseConditions("bitwise-conditions", cl::desc("Add conditions for bitwise & and |"), cl::init(false));
 
 static cl::opt<bool> dumpLL("dump-ll", cl::desc("Dump transformed bitcode into a file"), cl::init(false));
@@ -647,7 +657,7 @@ int main(int argc, char *argv[])
             converter.phase2(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
             std::list<ref<Rule> > rules = converter.getRules();
             std::list<ref<Rule> > condensedRules = converter.getCondensedRules();
-            std::list<ref<Rule> > kittelizedRules = kittelize(condensedRules);
+            std::list<ref<Rule> > kittelizedRules = kittelize(condensedRules, smtSolver);
             Slicer slicer(curr, converter.getPhiVariables());
             std::list<ref<Rule> > slicedRules;
             if (noSlicing) {
@@ -660,7 +670,7 @@ int main(int argc, char *argv[])
                 slicedRules = slicer.sliceDuplicates(slicedRules);
             }
             if (boundedIntegers) {
-                slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding));
+                slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding), smtSolver);
             }
             if (debug) {
                 allRules.insert(allRules.end(), rules.begin(), rules.end());
