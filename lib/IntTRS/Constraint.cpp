@@ -255,7 +255,7 @@ ref<Constraint> Nondef::toNNF(bool)
 
 ref<Constraint> Nondef::toDNF(EliminateClass *)
 {
-    return _true;
+    return this;
 }
 
 void Nondef::addDualClausesToList(std::list<ref<Constraint> > &res)
