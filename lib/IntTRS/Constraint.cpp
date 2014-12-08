@@ -70,7 +70,7 @@ std::string True::toCIntString()
     exit(217);
 }
 
-std::string True::toSMTString()
+std::string True::toSMTString(bool)
 {
     return ""; // No need to output (assert true)
 }
@@ -153,7 +153,7 @@ std::string False::toCIntString()
     exit(217);
 }
 
-std::string False::toSMTString()
+std::string False::toSMTString(bool)
 {
     std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(217);
@@ -237,7 +237,7 @@ std::string Nondef::toCIntString()
     exit(217);
 }
 
-std::string Nondef::toSMTString()
+std::string Nondef::toSMTString(bool)
 {
     return ""; // Can always chosen to be true; no need to output (assert true)
 }
@@ -401,11 +401,15 @@ std::string Atom::toCIntString()
     return res.str();
 }
 
-std::string Atom::toSMTString()
+std::string Atom::toSMTString(bool onlyLinearPart)
 {
-    std::ostringstream res;
-    res << "(assert (" << typeToCIntString(m_type) << ' ' << m_lhs->toSMTString() << ' ' << m_rhs->toSMTString() << "))\n";
-    return res.str();
+    if (!onlyLinearPart || (m_lhs->isLinear() && m_rhs->isLinear())) {
+        std::ostringstream res;
+        res << "(assert (" << typeToCIntString(m_type) << ' ' << m_lhs->toSMTString() << ' ' << m_rhs->toSMTString() << "))\n";
+        return res.str();
+    } else {
+        return "";
+    }
 }
 
 ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
@@ -569,7 +573,7 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
-std::string Negation::toSMTString()
+std::string Negation::toSMTString(bool)
 {
     std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(217);
@@ -709,14 +713,14 @@ std::string Operator::toCIntString()
     return res.str();
 }
 
-std::string Operator::toSMTString()
+std::string Operator::toSMTString(bool onlyLinearPart)
 {
     if (m_type == Or) {
         std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(217);
     }
     std::ostringstream res;
-    res << m_lhs->toSMTString() << m_rhs->toSMTString();
+    res << m_lhs->toSMTString(onlyLinearPart) << m_rhs->toSMTString(onlyLinearPart);
     return res.str();
 }
 

@@ -44,7 +44,7 @@ public:
     virtual std::string toString() = 0;
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
-    virtual std::string toSMTString() = 0; // only if no False, Negation, Or
+    virtual std::string toSMTString(bool onlyLinearPart) = 0; // only if no False, Negation, Or
 
     virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
@@ -86,7 +86,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -118,7 +118,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -150,7 +150,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -197,7 +197,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -250,7 +250,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -296,7 +296,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
-    std::string toSMTString();
+    std::string toSMTString(bool onlyLinearPart);
 
     OType getOType();
 
