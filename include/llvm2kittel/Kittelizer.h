@@ -8,6 +8,7 @@
 #ifndef KITTELIZER_H
 #define KITTELIZER_H
 
+#include "llvm2kittel/ConstraintEliminator.h"
 #include "llvm2kittel/Util/Ref.h"
 
 // C++ includes
@@ -15,6 +16,6 @@
 
 class Rule;
 
-std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules);
+std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules, SMTSolver solver);
 
 #endif // KITTELIZER_H

@@ -51,14 +51,15 @@ ref<Constraint> simplify(ref<Constraint> c)
     }
 }
 
-std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules)
+std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules, SMTSolver solver)
 {
     std::list<ref<Rule> > res;
+    EliminateClass *elim = eliminateClassFactory(solver);
     for (std::list<ref<Rule> >::iterator i = rules.begin(), e = rules.end(); i != e; ++i) {
         ref<Rule> rule = *i;
         ref<Term> lhs = rule->getLeft();
         ref<Term> rhs = rule->getRight();
-        ref<Constraint> con = rule->getConstraint()->evaluateTrivialAtoms()->eliminateNeq()->toDNF();
+        ref<Constraint> con = rule->getConstraint()->evaluateTrivialAtoms()->eliminateNeq()->toDNF(elim);
         std::list<ref<Constraint> > dcs;
         con->addDualClausesToList(dcs);
         for (std::list<ref<Constraint> >::iterator ci = dcs.begin(), ce = dcs.end(); ci != ce; ++ci) {
@@ -75,5 +76,6 @@ std::list<ref<Rule> > kittelize(std::list<ref<Rule> > rules)
             }
         }
     }
+    delete elim;
     return res;
 }

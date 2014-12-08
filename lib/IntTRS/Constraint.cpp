@@ -7,6 +7,7 @@
 
 #include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
+#include "llvm2kittel/ConstraintEliminator.h"
 
 // C++ includes
 #include <sstream>
@@ -89,7 +90,7 @@ ref<Constraint> True::toNNF(bool negate)
     }
 }
 
-ref<Constraint> True::toDNF()
+ref<Constraint> True::toDNF(EliminateClass*)
 {
     return Constraint::_true;
 }
@@ -173,7 +174,7 @@ ref<Constraint> False::toNNF(bool negate)
     }
 }
 
-ref<Constraint> False::toDNF()
+ref<Constraint> False::toDNF(EliminateClass*)
 {
     return Constraint::_false;
 }
@@ -252,7 +253,7 @@ ref<Constraint> Nondef::toNNF(bool)
     return this;
 }
 
-ref<Constraint> Nondef::toDNF()
+ref<Constraint> Nondef::toDNF(EliminateClass*)
 {
     return this;
 }
@@ -438,7 +439,7 @@ ref<Constraint> Atom::toNNF(bool negate)
     return create(m_lhs, m_rhs, newType);
 }
 
-ref<Constraint> Atom::toDNF()
+ref<Constraint> Atom::toDNF(EliminateClass*)
 {
     return this;
 }
@@ -589,7 +590,7 @@ ref<Constraint> Negation::toNNF(bool negate)
     return m_c->toNNF(!negate);
 }
 
-ref<Constraint> Negation::toDNF()
+ref<Constraint> Negation::toDNF(EliminateClass*)
 {
     std::cerr << "Internal error in Negation::toDNF (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(77);
@@ -745,13 +746,13 @@ ref<Constraint> Operator::toNNF(bool negate)
     return create(m_lhs->toNNF(negate), m_rhs->toNNF(negate), newType);
 }
 
-ref<Constraint> Operator::toDNF()
+ref<Constraint> Operator::toDNF(EliminateClass *elim)
 {
     if (m_type == Or) {
-        return create(m_lhs->toDNF(), m_rhs->toDNF(), Or);
+        return create(m_lhs->toDNF(elim), m_rhs->toDNF(elim), Or);
     } else if (m_type == And) {
-        ref<Constraint> lhsdnf = m_lhs->toDNF();
-        ref<Constraint> rhsdnf = m_rhs->toDNF();
+        ref<Constraint> lhsdnf = m_lhs->toDNF(elim);
+        ref<Constraint> rhsdnf = m_rhs->toDNF(elim);
         std::list<ref<Constraint> > lhsdcs;
         lhsdnf->addDualClausesToList(lhsdcs);
         std::list<ref<Constraint> > rhsdcs;
@@ -761,7 +762,12 @@ ref<Constraint> Operator::toDNF()
             ref<Constraint> outerdc = *outeri;
             for (std::list<ref<Constraint> >::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
                 ref<Constraint> innerdc = *inneri;
-                combined.push_back(create(outerdc, innerdc, And));
+                ref<Constraint> c = create(outerdc, innerdc, And);
+                if (c->getCType() == Constraint::CFalse || !elim->shouldEliminate(c)) {
+                    combined.push_back(c);
+                } else {
+                    combined.push_back(_false);
+                }
             }
         }
         ref<Constraint> res = *combined.rbegin();
