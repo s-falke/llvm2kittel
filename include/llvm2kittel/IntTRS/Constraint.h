@@ -17,6 +17,7 @@
 #include <string>
 
 class Polynomial;
+class EliminateClass;
 
 class Constraint
 {
@@ -44,11 +45,12 @@ public:
     virtual std::string toString() = 0;
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
+    virtual std::string toSMTString(bool onlyLinearPart) = 0; // only if no False, Negation, Or
 
     virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
     virtual ref<Constraint> toNNF(bool negate) = 0;
-    virtual ref<Constraint> toDNF() = 0; // formula needs to be in NNF!
+    virtual ref<Constraint> toDNF(EliminateClass *elim) = 0; // formula needs to be in NNF!
     virtual void addDualClausesToList(std::list<ref<Constraint> > &res) = 0; // formula needs to be in DNF!
 
     virtual void addAtomicsToList(std::list<ref<Constraint> > &res) = 0;
@@ -85,11 +87,12 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -116,11 +119,12 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -147,11 +151,12 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -193,11 +198,12 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -222,6 +228,7 @@ private:
     std::string typeToString(AType type);
     std::string typeToKittelString(AType type);
     std::string typeToCIntString(AType type);
+    std::string typeToSMTString(AType type);
 
 private:
     Atom(const Atom &);
@@ -244,11 +251,12 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);
@@ -289,6 +297,7 @@ public:
     std::string toString();
     std::string toKittelString();
     std::string toCIntString();
+    std::string toSMTString(bool onlyLinearPart);
 
     OType getOType();
 
@@ -297,7 +306,7 @@ public:
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
-    ref<Constraint> toDNF();
+    ref<Constraint> toDNF(EliminateClass *elim);
     void addDualClausesToList(std::list<ref<Constraint> > &res);
 
     void addAtomicsToList(std::list<ref<Constraint> > &res);

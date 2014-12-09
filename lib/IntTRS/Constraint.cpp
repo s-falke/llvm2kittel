@@ -7,6 +7,7 @@
 
 #include "llvm2kittel/IntTRS/Constraint.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
+#include "llvm2kittel/ConstraintEliminator.h"
 
 // C++ includes
 #include <sstream>
@@ -70,6 +71,11 @@ std::string True::toCIntString()
     exit(217);
 }
 
+std::string True::toSMTString(bool)
+{
+    return ""; // No need to output (assert true)
+}
+
 ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_true;
@@ -84,7 +90,7 @@ ref<Constraint> True::toNNF(bool negate)
     }
 }
 
-ref<Constraint> True::toDNF()
+ref<Constraint> True::toDNF(EliminateClass*)
 {
     return Constraint::_true;
 }
@@ -148,6 +154,12 @@ std::string False::toCIntString()
     exit(217);
 }
 
+std::string False::toSMTString(bool)
+{
+    std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
+}
+
 ref<Constraint> False::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_false;
@@ -162,7 +174,7 @@ ref<Constraint> False::toNNF(bool negate)
     }
 }
 
-ref<Constraint> False::toDNF()
+ref<Constraint> False::toDNF(EliminateClass*)
 {
     return Constraint::_false;
 }
@@ -226,6 +238,11 @@ std::string Nondef::toCIntString()
     exit(217);
 }
 
+std::string Nondef::toSMTString(bool)
+{
+    return ""; // Can always chosen to be true; no need to output (assert true)
+}
+
 ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return new Nondef();
@@ -236,7 +253,7 @@ ref<Constraint> Nondef::toNNF(bool)
     return this;
 }
 
-ref<Constraint> Nondef::toDNF()
+ref<Constraint> Nondef::toDNF(EliminateClass*)
 {
     return this;
 }
@@ -347,6 +364,23 @@ std::string Atom::typeToCIntString(AType type)
     }
 }
 
+std::string Atom::typeToSMTString(AType type)
+{
+    if (type == Equ) {
+        return "=";
+    } else if (type == Geq) {
+        return ">=";
+    } else if (type == Gtr) {
+        return ">";
+    } else if (type == Leq) {
+        return "<=";
+    } else if (type == Lss) {
+        return "<";
+    } else {
+        return "D'Oh!";
+    }
+}
+
 std::string Atom::toString()
 {
     std::ostringstream res;
@@ -366,6 +400,17 @@ std::string Atom::toCIntString()
     std::ostringstream res;
     res << m_lhs->toString() << ' ' << typeToCIntString(m_type) << ' ' << m_rhs->toString();
     return res.str();
+}
+
+std::string Atom::toSMTString(bool onlyLinearPart)
+{
+    if (!onlyLinearPart || (m_lhs->isLinear() && m_rhs->isLinear())) {
+        std::ostringstream res;
+        res << "(assert (" << typeToCIntString(m_type) << ' ' << m_lhs->toSMTString() << ' ' << m_rhs->toSMTString() << "))\n";
+        return res.str();
+    } else {
+        return "";
+    }
 }
 
 ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
@@ -394,7 +439,7 @@ ref<Constraint> Atom::toNNF(bool negate)
     return create(m_lhs, m_rhs, newType);
 }
 
-ref<Constraint> Atom::toDNF()
+ref<Constraint> Atom::toDNF(EliminateClass*)
 {
     return this;
 }
@@ -529,6 +574,12 @@ std::string Negation::toCIntString()
     exit(217);
 }
 
+std::string Negation::toSMTString(bool)
+{
+    std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
+}
+
 ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_c->instantiate(bindings));
@@ -539,7 +590,7 @@ ref<Constraint> Negation::toNNF(bool negate)
     return m_c->toNNF(!negate);
 }
 
-ref<Constraint> Negation::toDNF()
+ref<Constraint> Negation::toDNF(EliminateClass*)
 {
     std::cerr << "Internal error in Negation::toDNF (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
     exit(77);
@@ -663,6 +714,17 @@ std::string Operator::toCIntString()
     return res.str();
 }
 
+std::string Operator::toSMTString(bool onlyLinearPart)
+{
+    if (m_type == Or) {
+        std::cerr << "Internal error in creation of SMT string (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+        exit(217);
+    }
+    std::ostringstream res;
+    res << m_lhs->toSMTString(onlyLinearPart) << m_rhs->toSMTString(onlyLinearPart);
+    return res.str();
+}
+
 ref<Constraint> Operator::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_lhs->instantiate(bindings), m_rhs->instantiate(bindings), m_type);
@@ -684,13 +746,13 @@ ref<Constraint> Operator::toNNF(bool negate)
     return create(m_lhs->toNNF(negate), m_rhs->toNNF(negate), newType);
 }
 
-ref<Constraint> Operator::toDNF()
+ref<Constraint> Operator::toDNF(EliminateClass *elim)
 {
     if (m_type == Or) {
-        return create(m_lhs->toDNF(), m_rhs->toDNF(), Or);
+        return create(m_lhs->toDNF(elim), m_rhs->toDNF(elim), Or);
     } else if (m_type == And) {
-        ref<Constraint> lhsdnf = m_lhs->toDNF();
-        ref<Constraint> rhsdnf = m_rhs->toDNF();
+        ref<Constraint> lhsdnf = m_lhs->toDNF(elim);
+        ref<Constraint> rhsdnf = m_rhs->toDNF(elim);
         std::list<ref<Constraint> > lhsdcs;
         lhsdnf->addDualClausesToList(lhsdcs);
         std::list<ref<Constraint> > rhsdcs;
@@ -700,7 +762,12 @@ ref<Constraint> Operator::toDNF()
             ref<Constraint> outerdc = *outeri;
             for (std::list<ref<Constraint> >::iterator inneri = rhsdcs.begin(), innere = rhsdcs.end(); inneri != innere; ++inneri) {
                 ref<Constraint> innerdc = *inneri;
-                combined.push_back(create(outerdc, innerdc, And));
+                ref<Constraint> c = create(outerdc, innerdc, And);
+                if (c->getCType() == Constraint::CFalse || !elim->shouldEliminate(c)) {
+                    combined.push_back(c);
+                } else {
+                    combined.push_back(_false);
+                }
             }
         }
         ref<Constraint> res = *combined.rbegin();

@@ -117,10 +117,12 @@ add_library(llvm2kittelExport STATIC
 add_library(llvm2kittelCore STATIC
   lib/Core/BoundConstrainer.cpp
   lib/Core/Converter.cpp
+  lib/Core/ConstraintEliminator.cpp
   lib/Core/Kittelizer.cpp
   lib/Core/Slicer.cpp
   lib/Core/ConstraintSimplifier.cpp
   include/llvm2kittel/BoundConstrainer.h
+  include/llvm2kittel/ConstraintEliminator.h
   include/llvm2kittel/ConstraintSimplifier.h
   include/llvm2kittel/Converter.h
   include/llvm2kittel/DivConstraintStore.h
