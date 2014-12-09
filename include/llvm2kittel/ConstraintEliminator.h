@@ -25,7 +25,6 @@ enum SMTSolver
 class EliminateClass
 {
 protected:
-    unsigned count;
     EliminateClass();
 
 public:

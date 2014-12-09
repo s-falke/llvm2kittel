@@ -62,15 +62,13 @@ public:
     }
 };
 
-EliminateClass::EliminateClass() : count(0)
+EliminateClass::EliminateClass()
 {}
 
 EliminateClass::~EliminateClass()
 {}
 
 bool EliminateClass::shouldEliminateInternal(ref<Constraint> c) {
-    std::cerr << count << std::endl;
-    count++;
     /* Build SMT query */
     std::ostringstream sstr;
     sstr << "(set-logic QF_LIA)";
