@@ -105,7 +105,7 @@ bool EliminateClass::shouldEliminateInternal(ref<Constraint> c)
 {
     // Build SMT query
     std::ostringstream sstr;
-    sstr << "(set-logic QF_LIA)";
+    sstr << "(set-logic QF_LIA)\n";
     std::set<std::string> vars;
     c->addVariablesToSet(vars);
     for (std::set<std::string>::iterator vi = vars.begin(), ve = vars.end(); vi != ve; ++vi) {
