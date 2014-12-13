@@ -171,7 +171,7 @@ bool EliminateClass::shouldEliminateInternal(ref<Constraint> c)
     }
 
     unlink(file_in.first.c_str());
-    std::ifstream result(file_out.first);
+    std::ifstream result(file_out.first.c_str());
 
     if (!result.is_open()) {
         unlink(file_out.first.c_str());
