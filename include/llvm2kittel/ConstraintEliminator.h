@@ -10,6 +10,9 @@
 
 #include "llvm2kittel/Util/Ref.h"
 
+#include <string>
+#include <utility>
+
 class Constraint;
 
 enum SMTSolver
