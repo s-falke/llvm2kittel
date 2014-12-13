@@ -129,6 +129,8 @@ private:
     Polynomial(const Polynomial &);
     Polynomial &operator=(const Polynomial &);
 
+    std::string constantToSMTString(mpz_class &constant);
+
 };
 
 #endif // POLYNOMIAL_H
