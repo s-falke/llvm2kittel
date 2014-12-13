@@ -15,6 +15,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 class CVC4Eliminate : public EliminateClass
 {
@@ -24,7 +25,7 @@ public:
         return shouldEliminateInternal(c);
     }
 
-    virtual bool callSolver(char filename_in[], char filename_out[])
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out)
     {
         std::ostringstream sstr;
         sstr << "cvc4 --lang=smt2 < " << filename_in << "> " << filename_out;
@@ -40,7 +41,7 @@ public:
         return shouldEliminateInternal(c);
     }
 
-    virtual bool callSolver(char filename_in[], char filename_out[])
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out)
     {
         std::ostringstream sstr;
         sstr << "mathsat < " << filename_in << "> " << filename_out;
@@ -56,7 +57,7 @@ public:
         return shouldEliminateInternal(c);
     }
 
-    virtual bool callSolver(char filename_in[], char filename_out[])
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out)
     {
         std::ostringstream sstr;
         sstr << "yices-smt2 < " << filename_in << "> " << filename_out;
@@ -72,7 +73,7 @@ public:
         return shouldEliminateInternal(c);
     }
 
-    virtual bool callSolver(char filename_in[], char filename_out[])
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out)
     {
         std::ostringstream sstr;
         sstr << "z3 -smt2 -in < " << filename_in << "> " << filename_out;
@@ -88,7 +89,7 @@ public:
         return false;
     }
 
-    virtual bool callSolver(char filename_in[], char filename_out[])
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out)
     {
         std::cerr << "Internal error in NoEliminate class (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
@@ -100,6 +101,29 @@ EliminateClass::EliminateClass()
 
 EliminateClass::~EliminateClass()
 {}
+
+std::pair<std::string, int> EliminateClass::makeTempFile(const char templ[])
+{
+    std::ostringstream sstr;
+    char *tmpdir = getenv("TMPDIR");
+    if (tmpdir != NULL) {
+        sstr << tmpdir;
+        if (tmpdir[strlen(tmpdir) - 1] != '/') {
+            sstr << '/';
+        }
+    } else {
+        sstr << "/tmp/";
+    }
+    sstr << templ;
+    std::string filename_string = sstr.str();
+
+    char *filename = new char[filename_string.size() + 1];
+    strcpy(filename, filename_string.c_str());
+    int fd = mkstemp(filename);
+    filename_string = filename;
+    delete filename;
+    return std::make_pair(filename_string, fd);
+}
 
 bool EliminateClass::shouldEliminateInternal(ref<Constraint> c)
 {
@@ -116,58 +140,48 @@ bool EliminateClass::shouldEliminateInternal(ref<Constraint> c)
 
 
     // Save SMT query
-    char filename_in[] = "/tmp/llvm2kittel.in.XXXXXX";
-    int fd_in = mkstemp(filename_in);
-
-    if (fd_in == -1) {
+    std::pair<std::string, int> file_in = makeTempFile("llvm2kittel.in.XXXXXX");
+    if (file_in.second == -1) {
         std::cerr << "Could not create temporary file (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
     }
 
-    ssize_t written = write(fd_in, sstr.str().c_str(), sstr.str().size());
-    close(fd_in);
+    ssize_t written = write(file_in.second, sstr.str().c_str(), sstr.str().size());
+    close(file_in.second);
     if (written != (ssize_t)sstr.str().size()) {
-        unlink(filename_in);
+        unlink(file_in.first.c_str());
         std::cerr << "Could not write temporary file (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
     }
 
     // Create output file
-    char filename_out[] = "/tmp/llvm2kittel.out.XXXXXX";
-    int fd_out = mkstemp(filename_out);
-    if (fd_out == -1) {
-        unlink(filename_in);
+    std::pair<std::string, int> file_out = makeTempFile("llvm2kittel.out.XXXXXX");
+    if (file_out.second == -1) {
+        unlink(file_in.first.c_str());
         std::cerr << "Could not create temporary file (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
     }
-    close(fd_out);
+    close(file_out.second);
 
-    if (!callSolver(filename_in, filename_out)) {
-        unlink(filename_in);
-        unlink(filename_out);
+    if (!callSolver(file_in.first, file_out.first)) {
+        unlink(file_in.first.c_str());
+        unlink(file_out.first.c_str());
         std::cerr << "Call to external solver failed (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
     }
 
-    unlink(filename_in);
-    std::ifstream result(filename_out);
+    unlink(file_in.first.c_str());
+    std::ifstream result(file_out.first);
 
     if (!result.is_open()) {
-        unlink(filename_out);
+        unlink(file_out.first.c_str());
         std::cerr << "Could not get solver result (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
         exit(277);
     }
 
     std::string line;
-    if (!std::getline(result, line)) {
-        result.close();
-        unlink(filename_out);
-        std::cerr << "Could not get solver result (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
-        exit(277);
-    }
-
     result.close();
-    unlink(filename_out);
+    unlink(file_out.first.c_str());
 
     if (line == "unsat") {
         return true;
