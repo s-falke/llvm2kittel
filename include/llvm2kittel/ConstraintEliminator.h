@@ -33,8 +33,10 @@ public:
     friend EliminateClass *eliminateClassFactory(SMTSolver solver);
 
 protected:
+    std::pair<std::string, int> makeTempFile(const char templ[]);
+    char *makeTempTemplate(const char str[]);
     bool shouldEliminateInternal(ref<Constraint> c);
-    virtual bool callSolver(char filename_in[], char filename_out[]) = 0;
+    virtual bool callSolver(const std::string &filename_in, const std::string &filename_out) = 0;
 };
 
 EliminateClass *eliminateClassFactory(SMTSolver solver);
