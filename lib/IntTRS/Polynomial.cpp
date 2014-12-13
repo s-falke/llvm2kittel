@@ -420,45 +420,34 @@ std::string Polynomial::toString()
     return sstr.str();
 }
 
+std::string Polynomial::constantToSMTString(mpz_class &constant)
+{
+    std::ostringstream sstr;
+    if (mpz_cmp(constant.get_mpz_t(), Polynomial::_null) < 0) {
+        mpz_t abs;
+        mpz_init(abs);
+        mpz_abs(abs, constant.get_mpz_t());
+        sstr << "(- " << abs << ")";
+        mpz_clear(abs);
+    } else {
+        sstr << constant;
+    }
+    return sstr.str();
+}
+
 std::string Polynomial::toSMTString()
 {
     std::ostringstream sstr;
     if (m_monos.empty()) {
-        if (mpz_cmp(m_constant, Polynomial::_null) < 0) {
-            mpz_t abs;
-            mpz_init(abs);
-            mpz_abs(abs, m_constant);
-            sstr << "(- " << abs << ")";
-            mpz_clear(abs);
-        } else {
-            sstr << m_constant;
-        }
+        mpz_class constant = mpz_class(m_constant);
+        return constantToSMTString(constant);
     } else {
         for (std::list<std::pair<mpz_class, ref<Monomial> > >::iterator i = m_monos.begin(), e = m_monos.end(); i != e; ++i) {
             std::pair<mpz_class, ref<Monomial> > &tmp = *i;
-            sstr << "(+ (* ";
-            if (mpz_cmp(tmp.first.get_mpz_t(), Polynomial::_null) < 0) {
-                sstr << "(- ";
-                mpz_t abs;
-                mpz_init(abs);
-                mpz_abs(abs, tmp.first.get_mpz_t());
-                sstr << abs << ") ";
-                mpz_clear(abs);
-            } else {
-                sstr << tmp.first.get_mpz_t() << " ";
-            }
-            sstr << tmp.second->toSMTString();
-            sstr << ") ";
+            sstr << "(+ (* " << constantToSMTString(tmp.first) << " " << tmp.second->toSMTString() << ") ";
         }
-        if (mpz_cmp(m_constant, Polynomial::_null) < 0) {
-            mpz_t abs;
-            mpz_init(abs);
-            mpz_abs(abs, m_constant);
-            sstr << "(- " << abs << ")";
-            mpz_clear(abs);
-        } else {
-            sstr << m_constant;
-        }
+        mpz_class constant = mpz_class(m_constant);
+        sstr << constantToSMTString(constant);
         for (unsigned int c = 0; c < m_monos.size(); ++c) {
             sstr << ")";
         }
