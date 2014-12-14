@@ -180,6 +180,7 @@ bool EliminateClass::shouldEliminateInternal(ref<Constraint> c)
     }
 
     std::string line;
+    std::getline(result, line);
     result.close();
     unlink(file_out.first.c_str());
 
