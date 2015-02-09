@@ -43,7 +43,11 @@ void Hoister::getAnalysisUsage(llvm::AnalysisUsage &AU) const
 #else
     AU.addRequired<llvm::DominatorTreeWrapperPass>();
 #endif
+#if LLVM_VERSION < VERSION(3, 7)
     AU.addRequired<llvm::LoopInfo>();
+#else
+    AU.addRequired<llvm::LoopInfoWrapperPass>();
+#endif
 }
 
 bool Hoister::doFinalization()
@@ -67,7 +71,11 @@ bool Hoister::runOnLoop(llvm::Loop *L, llvm::LPPassManager &)
 #else
     llvm::DominatorTree *DT = &getAnalysis<llvm::DominatorTreeWrapperPass>().getDomTree();
 #endif
+#if LLVM_VERSION < VERSION(3, 7)
     llvm::LoopInfo *LI = &getAnalysis<llvm::LoopInfo>();
+#else
+    llvm::LoopInfo *LI = &getAnalysis<llvm::LoopInfoWrapperPass>().getLoopInfo();
+#endif
 
     CurAST = new llvm::AliasSetTracker(*AA);
     // Collect Alias info from subloops
@@ -301,6 +309,10 @@ llvm::LoopPass *createHoisterPass()
 #else
     llvm::initializeDominatorTreeWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
 #endif
+#if LLVM_VERSION < VERSION(3, 7)
     llvm::initializeLoopInfoPass(*llvm::PassRegistry::getPassRegistry());
+#else
+    llvm::initializeLoopInfoWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
+#endif
     return new Hoister();
 }
