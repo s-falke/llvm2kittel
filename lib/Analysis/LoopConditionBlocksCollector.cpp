@@ -20,7 +20,11 @@ LoopConditionBlocksCollector::~LoopConditionBlocksCollector()
 
 void LoopConditionBlocksCollector::getAnalysisUsage(llvm::AnalysisUsage &AU) const
 {
+#if LLVM_VERSION < VERSION(3, 7)
     AU.addRequired<llvm::LoopInfo>();
+#else
+    AU.addRequired<llvm::LoopInfoWrapperPass>();
+#endif
 }
 
 bool LoopConditionBlocksCollector::runOnLoop(llvm::Loop *L, llvm::LPPassManager&)
