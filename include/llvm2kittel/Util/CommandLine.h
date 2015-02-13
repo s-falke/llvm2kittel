@@ -467,7 +467,7 @@ private:
 //
 #define clEnumVal(ENUMVAL, DESC) #ENUMVAL, int(ENUMVAL), DESC
 #define clEnumValN(ENUMVAL, FLAGNAME, DESC) FLAGNAME, int(ENUMVAL), DESC
-#define clEnumValEnd (reinterpret_cast<void*>(0))
+#define clEnumValEnd (reinterpret_cast<void *>(0))
 
 // values - For custom data types, allow specifying a group of values together
 // as the values that go into the mapping that the option handler uses.  Note
