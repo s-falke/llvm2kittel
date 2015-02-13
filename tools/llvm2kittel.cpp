@@ -124,7 +124,7 @@ static cl::opt<SMTSolver> smtSolver("smt-solver",
                                     cl::init(NoSolver),
                                     cl::values(
                                                clEnumValN(CVC4Solver, "cvc4", "use CVC4"),
-                                               clEnumValN(MathSat5Solver, "mathsat5", "use MathSat5"),
+                                               clEnumValN(MathSAT5Solver, "mathsat5", "use MathSAT5"),
                                                clEnumValN(Yices2Solver, "yices2", "use Yices2"),
                                                clEnumValN(Z3Solver, "z3", "use Z3"),
                                                clEnumValN(NoSolver, "none", "do not eliminate unsatisfiable contraints"),

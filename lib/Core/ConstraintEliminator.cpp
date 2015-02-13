@@ -33,7 +33,7 @@ public:
     }
 };
 
-class MathSat5Eliminate : public EliminateClass
+class MathSAT5Eliminate : public EliminateClass
 {
 public:
     virtual bool shouldEliminate(ref<Constraint> c)
@@ -196,8 +196,8 @@ EliminateClass *eliminateClassFactory(SMTSolver solver)
     switch (solver) {
     case CVC4Solver:
         return new CVC4Eliminate();
-    case MathSat5Solver:
-        return new MathSat5Eliminate();
+    case MathSAT5Solver:
+        return new MathSAT5Eliminate();
     case Yices2Solver:
         return new Yices2Eliminate();
     case Z3Solver:

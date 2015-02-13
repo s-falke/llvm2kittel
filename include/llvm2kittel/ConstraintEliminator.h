@@ -18,7 +18,7 @@ class Constraint;
 enum SMTSolver
 {
   CVC4Solver,
-  MathSat5Solver,
+  MathSAT5Solver,
   Yices2Solver,
   Z3Solver,
   NoSolver
