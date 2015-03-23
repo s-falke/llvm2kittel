@@ -74,8 +74,10 @@ llvm::Instruction *ConstantExprEliminator::replaceConstantExpr(llvm::ConstantExp
         }
 #if LLVM_VERSION < VERSION(3, 0)
         llvm::Instruction *instr = llvm::GetElementPtrInst::Create(constantExpr->getOperand(0), args.begin(), args.end(), constantExpr->getName(), before);
-#else
+#elif LLVM_VERSION < VERSION(3, 7)
         llvm::Instruction *instr = llvm::GetElementPtrInst::Create(constantExpr->getOperand(0), args, constantExpr->getName(), before);
+#else
+        llvm::Instruction *instr = llvm::GetElementPtrInst::Create(constantExpr->getType(), constantExpr->getOperand(0), args, constantExpr->getName(), before);
 #endif
         return instr;
     } else if (opcodeName == "ptrtoint") {

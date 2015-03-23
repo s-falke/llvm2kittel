@@ -148,7 +148,7 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
     llvm::TargetData *TD = NULL;
 #elif LLVM_VERSION < VERSION(3, 5)
     llvm::DataLayout *TD = NULL;
-#else
+#elif LLVM_VERSION < VERSION(3, 7)
     llvm::DataLayoutPass *TD = NULL;
 #endif
 #if LLVM_VERSION < VERSION(3, 5)
@@ -168,7 +168,7 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
     if (!ModuleDataLayout.empty()) {
         TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
     }
-#else
+#elif LLVM_VERSION < VERSION(3, 7)
     TD = new llvm::DataLayoutPass();
 #endif
 
@@ -179,9 +179,11 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
     llvm::legacy::PassManager llvmPasses;
 #endif
 
+#if LLVM_VERSION < VERSION(3, 7)
     if (TD != NULL) {
         llvmPasses.add(TD);
     }
+#endif
 
     // first, do some verification of the input code before we modify it
     llvmPasses.add(llvm::createVerifierPass());
@@ -245,7 +247,7 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
     llvm::TargetData *TD = NULL;
 #elif LLVM_VERSION < VERSION(3, 5)
     llvm::DataLayout *TD = NULL;
-#else
+#elif LLVM_VERSION < VERSION(3, 7)
     llvm::DataLayoutPass *TD = NULL;
 #endif
 #if LLVM_VERSION < VERSION(3, 5)
@@ -265,7 +267,7 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
     if (!ModuleDataLayout.empty()) {
         TD = new llvm::DataLayoutPass(llvm::DataLayout(ModuleDataLayout));
     }
-#else
+#elif LLVM_VERSION < VERSION(3, 7)
     TD = new llvm::DataLayoutPass();
 #endif
 
@@ -276,9 +278,11 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
     llvm::legacy::FunctionPassManager PM(module);
 #endif
 
+#if LLVM_VERSION < VERSION(3, 7)
     if (TD != NULL) {
         PM.add(TD);
     }
+#endif
 
     PM.add(llvm::createBasicAliasAnalysisPass());
 
