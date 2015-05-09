@@ -48,7 +48,6 @@
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/Twine.h>
-#include <llvm/Config/config.h>
 #include <cerrno>
 #include <cstdlib>
 #if LLVM_VERSION >= VERSION(3, 5)
@@ -1358,7 +1357,11 @@ public:
   void print() {
     raw_ostream &OS = outs();
     OS << "LLVM (http://llvm.org/):\n"
+#if defined(PACKAGE_NAME) && defined(PACKAGE_VERSION)
        << "  " << PACKAGE_NAME << " version " << PACKAGE_VERSION;
+#else
+      ;
+#endif
 #ifdef LLVM_VERSION_INFO
     OS << LLVM_VERSION_INFO;
 #endif
