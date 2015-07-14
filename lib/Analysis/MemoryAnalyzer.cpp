@@ -6,6 +6,7 @@
 // See LICENSE for details.
 
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
+#include "llvm2kittel/Util/Version.h"
 
 // llvm includes
 #include <llvm/InitializePasses.h>
@@ -13,6 +14,20 @@
 
 // C++ includes
 #include <iostream>
+
+#if LLVM_VERSION < VERSION(3, 7)
+  typedef llvm::AliasAnalysis::AliasResult AliasResult;
+  const AliasResult MayAlias = llvm::AliasAnalysis::MayAlias;
+  const AliasResult MustAlias = llvm::AliasAnalysis::MustAlias;
+  const AliasResult PartialAlias = llvm::AliasAnalysis::PartialAlias;
+  const AliasResult NoAlias = llvm::AliasAnalysis::NoAlias;
+#else
+  typedef llvm::AliasResult AliasResult;
+  const AliasResult MayAlias = llvm::MayAlias;
+  const AliasResult MustAlias = llvm::MustAlias;
+  const AliasResult PartialAlias = llvm::PartialAlias;
+  const AliasResult NoAlias = llvm::NoAlias;
+#endif
 
 MemoryAnalyzer::MemoryAnalyzer()
   : llvm::FunctionPass(ID),
@@ -56,16 +71,16 @@ void MemoryAnalyzer::visitLoadInst(llvm::LoadInst &I)
     for (std::set<llvm::GlobalVariable*>::iterator globali = m_globals.begin(), globale = m_globals.end(); globali != globale; ++globali) {
         llvm::GlobalVariable *global = *globali;
         uint64_t globalSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
-        llvm::AliasAnalysis::AliasResult ar = m_aa->alias(loadAddr, loadSize, global, globalSize);
+        AliasResult ar = m_aa->alias(loadAddr, loadSize, global, globalSize);
         switch (ar) {
-        case llvm::AliasAnalysis::MayAlias:
+        case MayAlias:
             maySet.insert(global);
             break;
-        case llvm::AliasAnalysis::MustAlias:
+        case MustAlias:
             mustSet.insert(global);
             break;
-        case llvm::AliasAnalysis::NoAlias:
-        case llvm::AliasAnalysis::PartialAlias:
+        case NoAlias:
+        case PartialAlias:
             break;
         default:
             std::cerr << "Unexpected alias analysis result (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
@@ -84,16 +99,16 @@ void MemoryAnalyzer::visitStoreInst(llvm::StoreInst &I)
     for (std::set<llvm::GlobalVariable*>::iterator globali = m_globals.begin(), globale = m_globals.end(); globali != globale; ++globali) {
         llvm::GlobalVariable *global = *globali;
         uint64_t globalSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
-        llvm::AliasAnalysis::AliasResult ar = m_aa->alias(storeAddr, storeSize, global, globalSize);
+        AliasResult ar = m_aa->alias(storeAddr, storeSize, global, globalSize);
         switch (ar) {
-        case llvm::AliasAnalysis::MayAlias:
+        case MayAlias:
             maySet.insert(global);
             break;
-        case llvm::AliasAnalysis::MustAlias:
-        case llvm::AliasAnalysis::PartialAlias:
+        case MustAlias:
+        case PartialAlias:
             mustSet.insert(global);
             break;
-        case llvm::AliasAnalysis::NoAlias:
+        case NoAlias:
             break;
         default:
             std::cerr << "Unexpected alias analysis result (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;

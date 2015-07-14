@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
     } else {
         module = moduleOrError.get();
     }
-#else
+#elif LLVM_VERSION == VERSION(3, 6)
     llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
     std::error_code ec = moduleOrError.getError();
@@ -439,6 +439,15 @@ int main(int argc, char *argv[])
         errMsg = ec.message();
     } else {
         module = moduleOrError.get();
+    }
+#else
+    llvm::Module *module = NULL;
+    llvm::ErrorOr<std::unique_ptr<llvm::Module>> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
+    std::error_code ec = moduleOrError.getError();
+    if (ec) {
+        errMsg = ec.message();
+    } else {
+        module = moduleOrError.get().release();
     }
 #endif
 
