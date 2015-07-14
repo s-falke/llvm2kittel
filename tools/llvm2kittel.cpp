@@ -90,7 +90,7 @@
 void versionPrinter()
 {
     std::cout << "llvm2KITTeL" << std::endl;
-    std::cout << "Copyright 2010-2014 Stephan Falke" << std::endl;
+    std::cout << "Copyright 2010-2015 Stephan Falke" << std::endl;
     std::cout << "Version " << get_git_sha1();
     std::cout << ", using LLVM " << LLVM_MAJOR << "." << LLVM_MINOR << std::endl;
 }
