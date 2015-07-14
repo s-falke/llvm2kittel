@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
     if (ec) {
         errMsg = ec.message();
     } else {
-        module = moduleOrError.get().release();
+        module = moduleOrError->get();
     }
 #endif
 
