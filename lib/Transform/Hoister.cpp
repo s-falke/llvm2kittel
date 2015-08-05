@@ -199,10 +199,22 @@ bool Hoister::canHoistInst(llvm::Instruction &I, llvm::AliasAnalysis *AA)
 #endif
     } else if (llvm::CallInst *CI = llvm::dyn_cast<llvm::CallInst>(&I)) {
         // Handle obvious cases efficiently.
+#if LLVM_VERSION <= VERSION(3, 7)
         llvm::AliasAnalysis::ModRefBehavior Behavior = AA->getModRefBehavior(CI);
+#else
+        llvm::FunctionModRefBehavior Behavior = AA->getModRefBehavior(CI);
+#endif
+#if LLVM_VERSION <= VERSION(3, 7)
         if (Behavior == llvm::AliasAnalysis::DoesNotAccessMemory || doesNotAccessMemory(CI->getCalledFunction())) {
+#else
+        if (Behavior == llvm::FMRB_DoesNotAccessMemory || doesNotAccessMemory(CI->getCalledFunction())) {
+#endif
             return true;
+#if LLVM_VERSION <= VERSION(3, 7)
         } else if (Behavior == llvm::AliasAnalysis::OnlyReadsMemory) {
+#else
+        } else if (Behavior == llvm::FMRB_OnlyReadsMemory) {
+#endif
             // If this call only reads from memory and there are no writes to memory
             // in the loop, we can hoist or sink the call as appropriate.
             bool FoundMod = false;
