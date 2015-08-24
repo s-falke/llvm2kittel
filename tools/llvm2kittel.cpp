@@ -60,6 +60,9 @@
   #include <llvm/IR/LegacyPassManager.h>
 #endif
 #include <llvm/Analysis/Passes.h>
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/Analysis/BasicAliasAnalysis.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 5)
   #include <llvm/Analysis/Verifier.h>
 #else

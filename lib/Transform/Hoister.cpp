@@ -20,6 +20,9 @@
   #include <llvm/IR/LLVMContext.h>
   #include <llvm/IR/Constants.h>
 #endif
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/IR/Module.h>
+#endif
 #include <llvm/PassRegistry.h>
 #include "WARN_ON.h"
 
@@ -188,7 +191,11 @@ bool Hoister::canHoistInst(llvm::Instruction &I, llvm::AliasAnalysis *AA)
         // Don't hoist loads which have may-aliased stores in loop.
         uint64_t Size = 0;
         if (LI->getType()->isSized()) {
+#if LLVM_VERSION <= VERSION(3, 7)
             Size = AA->getTypeStoreSize(LI->getType());
+#else
+            Size = I.getModule()->getDataLayout().getTypeStoreSize(LI->getType());
+#endif
         }
 #if LLVM_VERSION <= VERSION(3, 5)
         return !CurAST->getAliasSetForPointer(LI->getOperand(0), Size, LI->getMetadata(llvm::LLVMContext::MD_tbaa)).isMod();

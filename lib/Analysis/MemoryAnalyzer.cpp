@@ -11,6 +11,9 @@
 // llvm includes
 #include <llvm/InitializePasses.h>
 #include <llvm/PassRegistry.h>
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/IR/Module.h>
+#endif
 
 // C++ includes
 #include <iostream>
@@ -67,10 +70,18 @@ void MemoryAnalyzer::visitLoadInst(llvm::LoadInst &I)
     std::set<llvm::GlobalVariable*> maySet;
     std::set<llvm::GlobalVariable*> mustSet;
     llvm::Value *loadAddr = I.getPointerOperand();
+#if LLVM_VERSION <= VERSION(3, 7)
     uint64_t loadSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(loadAddr->getType())->getContainedType(0));
+#else
+    uint64_t loadSize = I.getModule()->getDataLayout().getTypeStoreSize(llvm::cast<llvm::PointerType>(loadAddr->getType())->getContainedType(0));
+#endif
     for (std::set<llvm::GlobalVariable*>::iterator globali = m_globals.begin(), globale = m_globals.end(); globali != globale; ++globali) {
         llvm::GlobalVariable *global = *globali;
+#if LLVM_VERSION <= VERSION(3, 7)
         uint64_t globalSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
+#else
+        uint64_t globalSize = I.getModule()->getDataLayout().getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
+#endif
         AliasResult ar = m_aa->alias(loadAddr, loadSize, global, globalSize);
         switch (ar) {
         case MayAlias:
@@ -95,10 +106,18 @@ void MemoryAnalyzer::visitStoreInst(llvm::StoreInst &I)
     std::set<llvm::GlobalVariable*> maySet;
     std::set<llvm::GlobalVariable*> mustSet;
     llvm::Value *storeAddr = I.getPointerOperand();
+#if LLVM_VERSION <= VERSION(3, 7)
     uint64_t storeSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(storeAddr->getType())->getContainedType(0));
+#else
+    uint64_t storeSize = I.getModule()->getDataLayout().getTypeStoreSize(llvm::cast<llvm::PointerType>(storeAddr->getType())->getContainedType(0));
+#endif
     for (std::set<llvm::GlobalVariable*>::iterator globali = m_globals.begin(), globale = m_globals.end(); globali != globale; ++globali) {
         llvm::GlobalVariable *global = *globali;
+#if LLVM_VERSION <= VERSION(3, 7)
         uint64_t globalSize = m_aa->getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
+#else
+        uint64_t globalSize = I.getModule()->getDataLayout().getTypeStoreSize(llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0));
+#endif
         AliasResult ar = m_aa->alias(storeAddr, storeSize, global, globalSize);
         switch (ar) {
         case MayAlias:
