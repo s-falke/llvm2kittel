@@ -663,8 +663,8 @@ int main(int argc, char *argv[])
         for (std::list<llvm::Function*>::iterator fi = scc.begin(), fe = scc.end(); fi != fe; ++fi) {
             llvm::Function *curr = *fi;
             std::ofstream t2file;
-            std::string origFilename = filename.substr(0, filename.length() - 3);
-            t2file.open (origFilename+".t2");
+            std::string origFilename = filename.substr(0, filename.length() - 3) + ".t2";
+            t2file.open (origFilename.c_str());
             if (!t2file.is_open())
             {
                 std::cout << "Error opening file";

@@ -815,9 +815,9 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
             //Indicates we've already passed Phase1, meaning before
             //transitioning to next block we must update the correct
             //phi variables which were collected in Phase1.
-            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>>::iterator it = m_phiMap.find(pBlock);
+            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*> > >::iterator it = m_phiMap.find(pBlock);
             if (it != m_phiMap.end()){
-                std::list<std::pair<std::string,llvm::Value*>>::iterator it2;
+                std::list<std::pair<std::string,llvm::Value*> >::iterator it2;
                 for (it2 = (m_phiMap[pBlock]).begin(); it2 != (m_phiMap[pBlock]).end(); it2++) {
                     
                     std::string varAssign = it2->first;
@@ -1795,12 +1795,12 @@ void Converter::visitPHINode(llvm::PHINode &I)
         {
             llvm::BasicBlock* iBlock = I.getIncomingBlock(i);
             llvm::Value* iValue = I.getIncomingValueForBlock(iBlock);
-            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>>::iterator it = m_phiMap.find(iBlock);
+            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*> > >::iterator it = m_phiMap.find(iBlock);
             if (it != m_phiMap.end()){
                 it->second.push_back(std::make_pair(phiVar,iValue));
             }
             else{
-                std::list<std::pair<std::string,llvm::Value*>> valList;
+                std::list<std::pair<std::string,llvm::Value*> > valList;
                 valList.push_back(std::make_pair(phiVar,iValue));
                 m_phiMap[iBlock] = valList;
             }

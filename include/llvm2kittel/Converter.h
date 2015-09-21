@@ -140,7 +140,7 @@ private:
 
     std::list<llvm::BasicBlock*> m_returns;
     std::map<llvm::Instruction*, unsigned int> m_idMap;
-    std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>> m_phiMap;
+    std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*> > > m_phiMap;
     
     unsigned int m_nondef;
     std::string getNondef(llvm::Value *V);
