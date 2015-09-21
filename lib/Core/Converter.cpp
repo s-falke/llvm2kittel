@@ -34,15 +34,17 @@
 // C++ includes
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <vector>
 #include <cstdlib>
 
 #define SMALL_VECTOR_SIZE 8
 
-Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples)
+Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples, std::ofstream &t2file)
   : m_entryBlock(NULL),
     m_boolType(boolType),
     m_blockRules(),
+    m_t2file(&t2file),
     m_rules(),
     m_vars(),
     m_lhs(),
@@ -55,6 +57,7 @@ Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool sele
     m_elcMap(),
     m_returns(),
     m_idMap(),
+    m_phiMap(),
     m_nondef(0),
     m_assumeIsControl(assumeIsControl),
     m_selectIsControl(selectIsControl),
@@ -126,6 +129,7 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
     m_lhs.clear();
     m_returns.clear();
     m_idMap.clear();
+    m_phiMap.clear();
     m_phiVars.clear();
     m_controlPoints.clear();
     m_controlPoints.insert(getEval(m_function, "start"));
@@ -134,7 +138,7 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
     m_nondef = 0;
     m_entryBlock = &function->getEntryBlock();
     m_trivial = isTrivial();
-
+    
     for (llvm::Function::arg_iterator i = function->arg_begin(), e = function->arg_end(); i != e; ++i) {
         if (i->getType()->isIntegerTy() && i->getType() != m_boolType) {
             m_vars.push_back(getVar(i));
@@ -156,10 +160,11 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
         m_phase1 = true;
         visit(function);
     }
-
+    
     for (std::list<std::string>::iterator i = m_vars.begin(), e = m_vars.end(); i != e; ++i) {
         m_lhs.push_back(Polynomial::create(*i));
     }
+    
 }
 
 void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap)
@@ -245,8 +250,9 @@ std::list<ref<Rule> > Converter::getCondensedRules()
 std::string Converter::getVar(llvm::Value *V)
 {
     std::string name = V->getName();
+    name = "v" + name;
     std::ostringstream tmp;
-    tmp << "v_" << name;
+    tmp << name;
     std::string res = tmp.str();
     if (m_boundedIntegers && V->getType()->isIntegerTy()) {
         m_bitwidthMap.insert(std::make_pair(res, llvm::cast<llvm::IntegerType>(V->getType())->getBitWidth()));
@@ -299,6 +305,7 @@ ref<Polynomial> Converter::getPolynomial(llvm::Value *V)
         mpz_clear(value);
         return res;
     } else if (llvm::isa<llvm::Instruction>(V) || llvm::isa<llvm::Argument>(V) || llvm::isa<llvm::GlobalVariable>(V)) {
+        std::string res = getVar(V);
         return Polynomial::create(getVar(V));
     } else {
         return Polynomial::create(getNondef(V));
@@ -649,6 +656,14 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         ref<Term> rhs = Term::create(getEval(bb, "in"), m_lhs);
         ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
+        
+        if(!m_phase1){
+            *m_t2file << "START: " << (bb->getName().str()) << ";\n" << std::endl;
+        }
+    }
+    
+    if(!m_phase1){
+        *m_t2file << "FROM: " << (bb->getName().str()) << ";" << std::endl;
     }
 
     // return
@@ -659,7 +674,7 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     // visit instructions
     m_blockRules.clear();
     visit(*bb);
-
+    
     // jump from bb_in to first instruction or bb_out
     // get condition
     ref<Constraint> cond;
@@ -700,10 +715,10 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         ref<Rule> rule = Rule::create(lhs, rhs, cond);
         m_rules.push_back(rule);
     }
-
+    
     // insert rules for instructions
     m_rules.insert(m_rules.end(), m_blockRules.begin(), m_blockRules.end());
-
+    
     // jump from last instruction in bb to bb_out
     llvm::Instruction *last = NULL;
     unsigned int lastID = 0;
@@ -722,7 +737,7 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
     }
-
+    
     // jump from bb_out to succs
     llvm::TerminatorInst *terminator = bb->getTerminator();
     if (llvm::isa<llvm::ReturnInst>(terminator)) {
@@ -750,6 +765,7 @@ void Converter::visitBB(llvm::BasicBlock *bb)
             m_rules.push_back(rule2);
         }
     }
+    *m_t2file << std::endl;
 }
 
 std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
@@ -779,8 +795,92 @@ std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, l
     return res;
 }
 
-void Converter::visitTerminatorInst(llvm::TerminatorInst&)
-{}
+void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
+{
+    if(!m_phase1){
+        
+        if (llvm::isa<llvm::ReturnInst>(I)){
+            llvm::BasicBlock* pBlock = I.getParent();
+            *m_t2file << "TO: " << (pBlock->getName().str()) << "_ret;" << std::endl;
+        }
+        else if (llvm::isa<llvm::UnreachableInst>(I)) {
+            
+        }
+        else {
+            int64_t cv;
+            std::string valName;
+            llvm::BranchInst *branch = llvm::cast<llvm::BranchInst>(&I);
+            llvm::BasicBlock* pBlock = branch->getParent();
+            
+            //Indicates we've already passed Phase1, meaning before
+            //transitioning to next block we must update the correct
+            //phi variables which were collected in Phase1.
+            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>>::iterator it = m_phiMap.find(pBlock);
+            if (it != m_phiMap.end()){
+                std::list<std::pair<std::string,llvm::Value*>>::iterator it2;
+                for (it2 = (m_phiMap[pBlock]).begin(); it2 != (m_phiMap[pBlock]).end(); it2++) {
+                    
+                    std::string varAssign = it2->first;
+                    llvm::Value* iValue = it2->second;
+                    if(iValue->hasName()){
+                        valName = getVar(iValue);
+                        *m_t2file << varAssign << " := " << valName << ";" <<std::endl;
+                        
+                    }
+                    else {
+                        if (llvm::isa<llvm::ConstantInt>(iValue)) {
+                            if (m_boundedIntegers && m_unsignedEncoding) {
+                                cv = static_cast<llvm::ConstantInt*>(iValue)->getZExtValue();
+                            }
+                            else {
+                                cv = static_cast<llvm::ConstantInt*>(iValue)->getSExtValue();
+                                
+                            }
+                            *m_t2file << varAssign << " := " << cv << ";" << std::endl;
+                        }
+                    }
+                    
+                }
+                
+            }
+            
+            
+            if (branch->isUnconditional()) {
+                //If unconditional then create the condition true
+                //Later when visiting terminating transition
+                //will print transition from true to BB
+                llvm::BasicBlock* iBlock = branch->getSuccessor(0);
+                *m_t2file << "TO: " << (iBlock->getName().str()) << ";" << std::endl;
+                
+            } else {
+                //If conditional use condition to transition to block names
+                llvm::Value* branchVal = branch->getCondition();
+                ref<Constraint> c = getConditionFromValue(branchVal);
+                unsigned incomeVals = branch->getNumSuccessors();
+                if (incomeVals > 2) {
+                    std::cerr << "Branching instruction should only ever have two incoming values!" << std::endl;
+                    exit(1);
+                }
+                //Given then we're branching, create an intermediate node to branch through via condition.
+                *m_t2file << "TO: " << (pBlock->getName().str()) << "_end;" << std::endl;
+                
+                //Transition where the condition holds
+                *m_t2file << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
+                *m_t2file << "assume(" << (c->toString()) << ");" << std::endl;
+                llvm::BasicBlock* tBlock = branch->getSuccessor(0);
+                *m_t2file << "TO: " << (tBlock->getName().str()) << ";" << std::endl;
+                
+                //Transition where the condition doesn't hold.
+                *m_t2file << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
+                *m_t2file << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
+                llvm::BasicBlock* fBlock = branch->getSuccessor(1);
+                *m_t2file << "TO: " << (fBlock->getName().str()) << ";" << std::endl;
+                
+            }
+            
+        }
+    }
+}
 
 void Converter::visitGenericInstruction(llvm::Instruction &I, std::list<ref<Polynomial> > newArgs, ref<Constraint> c)
 {
@@ -807,6 +907,7 @@ void Converter::visitAdd(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
+        *m_t2file << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
         visitGenericInstruction(I, p1->add(p2));
     }
 }
@@ -821,6 +922,7 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
+        *m_t2file << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -1510,6 +1612,12 @@ void Converter::visitXor(llvm::BinaryOperator &I)
 
 void Converter::visitCallInst(llvm::CallInst &I)
 {
+    llvm::CallSite callSite(&I);
+    llvm::Function *calledFunction = callSite.getCalledFunction();
+    if (calledFunction != NULL) {
+        llvm::StringRef functionName = calledFunction->getName();
+    }
+    
     if (m_phase1) {
         if (I.getType() != m_boolType && I.getType()->isIntegerTy()) {
             m_vars.push_back(getVar(&I));
@@ -1583,6 +1691,9 @@ void Converter::visitCallInst(llvm::CallInst &I)
             std::list<ref<Polynomial> > newArgs;
             if (I.getType()->isIntegerTy() && I.getType() != m_boolType) {
                 ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
+                
+                *m_t2file << (nondef->toString()) << ":= nondet();" << std::endl;
+                
                 newArgs = getZappedArgs(toZap, I, nondef);
             } else {
                 newArgs = getZappedArgs(toZap);
@@ -1636,6 +1747,7 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
         if (m_selectIsControl) {
             m_controlPoints.insert(getEval(m_counter));
         }
+        llvm::BasicBlock* pBlock = I.getParent();
         m_idMap.insert(std::make_pair(&I, m_counter));
         ref<Term> lhs = Term::create(getEval(m_counter), m_lhs);
         m_counter++;
@@ -1646,6 +1758,25 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
         m_blockRules.push_back(rule1);
         ref<Rule> rule2 = Rule::create(lhs, rhs2, c->toNNF(true));
         m_blockRules.push_back(rule2);
+        
+        //Given then we're branching, create an intermediate node to branch through via condition.
+        *m_t2file << "TO: " << (pBlock->getName().str()) << "_" << (getVar(&I)) << ";" <<std::endl;
+        
+        //Branch to assignment where condition is true.
+        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
+        *m_t2file << "assume(" << (c->toString()) << ");" << std::endl;
+        *m_t2file << (getVar(&I)) << " := " << (getPolynomial(I.getTrueValue()))->toString() << std::endl;
+        *m_t2file << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
+        
+        //Branch to assignment where condition is false.
+        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
+        *m_t2file << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
+        *m_t2file << (getVar(&I)) << " := " << (getPolynomial(I.getFalseValue()))->toString() << std::endl;
+        *m_t2file << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
+        
+        //Create final intermediate transition to merge back the above branching.
+        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
+        
     }
 }
 
@@ -1658,7 +1789,22 @@ void Converter::visitPHINode(llvm::PHINode &I)
         std::string phiVar = getVar(&I);
         m_vars.push_back(phiVar);
         m_phiVars.insert(phiVar);
-    } else {
+        std::string valName;
+        unsigned incomeVals = I.getNumIncomingValues();
+        for(unsigned i = 0; i < incomeVals; i++)
+        {
+            llvm::BasicBlock* iBlock = I.getIncomingBlock(i);
+            llvm::Value* iValue = I.getIncomingValueForBlock(iBlock);
+            std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>>::iterator it = m_phiMap.find(iBlock);
+            if (it != m_phiMap.end()){
+                it->second.push_back(std::make_pair(phiVar,iValue));
+            }
+            else{
+                std::list<std::pair<std::string,llvm::Value*>> valList;
+                valList.push_back(std::make_pair(phiVar,iValue));
+                m_phiMap[iBlock] = valList;
+            }
+        }
     }
 }
 
@@ -1758,7 +1904,9 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
 }
 
 void Converter::visitAllocaInst(llvm::AllocaInst &)
-{}
+{
+    
+}
 
 void Converter::visitFPToSIInst(llvm::FPToSIInst &I)
 {
@@ -1787,6 +1935,7 @@ void Converter::visitInstruction(llvm::Instruction &I)
     }
     if (m_phase1) {
         m_vars.push_back(getVar(&I));
+        
     } else {
         ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
         visitGenericInstruction(I, nondef);

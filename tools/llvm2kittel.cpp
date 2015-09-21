@@ -81,6 +81,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cstdlib>
 
 // command line stuff
@@ -661,7 +662,14 @@ int main(int argc, char *argv[])
 
         for (std::list<llvm::Function*>::iterator fi = scc.begin(), fe = scc.end(); fi != fe; ++fi) {
             llvm::Function *curr = *fi;
-            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples);
+            std::ofstream t2file;
+            std::string origFilename = filename.substr(0, filename.length() - 3);
+            t2file.open (origFilename+".t2");
+            if (!t2file.is_open())
+            {
+                std::cout << "Error opening file";
+            }
+            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2file);
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
             if (tmp1 == mmMap.end()) {
                 std::cerr << "Could not find alias information (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
@@ -685,6 +693,7 @@ int main(int argc, char *argv[])
             }
             converter.phase1(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
             converter.phase2(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
+            t2file.close();
             std::list<ref<Rule> > rules = converter.getRules();
             std::list<ref<Rule> > condensedRules = converter.getCondensedRules();
             std::list<ref<Rule> > kittelizedRules = kittelize(condensedRules, smtSolver);
