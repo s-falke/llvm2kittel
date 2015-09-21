@@ -937,7 +937,7 @@ void Converter::visitSub(llvm::BinaryOperator &I)
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
         if (m_t2Output) {
-            std::cout << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+            std::cout << getVar(&I) << " := " << p1->toString() << " - "<< p2->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, p1->sub(p2));
     }
