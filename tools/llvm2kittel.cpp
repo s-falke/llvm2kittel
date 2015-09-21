@@ -20,7 +20,6 @@
 #include "llvm2kittel/Analysis/MemoryAnalyzer.h"
 #include "llvm2kittel/Export/ComplexityTuplePrinter.h"
 #include "llvm2kittel/Export/UniformComplexityTuplePrinter.h"
-#include "llvm2kittel/Export/T2Export.h"
 #include "llvm2kittel/IntTRS/Polynomial.h"
 #include "llvm2kittel/IntTRS/Rule.h"
 #include "llvm2kittel/Transform/BasicBlockSorter.h"
@@ -142,7 +141,7 @@ static cl::opt<bool> bitwiseConditions("bitwise-conditions", cl::desc("Add condi
 
 static cl::opt<bool> dumpLL("dump-ll", cl::desc("Dump transformed bitcode into a file"), cl::init(false));
 
-static cl::opt<bool> t2output("t2", cl::desc("Generate T2 format"), cl::init(false), cl::ReallyHidden);
+static cl::opt<bool> t2Output("t2", cl::desc("Generate T2 format"), cl::init(false), cl::ReallyHidden);
 static cl::opt<bool> complexityTuples("complexity-tuples", cl::desc("Generate complexity tuples"), cl::init(false), cl::ReallyHidden);
 static cl::opt<bool> uniformComplexityTuples("uniform-complexity-tuples", cl::desc("Generate uniform complexity tuples"), cl::init(false), cl::ReallyHidden);
 
@@ -674,14 +673,9 @@ int main(int argc, char *argv[])
 
         for (std::list<llvm::Function*>::iterator fi = scc.begin(), fe = scc.end(); fi != fe; ++fi) {
             llvm::Function *curr = *fi;
-            std::ofstream t2file;
-            std::string origFilename = filename.substr(0, filename.length() - 3) + ".t2";
-            t2file.open (origFilename.c_str());
-            if (!t2file.is_open())
-            {
-                std::cout << "Error opening file";
-            }
-            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2file);
+
+            std::string t2Filename = filename.substr(0, filename.length() - 3) + ".t2";
+            Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2Output);
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
             if (tmp1 == mmMap.end()) {
                 std::cerr << "Could not find alias information (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
@@ -705,71 +699,72 @@ int main(int argc, char *argv[])
             }
             converter.phase1(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
             converter.phase2(curr, sccSet, curr_mmMap, funcMayZap, curr_tfMap, curr_leb, curr_elcMap);
-            t2file.close();
-            std::list<ref<Rule> > rules = converter.getRules();
-            std::list<ref<Rule> > condensedRules = converter.getCondensedRules();
-            std::list<ref<Rule> > kittelizedRules = kittelize(condensedRules, smtSolver);
-            Slicer slicer(curr, converter.getPhiVariables());
-            std::list<ref<Rule> > slicedRules;
-            if (noSlicing) {
-                slicedRules = kittelizedRules;
-            } else {
-                slicedRules = slicer.sliceUsage(kittelizedRules);
-                slicedRules = slicer.sliceConstraint(slicedRules);
-                slicedRules = slicer.sliceDefined(slicedRules);
-                slicedRules = slicer.sliceStillUsed(slicedRules, conservativeSlicing);
-                slicedRules = slicer.sliceDuplicates(slicedRules);
-            }
-            if (boundedIntegers) {
-                slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding), smtSolver);
-            }
-            if (debug) {
-                allRules.insert(allRules.end(), rules.begin(), rules.end());
-                allCondensedRules.insert(allCondensedRules.end(), condensedRules.begin(), condensedRules.end());
-                allKittelizedRules.insert(allKittelizedRules.end(), kittelizedRules.begin(), kittelizedRules.end());
-            }
-            if (simplifyConds) {
-                slicedRules = simplifyConstraints(slicedRules);
-            }
-            allSlicedRules.insert(allSlicedRules.end(), slicedRules.begin(), slicedRules.end());
 
-            if (complexityTuples || uniformComplexityTuples) {
-                std::set<std::string> tmpLHSs = converter.getComplexityLHSs();
-                complexityLHSs.insert(tmpLHSs.begin(), tmpLHSs.end());
+            if (!t2Output) {
+                std::list<ref<Rule> > rules = converter.getRules();
+                std::list<ref<Rule> > condensedRules = converter.getCondensedRules();
+                std::list<ref<Rule> > kittelizedRules = kittelize(condensedRules, smtSolver);
+                Slicer slicer(curr, converter.getPhiVariables());
+                std::list<ref<Rule> > slicedRules;
+                if (noSlicing) {
+                    slicedRules = kittelizedRules;
+                } else {
+                    slicedRules = slicer.sliceUsage(kittelizedRules);
+                    slicedRules = slicer.sliceConstraint(slicedRules);
+                    slicedRules = slicer.sliceDefined(slicedRules);
+                    slicedRules = slicer.sliceStillUsed(slicedRules, conservativeSlicing);
+                    slicedRules = slicer.sliceDuplicates(slicedRules);
+                }
+                if (boundedIntegers) {
+                    slicedRules = kittelize(addBoundConstraints(slicedRules, converter.getBitwidthMap(), unsignedEncoding), smtSolver);
+                }
+                if (debug) {
+                    allRules.insert(allRules.end(), rules.begin(), rules.end());
+                    allCondensedRules.insert(allCondensedRules.end(), condensedRules.begin(), condensedRules.end());
+                    allKittelizedRules.insert(allKittelizedRules.end(), kittelizedRules.begin(), kittelizedRules.end());
+                }
+                if (simplifyConds) {
+                    slicedRules = simplifyConstraints(slicedRules);
+                }
+                allSlicedRules.insert(allSlicedRules.end(), slicedRules.begin(), slicedRules.end());
+
+                if (complexityTuples || uniformComplexityTuples) {
+                    std::set<std::string> tmpLHSs = converter.getComplexityLHSs();
+                    complexityLHSs.insert(tmpLHSs.begin(), tmpLHSs.end());
+                }
             }
         }
-        if (debug) {
-            std::cout << "========================================" << std::endl;
-            for (std::list<ref<Rule> >::iterator i = allRules.begin(), e = allRules.end(); i != e; ++i) {
-                ref<Rule> tmp = *i;
-                std::cout << tmp->toString() << std::endl;
+        if (!t2Output) {
+            if (debug) {
+                std::cout << "========================================" << std::endl;
+                for (std::list<ref<Rule> >::iterator i = allRules.begin(), e = allRules.end(); i != e; ++i) {
+                    ref<Rule> tmp = *i;
+                    std::cout << tmp->toString() << std::endl;
+                }
+                std::cout << "========================================" << std::endl;
+                for (std::list<ref<Rule> >::iterator i = allCondensedRules.begin(), e = allCondensedRules.end(); i != e; ++i) {
+                    ref<Rule> tmp = *i;
+                    std::cout << tmp->toString() << std::endl;
+                }
+                std::cout << "========================================" << std::endl;
+                for (std::list<ref<Rule> >::iterator i = allKittelizedRules.begin(), e = allKittelizedRules.end(); i != e; ++i) {
+                    ref<Rule> tmp = *i;
+                    std::cout << tmp->toString() << std::endl;
+                }
+                std::cout << "========================================" << std::endl;
             }
-            std::cout << "========================================" << std::endl;
-            for (std::list<ref<Rule> >::iterator i = allCondensedRules.begin(), e = allCondensedRules.end(); i != e; ++i) {
-                ref<Rule> tmp = *i;
-                std::cout << tmp->toString() << std::endl;
-            }
-            std::cout << "========================================" << std::endl;
-            for (std::list<ref<Rule> >::iterator i = allKittelizedRules.begin(), e = allKittelizedRules.end(); i != e; ++i) {
-                ref<Rule> tmp = *i;
-                std::cout << tmp->toString() << std::endl;
-            }
-            std::cout << "========================================" << std::endl;
-        }
-        if (complexityTuples) {
-            printComplexityTuples(allSlicedRules, complexityLHSs, std::cout);
-        } else if (uniformComplexityTuples) {
-            std::ostringstream startfun;
-            startfun << "eval_" << getSccName(scc) << "_start";
-            std::string name = startfun.str();
-            printUniformComplexityTuples(allSlicedRules, complexityLHSs, name, std::cout);
-        } else if (t2output) {
-            std::string startFun = "eval_" + getSccName(scc) + "_start";
-            printT2System(allSlicedRules, startFun, std::cout);
-        } else {
-            for (std::list<ref<Rule> >::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
-                ref<Rule> tmp = *i;
-                std::cout << tmp->toKittelString() << std::endl;
+            if (complexityTuples) {
+                printComplexityTuples(allSlicedRules, complexityLHSs, std::cout);
+            } else if (uniformComplexityTuples) {
+                std::ostringstream startfun;
+                startfun << "eval_" << getSccName(scc) << "_start";
+                std::string name = startfun.str();
+                printUniformComplexityTuples(allSlicedRules, complexityLHSs, name, std::cout);
+            } else {
+                for (std::list<ref<Rule> >::iterator i = allSlicedRules.begin(), e = allSlicedRules.end(); i != e; ++i) {
+                    ref<Rule> tmp = *i;
+                    std::cout << tmp->toKittelString() << std::endl;
+                }
             }
         }
     }

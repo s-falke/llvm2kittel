@@ -40,11 +40,10 @@
 
 #define SMALL_VECTOR_SIZE 8
 
-Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples, std::ofstream &t2file)
+Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples, const bool t2Output)
   : m_entryBlock(NULL),
     m_boolType(boolType),
     m_blockRules(),
-    m_t2file(&t2file),
     m_rules(),
     m_vars(),
     m_lhs(),
@@ -75,7 +74,8 @@ Converter::Converter(const llvm::Type *boolType, bool assumeIsControl, bool sele
     m_divisionConstraintType(divisionConstraintType),
     m_bitwiseConditions(bitwiseConditions),
     m_complexityTuples(complexityTuples),
-    m_complexityLHSs()
+    m_complexityLHSs(),
+    m_t2Output(t2Output)
 {}
 
 bool Converter::isTrivial(void)
@@ -657,13 +657,13 @@ void Converter::visitBB(llvm::BasicBlock *bb)
         ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
         m_rules.push_back(rule);
         
-        if(!m_phase1){
-            *m_t2file << "START: " << (bb->getName().str()) << ";\n" << std::endl;
+        if (!m_phase1 && m_t2Output) {
+            std::cout << "START: " << (bb->getName().str()) << ";" << std::endl << std::endl;
         }
     }
     
-    if(!m_phase1){
-        *m_t2file << "FROM: " << (bb->getName().str()) << ";" << std::endl;
+    if (!m_phase1 && m_t2Output) {
+        std::cout << "FROM: " << (bb->getName().str()) << ";" << std::endl;
     }
 
     // return
@@ -765,7 +765,9 @@ void Converter::visitBB(llvm::BasicBlock *bb)
             m_rules.push_back(rule2);
         }
     }
-    *m_t2file << std::endl;
+    if (m_t2Output) {
+        std::cout << std::endl;
+    }
 }
 
 std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, llvm::BasicBlock *to)
@@ -801,7 +803,9 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
         
         if (llvm::isa<llvm::ReturnInst>(I)){
             llvm::BasicBlock* pBlock = I.getParent();
-            *m_t2file << "TO: " << (pBlock->getName().str()) << "_ret;" << std::endl;
+            if (m_t2Output) {
+                std::cout << "TO: " << (pBlock->getName().str()) << "_ret;" << std::endl;
+            }
         }
         else if (llvm::isa<llvm::UnreachableInst>(I)) {
             
@@ -824,7 +828,9 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                     llvm::Value* iValue = it2->second;
                     if(iValue->hasName()){
                         valName = getVar(iValue);
-                        *m_t2file << varAssign << " := " << valName << ";" <<std::endl;
+                        if (m_t2Output) {
+                            std::cout << varAssign << " := " << valName << ";" << std::endl;
+                        }
                         
                     }
                     else {
@@ -836,7 +842,9 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                                 cv = static_cast<llvm::ConstantInt*>(iValue)->getSExtValue();
                                 
                             }
-                            *m_t2file << varAssign << " := " << cv << ";" << std::endl;
+                            if (m_t2Output) {
+                                std::cout << varAssign << " := " << cv << ";" << std::endl;
+                            }
                         }
                     }
                     
@@ -850,7 +858,9 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                 //Later when visiting terminating transition
                 //will print transition from true to BB
                 llvm::BasicBlock* iBlock = branch->getSuccessor(0);
-                *m_t2file << "TO: " << (iBlock->getName().str()) << ";" << std::endl;
+                if (m_t2Output) {
+                    std::cout << "TO: " << (iBlock->getName().str()) << ";" << std::endl;
+                }
                 
             } else {
                 //If conditional use condition to transition to block names
@@ -861,21 +871,23 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                     std::cerr << "Branching instruction should only ever have two incoming values!" << std::endl;
                     exit(1);
                 }
-                //Given then we're branching, create an intermediate node to branch through via condition.
-                *m_t2file << "TO: " << (pBlock->getName().str()) << "_end;" << std::endl;
-                
-                //Transition where the condition holds
-                *m_t2file << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
-                *m_t2file << "assume(" << (c->toString()) << ");" << std::endl;
-                llvm::BasicBlock* tBlock = branch->getSuccessor(0);
-                *m_t2file << "TO: " << (tBlock->getName().str()) << ";" << std::endl;
-                
-                //Transition where the condition doesn't hold.
-                *m_t2file << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
-                *m_t2file << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
-                llvm::BasicBlock* fBlock = branch->getSuccessor(1);
-                *m_t2file << "TO: " << (fBlock->getName().str()) << ";" << std::endl;
-                
+
+                if (m_t2Output) {
+                    //Given then we're branching, create an intermediate node to branch through via condition.
+                    std::cout << "TO: " << (pBlock->getName().str()) << "_end;" << std::endl << std::endl;
+                    
+                    //Transition where the condition holds
+                    std::cout << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
+                    std::cout << "assume(" << (c->toString()) << ");" << std::endl;
+                    llvm::BasicBlock* tBlock = branch->getSuccessor(0);
+                    std::cout << "TO: " << (tBlock->getName().str()) << ";" << std::endl << std::endl;
+                    
+                    //Transition where the condition doesn't hold.
+                    std::cout << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
+                    std::cout << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
+                    llvm::BasicBlock* fBlock = branch->getSuccessor(1);
+                    std::cout << "TO: " << (fBlock->getName().str()) << ";" << std::endl;
+                }
             }
             
         }
@@ -907,7 +919,9 @@ void Converter::visitAdd(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
-        *m_t2file << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+        if (m_t2Output) {
+            std::cout << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+        }
         visitGenericInstruction(I, p1->add(p2));
     }
 }
@@ -922,7 +936,9 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
-        *m_t2file << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+        if (m_t2Output) {
+            std::cout << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+        }
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -1691,8 +1707,10 @@ void Converter::visitCallInst(llvm::CallInst &I)
             std::list<ref<Polynomial> > newArgs;
             if (I.getType()->isIntegerTy() && I.getType() != m_boolType) {
                 ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
-                
-                *m_t2file << (nondef->toString()) << ":= nondet();" << std::endl;
+
+                if (m_t2Output) {
+                    std::cout << (nondef->toString()) << ":= nondet();" << std::endl;
+                }
                 
                 newArgs = getZappedArgs(toZap, I, nondef);
             } else {
@@ -1758,25 +1776,26 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
         m_blockRules.push_back(rule1);
         ref<Rule> rule2 = Rule::create(lhs, rhs2, c->toNNF(true));
         m_blockRules.push_back(rule2);
+
+        if (m_t2Output) {
+            //Given then we're branching, create an intermediate node to branch through via condition.
+            std::cout << "TO: " << (pBlock->getName().str()) << "_" << (getVar(&I)) << ";" <<std::endl;
         
-        //Given then we're branching, create an intermediate node to branch through via condition.
-        *m_t2file << "TO: " << (pBlock->getName().str()) << "_" << (getVar(&I)) << ";" <<std::endl;
+            //Branch to assignment where condition is true.
+            std::cout << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
+            std::cout << "assume(" << (c->toString()) << ");" << std::endl;
+            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getTrueValue()))->toString() << std::endl;
+            std::cout << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl << std::endl;
         
-        //Branch to assignment where condition is true.
-        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
-        *m_t2file << "assume(" << (c->toString()) << ");" << std::endl;
-        *m_t2file << (getVar(&I)) << " := " << (getPolynomial(I.getTrueValue()))->toString() << std::endl;
-        *m_t2file << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
+            //Branch to assignment where condition is false.
+            std::cout << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
+            std::cout << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
+            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getFalseValue()))->toString() << std::endl;
+            std::cout << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl << std::endl;
         
-        //Branch to assignment where condition is false.
-        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
-        *m_t2file << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
-        *m_t2file << (getVar(&I)) << " := " << (getPolynomial(I.getFalseValue()))->toString() << std::endl;
-        *m_t2file << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
-        
-        //Create final intermediate transition to merge back the above branching.
-        *m_t2file << "FROM: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
-        
+            //Create final intermediate transition to merge back the above branching.
+            std::cout << "FROM: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl;
+        }
     }
 }
 
