@@ -878,13 +878,13 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                     
                     //Transition where the condition holds
                     std::cout << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
-                    std::cout << "assume(" << (c->toString()) << ");" << std::endl;
+                    std::cout << "assume(" << (c->toT2String()) << ");" << std::endl;
                     llvm::BasicBlock* tBlock = branch->getSuccessor(0);
                     std::cout << "TO: " << (tBlock->getName().str()) << ";" << std::endl << std::endl;
                     
                     //Transition where the condition doesn't hold.
                     std::cout << "FROM: " << (pBlock->getName().str()) << "_end;" << std::endl;
-                    std::cout << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
+                    std::cout << "assume(" << ((c->toNNF(true))->toT2String()) << ");" << std::endl;
                     llvm::BasicBlock* fBlock = branch->getSuccessor(1);
                     std::cout << "TO: " << (fBlock->getName().str()) << ";" << std::endl;
                 }
@@ -1783,14 +1783,14 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
         
             //Branch to assignment where condition is true.
             std::cout << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
-            std::cout << "assume(" << (c->toString()) << ");" << std::endl;
-            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getTrueValue()))->toString() << std::endl;
+            std::cout << "assume(" << (c->toT2String()) << ");" << std::endl;
+            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getTrueValue()))->toString() << ";" << std::endl;
             std::cout << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl << std::endl;
         
             //Branch to assignment where condition is false.
             std::cout << "FROM: " << (pBlock->getName().str()) << "_" << (getVar(&I))<< ";" << std::endl;
-            std::cout << "assume(" << ((c->toNNF(true))->toString()) << ");" << std::endl;
-            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getFalseValue()))->toString() << std::endl;
+            std::cout << "assume(" << ((c->toNNF(true))->toT2String()) << ");" << std::endl;
+            std::cout << (getVar(&I)) << " := " << (getPolynomial(I.getFalseValue()))->toString() << ";" << std::endl;
             std::cout << "TO: " << (pBlock->getName().str()) << "_s" << (getVar(&I))<< ";" << std::endl << std::endl;
         
             //Create final intermediate transition to merge back the above branching.
