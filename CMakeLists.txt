@@ -46,7 +46,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
+set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions -fno-rtti")
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
 
 execute_process(

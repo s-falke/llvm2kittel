@@ -60,6 +60,9 @@
   #include <llvm/IR/LegacyPassManager.h>
 #endif
 #include <llvm/Analysis/Passes.h>
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/Analysis/BasicAliasAnalysis.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 5)
   #include <llvm/Analysis/Verifier.h>
 #else
@@ -91,7 +94,7 @@
 void versionPrinter()
 {
     std::cout << "llvm2KITTeL" << std::endl;
-    std::cout << "Copyright 2010-2014 Stephan Falke" << std::endl;
+    std::cout << "Copyright 2010-2015 Stephan Falke" << std::endl;
     std::cout << "Version " << get_git_sha1();
     std::cout << ", using LLVM " << LLVM_MAJOR << "." << LLVM_MINOR << std::endl;
 }
@@ -432,7 +435,7 @@ int main(int argc, char *argv[])
     } else {
         module = moduleOrError.get();
     }
-#else
+#elif LLVM_VERSION == VERSION(3, 6)
     llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
     std::error_code ec = moduleOrError.getError();
@@ -440,6 +443,15 @@ int main(int argc, char *argv[])
         errMsg = ec.message();
     } else {
         module = moduleOrError.get();
+    }
+#else
+    llvm::Module *module = NULL;
+    llvm::ErrorOr<std::unique_ptr<llvm::Module>> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
+    std::error_code ec = moduleOrError.getError();
+    if (ec) {
+        errMsg = ec.message();
+    } else {
+        module = moduleOrError->get();
     }
 #endif
 

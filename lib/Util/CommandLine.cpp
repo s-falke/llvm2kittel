@@ -54,6 +54,10 @@
   #include <memory>
 #endif
 
+#if LLVM_VERSION >= VERSION(3, 7)
+  #define TEMPLATE_INSTANTIATION(c) template c
+#endif
+
 using namespace llvm;
 using namespace cl;
 

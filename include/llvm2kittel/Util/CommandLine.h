@@ -48,6 +48,14 @@
   #define END_WITH_NULL LLVM_END_WITH_NULL
 #endif
 
+#if LLVM_VERSION >= VERSION(3, 7)
+  #define EXTERN_TEMPLATE_INSTANTIATION(c) extern template c
+#endif
+
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/Support/Compiler.h>
+#endif
+
 #include <llvm/Support/type_traits.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/ErrorHandling.h>

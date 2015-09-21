@@ -20,6 +20,9 @@
   #include <llvm/IR/LLVMContext.h>
   #include <llvm/IR/Constants.h>
 #endif
+#if LLVM_VERSION >= VERSION(3, 8)
+  #include <llvm/IR/Module.h>
+#endif
 #include <llvm/PassRegistry.h>
 #include "WARN_ON.h"
 
@@ -188,7 +191,11 @@ bool Hoister::canHoistInst(llvm::Instruction &I, llvm::AliasAnalysis *AA)
         // Don't hoist loads which have may-aliased stores in loop.
         uint64_t Size = 0;
         if (LI->getType()->isSized()) {
+#if LLVM_VERSION <= VERSION(3, 7)
             Size = AA->getTypeStoreSize(LI->getType());
+#else
+            Size = I.getModule()->getDataLayout().getTypeStoreSize(LI->getType());
+#endif
         }
 #if LLVM_VERSION <= VERSION(3, 5)
         return !CurAST->getAliasSetForPointer(LI->getOperand(0), Size, LI->getMetadata(llvm::LLVMContext::MD_tbaa)).isMod();
@@ -199,10 +206,22 @@ bool Hoister::canHoistInst(llvm::Instruction &I, llvm::AliasAnalysis *AA)
 #endif
     } else if (llvm::CallInst *CI = llvm::dyn_cast<llvm::CallInst>(&I)) {
         // Handle obvious cases efficiently.
+#if LLVM_VERSION <= VERSION(3, 7)
         llvm::AliasAnalysis::ModRefBehavior Behavior = AA->getModRefBehavior(CI);
+#else
+        llvm::FunctionModRefBehavior Behavior = AA->getModRefBehavior(CI);
+#endif
+#if LLVM_VERSION <= VERSION(3, 7)
         if (Behavior == llvm::AliasAnalysis::DoesNotAccessMemory || doesNotAccessMemory(CI->getCalledFunction())) {
+#else
+        if (Behavior == llvm::FMRB_DoesNotAccessMemory || doesNotAccessMemory(CI->getCalledFunction())) {
+#endif
             return true;
+#if LLVM_VERSION <= VERSION(3, 7)
         } else if (Behavior == llvm::AliasAnalysis::OnlyReadsMemory) {
+#else
+        } else if (Behavior == llvm::FMRB_OnlyReadsMemory) {
+#endif
             // If this call only reads from memory and there are no writes to memory
             // in the loop, we can hoist or sink the call as appropriate.
             bool FoundMod = false;
