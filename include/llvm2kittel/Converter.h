@@ -51,7 +51,7 @@ class Converter : public llvm::InstVisitor<Converter>
 #include "WARN_ON.h"
 
 public:
-    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples, std::ofstream &t2file);
+    Converter(const llvm::Type *boolType, bool assumeIsControl, bool selectIsControl, bool onlyMultiPredIsControl, bool boundedIntegers, bool unsignedEncoding, bool onlyLoopConditions, DivRemConstraintType divisionConstraintType, bool bitwiseConditions, bool complexityTuples, const bool t2Output);
 
     void phase1(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
     void phase2(llvm::Function *function, std::set<llvm::Function*> &scc, MayMustMap &mmMap, std::map<llvm::Function*, std::set<llvm::GlobalVariable*> > &funcMayZap, TrueFalseMap &tfMap, std::set<llvm::BasicBlock*> &lcbs, ConditionMap &elcMap);
@@ -109,7 +109,6 @@ private:
     const llvm::Type *m_boolType;
 
     std::list<ref<Rule> > m_blockRules;
-    std::ofstream *m_t2file;
     std::list<ref<Rule> > m_rules;
     std::list<std::string> m_vars;
     std::list<ref<Polynomial> > m_lhs;
@@ -140,7 +139,7 @@ private:
 
     std::list<llvm::BasicBlock*> m_returns;
     std::map<llvm::Instruction*, unsigned int> m_idMap;
-    std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*>>> m_phiMap;
+    std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*> > > m_phiMap;
     
     unsigned int m_nondef;
     std::string getNondef(llvm::Value *V);
@@ -213,6 +212,7 @@ private:
     bool m_complexityTuples;
     std::set<std::string> m_complexityLHSs;
 
+    const bool m_t2Output;
 private:
     Converter(const Converter &);
     Converter &operator=(const Converter &);

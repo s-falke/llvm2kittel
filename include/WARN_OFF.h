@@ -17,7 +17,9 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wredundant-decls"
 #ifndef __clang__
-  #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+  #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 6)
+    #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+  #endif
 #endif
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #pragma GCC diagnostic ignored "-Wswitch-enum"

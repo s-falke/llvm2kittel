@@ -76,6 +76,11 @@ std::string True::toSMTString(bool)
     return ""; // No need to output (assert true)
 }
 
+std::string True::toT2String()
+{
+    return "0 >= 0";
+}
+
 ref<Constraint> True::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_true;
@@ -160,6 +165,11 @@ std::string False::toSMTString(bool)
     exit(217);
 }
 
+std::string False::toT2String()
+{
+    return "1 >= 0";
+}
+
 ref<Constraint> False::instantiate(std::map<std::string, ref<Polynomial> > *)
 {
     return Constraint::_false;
@@ -241,6 +251,11 @@ std::string Nondef::toCIntString()
 std::string Nondef::toSMTString(bool)
 {
     return ""; // Can always chosen to be true; no need to output (assert true)
+}
+
+std::string Nondef::toT2String()
+{
+    return "nondet()";
 }
 
 ref<Constraint> Nondef::instantiate(std::map<std::string, ref<Polynomial> > *)
@@ -381,6 +396,25 @@ std::string Atom::typeToSMTString(AType type)
     }
 }
 
+std::string Atom::typeToT2String(AType type)
+{
+    if (type == Equ) {
+        return "==";
+    } else if (type == Neq) {
+        return "!=";
+    } else if (type == Geq) {
+        return ">=";
+    } else if (type == Gtr) {
+        return ">";
+    } else if (type == Leq) {
+        return "<=";
+    } else if (type == Lss) {
+        return "<";
+    } else {
+        return "D'Oh!";
+    }
+}
+
 std::string Atom::toString()
 {
     std::ostringstream res;
@@ -411,6 +445,13 @@ std::string Atom::toSMTString(bool onlyLinearPart)
     } else {
         return "";
     }
+}
+
+std::string Atom::toT2String()
+{
+    std::ostringstream res;
+    res << m_lhs->toString() << ' ' << typeToT2String(m_type) << ' ' << m_rhs->toString();
+    return res.str();
 }
 
 ref<Constraint> Atom::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
@@ -580,6 +621,13 @@ std::string Negation::toSMTString(bool)
     exit(217);
 }
 
+std::string Negation::toT2String()
+{
+    std::ostringstream res;
+    res << "!(" << m_c->toT2String() << ")";
+    return res.str();
+}
+
 ref<Constraint> Negation::instantiate(std::map<std::string, ref<Polynomial> > *bindings)
 {
     return create(m_c->instantiate(bindings));
@@ -722,6 +770,13 @@ std::string Operator::toSMTString(bool onlyLinearPart)
     }
     std::ostringstream res;
     res << m_lhs->toSMTString(onlyLinearPart) << m_rhs->toSMTString(onlyLinearPart);
+    return res.str();
+}
+
+std::string Operator::toT2String()
+{
+    std::ostringstream res;
+    res << "(" << m_lhs->toT2String() << ((m_type == And) ? ") && (" : ") || (") << m_rhs->toT2String() << ")";
     return res.str();
 }
 

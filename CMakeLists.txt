@@ -46,7 +46,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions")
+set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fexceptions -fno-rtti")
 set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} ${LLVM_MAJOR} ${LLVM_MINOR}")
 
 execute_process(
@@ -104,10 +104,8 @@ add_library(llvm2kittelAnalysis STATIC
 set(llvm2kittelExportFiles
   lib/Export/ComplexityTuplePrinter.cpp
   lib/Export/UniformComplexityTuplePrinter.cpp
-  lib/Export/T2Export.cpp
   include/llvm2kittel/Export/ComplexityTuplePrinter.h
   include/llvm2kittel/Export/UniformComplexityTuplePrinter.h
-  include/llvm2kittel/Export/T2Export.h
 )
 
 add_library(llvm2kittelExport STATIC

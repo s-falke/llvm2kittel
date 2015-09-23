@@ -46,7 +46,8 @@ public:
     virtual std::string toKittelString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toCIntString() = 0; // only if no True, False, Nondef, Negation, Or
     virtual std::string toSMTString(bool onlyLinearPart) = 0; // only if no False, Negation, Or
-
+    virtual std::string toT2String() = 0;
+    
     virtual ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings) = 0;
 
     virtual ref<Constraint> toNNF(bool negate) = 0;
@@ -88,7 +89,8 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
-
+    std::string toT2String();
+    
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
     ref<Constraint> toNNF(bool negate);
@@ -120,6 +122,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
+    std::string toT2String();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -152,6 +155,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
+    std::string toT2String();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -199,6 +203,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
+    std::string toT2String();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -229,6 +234,7 @@ private:
     std::string typeToKittelString(AType type);
     std::string typeToCIntString(AType type);
     std::string typeToSMTString(AType type);
+    std::string typeToT2String(AType type);
 
 private:
     Atom(const Atom &);
@@ -252,6 +258,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
+    std::string toT2String();
 
     ref<Constraint> instantiate(std::map<std::string, ref<Polynomial> > *bindings);
 
@@ -298,6 +305,7 @@ public:
     std::string toKittelString();
     std::string toCIntString();
     std::string toSMTString(bool onlyLinearPart);
+    std::string toT2String();
 
     OType getOType();
 
