@@ -922,7 +922,7 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
-        *m_t2file << getVar(&I) << " := " << p1->toString() << " + "<< p2->toString() << ";" << std::endl;
+        *m_t2file << getVar(&I) << " := " << p1->toString() << " - "<< p2->toString() << ";" << std::endl;
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -937,6 +937,7 @@ void Converter::visitMul(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
+        *m_t2file << getVar(&I) << " := " << p1->toString() << " * "<< p2->toString() << ";" << std::endl;
         visitGenericInstruction(I, p1->mult(p2));
     }
 }
@@ -1135,6 +1136,7 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
         } else {
             divC = Constraint::_true;
         }
+        *m_t2file << getVar(&I) << " := " << upper->toString() << " / "<< lower->toString() << ";" << std::endl;
         visitGenericInstruction(I, nondef, divC);
     }
 }
@@ -1233,6 +1235,7 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
         } else {
             divC = Constraint::_true;
         }
+        *m_t2file << getVar(&I) << " := " << upper->toString() << " / "<< lower->toString() << ";" << std::endl;
         visitGenericInstruction(I, nondef, divC);
     }
 }

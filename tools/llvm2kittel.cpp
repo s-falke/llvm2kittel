@@ -668,6 +668,7 @@ int main(int argc, char *argv[])
             if (!t2file.is_open())
             {
                 std::cout << "Error opening file";
+                exit (EXIT_FAILURE);
             }
             Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2file);
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
