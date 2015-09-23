@@ -675,7 +675,6 @@ int main(int argc, char *argv[])
             llvm::Function *curr = *fi;
             std::string t2Filename = filename.substr(0, filename.length() - 3) + ".t2";
             Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2Output);
->>>>>>> 3e85a112fd5b876bbbcd3e8621c0f10ebbc2b8a1
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
             if (tmp1 == mmMap.end()) {
                 std::cerr << "Could not find alias information (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
