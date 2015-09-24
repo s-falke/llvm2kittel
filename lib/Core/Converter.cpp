@@ -936,9 +936,11 @@ void Converter::visitSub(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
+        
         if (m_t2Output) {
             std::cout << getVar(&I) << " := " << p1->toString() << " - "<< p2->toString() << ";" << std::endl;
         }
+
         visitGenericInstruction(I, p1->sub(p2));
     }
 }
@@ -953,9 +955,11 @@ void Converter::visitMul(llvm::BinaryOperator &I)
     } else {
         ref<Polynomial> p1 = getPolynomial(I.getOperand(0));
         ref<Polynomial> p2 = getPolynomial(I.getOperand(1));
+
         if (m_t2Output) {
             std::cout << getVar(&I) << " := " << p1->toString() << " * "<< p2->toString() << ";" << std::endl;
         }
+
         visitGenericInstruction(I, p1->mult(p2));
     }
 }
@@ -1154,7 +1158,7 @@ void Converter::visitSDiv(llvm::BinaryOperator &I)
         } else {
             divC = Constraint::_true;
         }
-	if (m_t2Output) {
+        if (m_t2Output) {
             std::cout << getVar(&I) << " := " << upper->toString() << " / "<< lower->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, nondef, divC);
@@ -1255,7 +1259,7 @@ void Converter::visitUDiv(llvm::BinaryOperator &I)
         } else {
             divC = Constraint::_true;
         }
-	if (m_t2Output) {
+        if (m_t2Output) {
             std::cout << getVar(&I) << " := " << upper->toString() << " / "<< lower->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, nondef, divC);
@@ -1398,7 +1402,7 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
         } else {
             remC = Constraint::_true;
         }
-	if (m_t2Output) {
+        if (m_t2Output) {
             std::cout << getVar(&I) << " := " << upper->toString() << " % "<< lower->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, nondef, remC);
@@ -1492,7 +1496,7 @@ void Converter::visitURem(llvm::BinaryOperator &I)
         } else {
             remC = Constraint::_true;
         }
-	if (m_t2Output) {
+        if (m_t2Output) {
             std::cout << getVar(&I) << " := " << upper->toString() << " % "<< lower->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, nondef, remC);

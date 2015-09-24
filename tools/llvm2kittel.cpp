@@ -673,7 +673,6 @@ int main(int argc, char *argv[])
 
         for (std::list<llvm::Function*>::iterator fi = scc.begin(), fe = scc.end(); fi != fe; ++fi) {
             llvm::Function *curr = *fi;
-
             std::string t2Filename = filename.substr(0, filename.length() - 3) + ".t2";
             Converter converter(boolType, assumeIsControl, selectIsControl, onlyMultiPredIsControl, boundedIntegers, unsignedEncoding, onlyLoopConditions, divisionConstraintType, bitwiseConditions, complexityTuples || uniformComplexityTuples, t2Output);
             std::map<llvm::Function*, MayMustMap>::iterator tmp1 = mmMap.find(curr);
