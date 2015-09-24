@@ -822,9 +822,13 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
             std::map<llvm::BasicBlock*, std::list<std::pair<std::string,llvm::Value*> > >::iterator it = m_phiMap.find(pBlock);
             if (it != m_phiMap.end()){
                 std::list<std::pair<std::string,llvm::Value*> >::iterator it2;
+                
+                //All phi-instructions at the beginning of a block are meant to be executed simultaneously.
+                //To achieve this parallel assignment, we thus assign the fresh values to %var__temp
+                //or all phi instructions, and then add a set of %var :=var__temp instructions.
                 for (it2 = (m_phiMap[pBlock]).begin(); it2 != (m_phiMap[pBlock]).end(); it2++) {
-                    
-                    std::string varAssign = it2->first;
+                 
+                    std::string varAssign = "var__temp_" + (it2->first);
                     llvm::Value* iValue = it2->second;
                     if(iValue->hasName()){
                         valName = getVar(iValue);
@@ -847,9 +851,17 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
                             }
                         }
                     }
-                    
                 }
                 
+                for (it2 = (m_phiMap[pBlock]).begin(); it2 != (m_phiMap[pBlock]).end(); it2++) {
+                    
+                    std::string varAssign = "var__temp_" + (it2->first);
+                    std::string varOrig = it2->first;
+                    
+                    if (m_t2Output) {
+                        std::cout << varOrig << " := " << varAssign << ";" << std::endl;
+                    }
+                }
             }
             
             
