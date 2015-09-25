@@ -1414,6 +1414,9 @@ void Converter::visitSRem(llvm::BinaryOperator &I)
         } else {
             remC = Constraint::_true;
         }
+        if (m_t2Output) {
+            std::cout << getVar(&I) << " := " << upper->toString() << " % "<< lower->toString() << ";" << std::endl;
+        }
         visitGenericInstruction(I, nondef, remC);
     }
 }
@@ -1504,6 +1507,9 @@ void Converter::visitURem(llvm::BinaryOperator &I)
             }
         } else {
             remC = Constraint::_true;
+        }
+        if (m_t2Output) {
+            std::cout << getVar(&I) << " := " << upper->toString() << " % "<< lower->toString() << ";" << std::endl;
         }
         visitGenericInstruction(I, nondef, remC);
     }
