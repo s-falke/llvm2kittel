@@ -800,11 +800,12 @@ std::list<ref<Polynomial> > Converter::getArgsWithPhis(llvm::BasicBlock *from, l
 void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
 {
     if(!m_phase1){
-        
+        //This is a self loop to the last instruction.
+        //ToDO: Remove the self-loop addition in T2 in these cases.
         if (llvm::isa<llvm::ReturnInst>(I)){
             llvm::BasicBlock* pBlock = I.getParent();
             if (m_t2Output) {
-                std::cout << "TO: " << (pBlock->getName().str()) << "_ret;" << std::endl;
+                std::cout << "TO: " << (pBlock->getName().str()) << std::endl;
             }
         }
         else if (llvm::isa<llvm::UnreachableInst>(I)) {
