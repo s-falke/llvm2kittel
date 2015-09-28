@@ -805,7 +805,7 @@ void Converter::visitTerminatorInst(llvm::TerminatorInst &I)
         if (llvm::isa<llvm::ReturnInst>(I)){
             llvm::BasicBlock* pBlock = I.getParent();
             if (m_t2Output) {
-                std::cout << "TO: " << (pBlock->getName().str()) << std::endl;
+                std::cout << "TO: " << (pBlock->getName().str()) << ";" << std::endl;
             }
         }
         else if (llvm::isa<llvm::UnreachableInst>(I)) {
