@@ -1740,7 +1740,8 @@ void Converter::visitCallInst(llvm::CallInst &I)
                 ref<Polynomial> nondef = Polynomial::create(getNondef(&I));
 
                 if (m_t2Output) {
-                    std::cout << (nondef->toString()) << ":= nondet();" << std::endl;
+                    //std::cout << (nondef->toString()) << ":= nondet();" << std::endl;
+                    std::cout << (getVar(&I)) << " := nondet();" << std::endl;
                 }
                 
                 newArgs = getZappedArgs(toZap, I, nondef);
