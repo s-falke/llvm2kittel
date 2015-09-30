@@ -1918,6 +1918,10 @@ void Converter::visitLoadInst(llvm::LoadInst &I)
         ++m_counter;
         ref<Term> rhs = Term::create(getEval(m_counter), getNewArgs(I, newArg));
         ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
+        if (m_t2Output) {
+            //std::cout << (nondef->toString()) << ":= nondet();" << std::endl;
+            std::cout << (getVar(&I)) << " := nondet();" << std::endl;
+        }
         m_blockRules.push_back(rule);
     }
 }
@@ -1951,6 +1955,10 @@ void Converter::visitStoreInst(llvm::StoreInst &I)
         ++m_counter;
         ref<Term> rhs = Term::create(getEval(m_counter), newArgs);
         ref<Rule> rule = Rule::create(lhs, rhs, Constraint::_true);
+        if (m_t2Output) {
+            //std::cout << (nondef->toString()) << ":= nondet();" << std::endl;
+            std::cout << (getVar(&I)) << " := nondet();" << std::endl;
+        }
         m_blockRules.push_back(rule);
     }
 }
