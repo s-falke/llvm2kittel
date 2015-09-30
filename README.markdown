@@ -14,9 +14,9 @@ verifier [T2](https://github.com/mmjb/T2).
 After following the INSTALL instructions, running the following commands below
 will allow you to extract a .t2 file. From the build directory:
 
-$ clang -Wall -Wextra -c -emit-llvm -O0 <INPUT> -o <INPUT>.bc
+$ clang -Wall -Wextra -c -emit-llvm -O0 INPUT -o INPUT.bc
 
-$ ./llvm2kittel --dump-ll --no-slicing --eager-inline --t2 <INPUT>.bc > <INPUT>.t2
+$ ./llvm2kittel --dump-ll --no-slicing --eager-inline --t2 INPUT.bc > INPUT.t2
 
 
 ## Papers
