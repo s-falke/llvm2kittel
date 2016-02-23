@@ -138,7 +138,7 @@ std::list<ref<Rule> > Slicer::sliceUsage(std::list<ref<Rule> > rules)
     // Keep all inputs of integer type
     unsigned int intarg = 0;
     for (llvm::Function::arg_iterator i = m_F->arg_begin(), e = m_F->arg_end(); i != e; ++i) {
-        llvm::Argument *arg = i;
+        llvm::Argument *arg = &*i;
         if (llvm::isa<llvm::IntegerType>(arg->getType())) {
             notNeeded.erase(intarg);
             intarg++;
@@ -185,7 +185,7 @@ std::list<ref<Rule> > Slicer::sliceConstraint(std::list<ref<Rule> > rules)
     // Keep all inputs of integer type
     unsigned int intarg = 0;
     for (llvm::Function::arg_iterator i = m_F->arg_begin(), e = m_F->arg_end(); i != e; ++i) {
-        llvm::Argument *arg = i;
+        llvm::Argument *arg = &*i;
         if (llvm::isa<llvm::IntegerType>(arg->getType())) {
             notNeeded.erase(intarg);
             intarg++;

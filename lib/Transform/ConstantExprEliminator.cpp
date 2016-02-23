@@ -21,10 +21,10 @@ bool ConstantExprEliminator::runOnFunction(llvm::Function &function)
     while (doLoop) {
         doLoop = false;
         for (llvm::Function::iterator i = function.begin(), e = function.end(); i != e; ++i) {
-            llvm::BasicBlock *bb = i;
+            llvm::BasicBlock *bb = &*i;
             bool bbchanged = false;
             for (llvm::BasicBlock::iterator ibb = bb->begin(), ebb = bb->end(); ibb != ebb; ++ibb) {
-                llvm::Instruction *inst = ibb;
+                llvm::Instruction *inst = &*ibb;
                 unsigned int n = inst->getNumOperands();
                 for (unsigned int j = 0; j < n; ++j) {
                     llvm::Value *arg = inst->getOperand(j);

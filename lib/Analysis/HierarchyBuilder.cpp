@@ -42,9 +42,9 @@ void HierarchyBuilder::computeHierarchy(llvm::Module *module)
     }
     for (llvm::Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
         if (!i->isDeclaration()) {
-            m_functionIdx.insert(std::make_pair(i, m_numFunctions));
-            m_idxFunction.insert(std::make_pair(m_numFunctions, i));
-            m_functions.push_back(i);
+            m_functionIdx.insert(std::make_pair(&*i, m_numFunctions));
+            m_idxFunction.insert(std::make_pair(m_numFunctions, &*i));
+            m_functions.push_back(&*i);
             ++m_numFunctions;
         }
     }

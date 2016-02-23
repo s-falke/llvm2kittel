@@ -97,14 +97,14 @@ bool ConditionPropagator::runOnFunction(llvm::Function &F)
         std::cout << "========================================" << std::endl;
     }
     for (llvm::Function::iterator bbi = F.begin(), bbe = F.end(); bbi != bbe; ++bbi) {
-        llvm::BasicBlock *bb = bbi;
+        llvm::BasicBlock *bb = &*bbi;
         std::set<llvm::BasicBlock*> preds;
         for (llvm::Function::iterator tmpi = F.begin(), tmpe = F.end(); tmpi != tmpe; ++tmpi) {
-            if (isPred(tmpi, bb) && backedges.find(std::make_pair(tmpi, bb)) == backedges.end()) {
+            if (isPred(&*tmpi, bb) && backedges.find(std::make_pair(&*tmpi, bb)) == backedges.end()) {
                 if (m_debug) {
                     std::cout << bb->getName().str() << " has non-backedge predecessor " << tmpi->getName().str() << std::endl;
                 }
-                preds.insert(tmpi);
+                preds.insert(&*tmpi);
             }
         }
         std::set<llvm::Value*> trueSet;
