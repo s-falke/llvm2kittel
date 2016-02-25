@@ -64,8 +64,11 @@ llvm::Pass *createExtremeInlinerPass(llvm::Function *function, bool inlineVoids)
 #else
     llvm::initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
 #endif
-#if LLVM_VERSION >= VERSION(3, 6)
+#if LLVM_VERSION >= VERSION(3, 6) && LLVM_VERSION < VERSION(3, 8)
     llvm::initializeAliasAnalysisAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+    llvm::initializeAssumptionCacheTrackerPass(*llvm::PassRegistry::getPassRegistry());
+#elif LLVM_VERSION >= VERSION(3, 8)
+    llvm::initializeAAResultsWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
     llvm::initializeAssumptionCacheTrackerPass(*llvm::PassRegistry::getPassRegistry());
 #endif
     return new ExtremeInliner(function, inlineVoids);

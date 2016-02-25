@@ -45,7 +45,11 @@ MemoryAnalyzer::~MemoryAnalyzer()
 
 void MemoryAnalyzer::getAnalysisUsage(llvm::AnalysisUsage &AU) const
 {
+#if LLVM_VERSION < VERSION(3, 8)
     AU.addRequired<llvm::AliasAnalysis>();
+#else
+    AU.addRequired<llvm::AAResultsWrapperPass>();
+#endif
 }
 
 bool MemoryAnalyzer::runOnFunction(llvm::Function &function)
@@ -57,10 +61,14 @@ bool MemoryAnalyzer::runOnFunction(llvm::Function &function)
     for (llvm::Module::global_iterator global = module->global_begin(), globale = module->global_end(); global != globale; ++global) {
         const llvm::Type *globalType = llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0);
         if (llvm::isa<llvm::IntegerType>(globalType)) {
-            m_globals.insert(global);
+            m_globals.insert(&*global);
         }
     }
+#if LLVM_VERSION < VERSION(3, 8)
     m_aa = &getAnalysis<llvm::AliasAnalysis>();
+#else
+    m_aa = &getAnalysis<llvm::AAResultsWrapperPass>().getAAResults();
+#endif
     visit(function);
     return false;
 }
@@ -143,6 +151,10 @@ char MemoryAnalyzer::ID = 0;
 
 MemoryAnalyzer *createMemoryAnalyzerPass()
 {
+#if LLVM_VERSION < VERSION(3, 8)
     llvm::initializeAliasAnalysisAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+#else
+    llvm::initializeAAResultsWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
+#endif
     return new MemoryAnalyzer();
 }

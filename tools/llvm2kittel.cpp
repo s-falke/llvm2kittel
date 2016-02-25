@@ -233,7 +233,11 @@ void transformModule(llvm::Module *module, llvm::Function *function, NondefFacto
     llvmPasses.add(createBasicBlockSorterPass());
 
     // Alias analysis
+#if LLVM_VERSION < VERSION(3, 8)
     llvmPasses.add(llvm::createBasicAliasAnalysisPass());
+#else
+    llvmPasses.add(llvm::createBasicAAWrapperPass());
+#endif
 
     // lastly, do some verification of the modified code
     llvmPasses.add(llvm::createVerifierPass());
@@ -287,7 +291,11 @@ std::pair<MayMustMap, std::set<llvm::GlobalVariable*> > getMayMustMap(llvm::Func
     }
 #endif
 
+#if LLVM_VERSION < VERSION(3, 8)
     PM.add(llvm::createBasicAliasAnalysisPass());
+#else
+    PM.add(llvm::createBasicAAWrapperPass());
+#endif
 
     MemoryAnalyzer *maPass = createMemoryAnalyzerPass();
     PM.add(maPass);
@@ -467,16 +475,16 @@ int main(int argc, char *argv[])
 
     for (llvm::Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
         if (i->getName() == functionname) {
-            function = i;
+            function = &*i;
             break;
         } else if (functionname.empty() && i->getName() == "main") {
-            function = i;
+            function = &*i;
             break;
         } else if (!i->isDeclaration()) {
             ++numFunctions;
             functionNames.push_back(i->getName());
             if (firstFunction == NULL) {
-                firstFunction = i;
+                firstFunction = &*i;
             }
         }
     }

@@ -40,7 +40,11 @@ Hoister::Hoister()
 
 void Hoister::getAnalysisUsage(llvm::AnalysisUsage &AU) const
 {
+#if LLVM_VERSION < VERSION(3, 8)
     AU.addRequired<llvm::AliasAnalysis>();
+#else
+    AU.addRequired<llvm::AAResultsWrapperPass>();
+#endif
 #if LLVM_VERSION < VERSION(3, 5)
     AU.addRequired<llvm::DominatorTree>();
 #else
@@ -68,7 +72,11 @@ bool Hoister::runOnLoop(llvm::Loop *L, llvm::LPPassManager &)
 {
     changed = false;
 
+#if LLVM_VERSION < VERSION(3, 8)
     llvm::AliasAnalysis *AA = &getAnalysis<llvm::AliasAnalysis>();
+#else
+    llvm::AliasAnalysis *AA = &getAnalysis<llvm::AAResultsWrapperPass>().getAAResults();
+#endif
 #if LLVM_VERSION < VERSION(3, 5)
     llvm::DominatorTree *DT = &getAnalysis<llvm::DominatorTree>();
 #else
@@ -305,7 +313,7 @@ void Hoister::hoist(llvm::BasicBlock *preheader, llvm::Instruction &I)
     I.removeFromParent();
 
     // Insert the new node in Preheader, before the terminator.
-    preheader->getInstList().insert(preheader->getTerminator(), &I);
+    I.insertBefore(preheader->getTerminator());
 
     changed = true;
 }
@@ -322,7 +330,11 @@ bool Hoister::inSubLoop(llvm::Loop *L, llvm::BasicBlock *BB)
 
 llvm::LoopPass *createHoisterPass()
 {
+#if LLVM_VERSION < VERSION(3, 8)
     llvm::initializeAliasAnalysisAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+#else
+    llvm::initializeAAResultsWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
+#endif
 #if LLVM_VERSION < VERSION(3, 5)
     llvm::initializeDominatorTreePass(*llvm::PassRegistry::getPassRegistry());
 #else

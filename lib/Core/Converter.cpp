@@ -137,15 +137,15 @@ void Converter::phase1(llvm::Function *function, std::set<llvm::Function*> &scc,
 
     for (llvm::Function::arg_iterator i = function->arg_begin(), e = function->arg_end(); i != e; ++i) {
         if (i->getType()->isIntegerTy() && i->getType() != m_boolType) {
-            m_vars.push_back(getVar(i));
+            m_vars.push_back(getVar(&*i));
         }
     }
     llvm::Module *module = function->getParent();
     for (llvm::Module::global_iterator global = module->global_begin(), globale = module->global_end(); global != globale; ++global) {
         const llvm::Type *globalType = llvm::cast<llvm::PointerType>(global->getType())->getContainedType(0);
         if (globalType->isIntegerTy() && globalType != m_boolType) {
-            std::string var = getVar(global);
-            m_globals.push_back(global);
+            std::string var = getVar(&*global);
+            m_globals.push_back(&*global);
             m_vars.push_back(var);
             if (m_boundedIntegers) {
                 m_bitwidthMap.insert(std::make_pair(var, llvm::cast<llvm::IntegerType>(globalType)->getBitWidth()));
@@ -178,7 +178,7 @@ void Converter::phase2(llvm::Function *function, std::set<llvm::Function*> &scc,
     m_phase1 = false;
 
     for (llvm::Function::iterator bb = m_function->begin(), end = m_function->end(); bb != end; ++bb) {
-        visitBB(bb);
+        visitBB(&*bb);
     }
 
     // add rules from returns to stop
@@ -682,9 +682,9 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     llvm::Instruction *first = NULL;
     unsigned int firstID = 0;
     for (llvm::BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
-        std::map<llvm::Instruction*, unsigned int>::iterator found = m_idMap.find(i);
+        std::map<llvm::Instruction*, unsigned int>::iterator found = m_idMap.find(&*i);
         if (found != m_idMap.end()) {
-            first = i;
+            first = &*i;
             firstID = found->second;
             break;
         }
@@ -709,9 +709,9 @@ void Converter::visitBB(llvm::BasicBlock *bb)
     unsigned int lastID = 0;
     for (llvm::BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
         // terminators are not in the map
-        std::map<llvm::Instruction*, unsigned int>::iterator found = m_idMap.find(i);
+        std::map<llvm::Instruction*, unsigned int>::iterator found = m_idMap.find(&*i);
         if (found != m_idMap.end()) {
-            last = i;
+            last = &*i;
             lastID = found->second;
         }
     }
@@ -1606,7 +1606,7 @@ std::list<llvm::Function*> Converter::getMatchingFunctions(llvm::CallInst &I)
     for (llvm::Module::iterator i = module->begin(), e = module->end(); i != e; ++i) {
         if (!i->isDeclaration()) {
             if (i->getType() == type) {
-                res.push_back(i);
+                res.push_back(&*i);
             }
         }
     }

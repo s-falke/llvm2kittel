@@ -21,10 +21,10 @@ bool BitcastCallEliminator::runOnFunction(llvm::Function &function)
     while (doLoop) {
         doLoop = false;
         for (llvm::Function::iterator i = function.begin(), e = function.end(); i != e; ++i) {
-            llvm::BasicBlock *bb = i;
+            llvm::BasicBlock *bb = &*i;
             bool bbchanged = false;
             for (llvm::BasicBlock::iterator ibb = bb->begin(), ebb = bb->end(); ibb != ebb; ++ibb) {
-                llvm::Instruction *inst = ibb;
+                llvm::Instruction *inst = &*ibb;
                 if (llvm::isa<llvm::CallInst>(inst) && llvm::cast<llvm::CallInst>(inst)->getCalledFunction() == NULL) {
                     llvm::CallInst *callInst = llvm::cast<llvm::CallInst>(inst);
                     llvm::Value *calledValue = callInst->getCalledValue();

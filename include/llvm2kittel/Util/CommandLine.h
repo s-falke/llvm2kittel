@@ -437,15 +437,15 @@ struct OptionValue : OptionValueBase<DataType, IS_CLASS<DataType>::value> {
 // Other safe-to-copy-by-value common option types.
 enum boolOrDefault { BOU_UNSET, BOU_TRUE, BOU_FALSE };
 template<>
-struct OptionValue<cl::boolOrDefault> : OptionValueCopy<cl::boolOrDefault> {
-  typedef cl::boolOrDefault WrapperType;
+struct OptionValue<boolOrDefault> : OptionValueCopy<boolOrDefault> {
+  typedef boolOrDefault WrapperType;
 
   OptionValue() {}
 
-  OptionValue(const cl::boolOrDefault& V) {
+  OptionValue(const boolOrDefault& V) {
     this->setValue(V);
   }
-  OptionValue<cl::boolOrDefault> &operator=(const cl::boolOrDefault& V) {
+  OptionValue<boolOrDefault> &operator=(const boolOrDefault& V) {
     setValue(V);
     return *this;
   }
@@ -1185,7 +1185,7 @@ class opt : public Option,
 
   virtual void printOptionValue(size_t GlobalWidth, bool Force) const {
     if (Force || this->getDefault().compare(this->getValue())) {
-      cl::printOptionDiff<ParserClass>(
+      printOptionDiff<ParserClass>(
         *this, Parser, this->getValue(), this->getDefault(), GlobalWidth);
     }
   }
