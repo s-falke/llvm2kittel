@@ -717,6 +717,7 @@ int main(int argc, char *argv[])
                 slicedRules = slicer.sliceConstraint(slicedRules);
                 slicedRules = slicer.sliceDefined(slicedRules);
                 slicedRules = slicer.sliceStillUsed(slicedRules, conservativeSlicing);
+                slicedRules = slicer.sliceTrivialNondefConstraints(slicedRules);
                 slicedRules = slicer.sliceDuplicates(slicedRules);
             }
             if (boundedIntegers) {
