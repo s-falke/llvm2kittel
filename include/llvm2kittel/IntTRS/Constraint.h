@@ -57,6 +57,7 @@ public:
 
     virtual ref<Constraint> eliminateNeq() = 0;
     virtual ref<Constraint> evaluateTrivialAtoms() = 0;
+    virtual ref<Constraint> setAtomToTrue(ref<Constraint> c) = 0;
 
     virtual void addVariablesToSet(std::set<std::string> &res) = 0;
 
@@ -99,6 +100,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 
@@ -131,6 +133,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 
@@ -163,6 +166,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 
@@ -210,6 +214,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 
@@ -263,6 +268,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 
@@ -313,6 +319,7 @@ public:
 
     ref<Constraint> eliminateNeq();
     ref<Constraint> evaluateTrivialAtoms();
+    ref<Constraint> setAtomToTrue(ref<Constraint> c);
 
     void addVariablesToSet(std::set<std::string> &res);
 

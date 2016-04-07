@@ -115,6 +115,11 @@ ref<Constraint> True::evaluateTrivialAtoms()
     return Constraint::_true;
 }
 
+ref<Constraint> True::setAtomToTrue(ref<Constraint> c)
+{
+    return Constraint::_true;
+}
+
 void True::addVariablesToSet(std::set<std::string> &res)
 {}
 
@@ -199,6 +204,12 @@ ref<Constraint> False::evaluateTrivialAtoms()
     return Constraint::_false;
 }
 
+ref<Constraint> False::setAtomToTrue(ref<Constraint> c)
+{
+    std::cerr << "Internal error in atom replacement (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
+}
+
 void False::addVariablesToSet(std::set<std::string> &res)
 {}
 
@@ -276,6 +287,12 @@ ref<Constraint> Nondef::eliminateNeq()
 ref<Constraint> Nondef::evaluateTrivialAtoms()
 {
     return this;
+}
+
+ref<Constraint> Nondef::setAtomToTrue(ref<Constraint> c)
+{
+    std::cerr << "Internal error in atom replacement (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
 }
 
 void Nondef::addVariablesToSet(std::set<std::string> &res)
@@ -504,6 +521,15 @@ ref<Constraint> Atom::evaluateTrivialAtomsInternal(ref<Polynomial> lhs, ref<Poly
     }
 }
 
+ref<Constraint> Atom::setAtomToTrue(ref<Constraint> c)
+{
+  if (this == static_cast<Atom*>(c.get())) {
+      return Constraint::_true;
+    } else {
+      return this;
+    }
+}
+
 void Atom::addVariablesToSet(std::set<std::string> &res)
 {
     m_lhs->addVariablesToSet(res);
@@ -614,6 +640,12 @@ ref<Constraint> Negation::eliminateNeq()
 ref<Constraint> Negation::evaluateTrivialAtoms()
 {
     return create(m_c->evaluateTrivialAtoms());
+}
+
+ref<Constraint> Negation::setAtomToTrue(ref<Constraint> c)
+{
+    std::cerr << "Internal error in atom replacement (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+    exit(217);
 }
 
 void Negation::addVariablesToSet(std::set<std::string> &res)
@@ -810,6 +842,17 @@ ref<Constraint> Operator::evaluateTrivialAtoms()
 {
     return create(m_lhs->evaluateTrivialAtoms(), m_rhs->evaluateTrivialAtoms(), m_type);
 }
+
+ref<Constraint> Operator::setAtomToTrue(ref<Constraint> c)
+{
+    if (m_type == And) {
+      return create(m_lhs->setAtomToTrue(c), m_rhs->setAtomToTrue(c), m_type);
+    } else {
+        std::cerr << "Internal error in atom replacement (" << __FILE__ << ":" << __LINE__ << ")!" << std::endl;
+        exit(217);
+    }
+}
+
 
 void Operator::addVariablesToSet(std::set<std::string> &res)
 {
