@@ -1641,10 +1641,10 @@ void Converter::visitSelectInst(llvm::SelectInst &I)
         m_counter++;
         ref<Term> rhs1 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getTrueValue())));
         ref<Term> rhs2 = Term::create(getEval(m_counter), getNewArgs(I, getPolynomial(I.getFalseValue())));
-        ref<Constraint> c = m_onlyLoopConditions ? Constraint::_true : getConditionFromValue(I.getCondition());
-        ref<Rule> rule1 = Rule::create(lhs, rhs1, c->toNNF(false));
+        ref<Constraint> c = getConditionFromValue(I.getCondition());
+        ref<Rule> rule1 = Rule::create(lhs, rhs1, m_onlyLoopConditions ? Constraint::_true : c->toNNF(false));
         m_blockRules.push_back(rule1);
-        ref<Rule> rule2 = Rule::create(lhs, rhs2, c->toNNF(true));
+        ref<Rule> rule2 = Rule::create(lhs, rhs2, m_onlyLoopConditions ? Constraint::_true : c->toNNF(true));
         m_blockRules.push_back(rule2);
     }
 }
