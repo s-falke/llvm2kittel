@@ -6,7 +6,7 @@ into a format that can be handled by the automatic termination prover
 
 ## Author
 
-Stephan Falke
+Stephan Falke, Jeroen Ketema, Marc Brockschmidt
 
 ## Papers
 
