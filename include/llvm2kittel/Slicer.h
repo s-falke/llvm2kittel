@@ -42,6 +42,8 @@ public:
 
     std::list<ref<Rule> > sliceStillUsed(std::list<ref<Rule> > rules, bool conservative);
 
+    std::list<ref<Rule> > sliceTrivialNondefConstraints(std::list<ref<Rule> > rules);
+
     std::list<ref<Rule> > sliceDuplicates(std::list<ref<Rule> > rules);
 
 private:
