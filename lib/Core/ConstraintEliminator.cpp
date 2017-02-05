@@ -121,7 +121,7 @@ std::pair<std::string, int> EliminateClass::makeTempFile(const char templ[])
     strcpy(filename, filename_string.c_str());
     int fd = mkstemp(filename);
     filename_string = filename;
-    delete filename;
+    delete[] filename;
     return std::make_pair(filename_string, fd);
 }
 
