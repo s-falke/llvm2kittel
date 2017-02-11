@@ -1214,7 +1214,7 @@ static void
 sortOpts(StringMap<Option*> &OptMap,
          SmallVectorImpl< std::pair<const char *, Option*> > &Opts,
          bool ShowHidden) {
-  SmallPtrSet<Option*, 128> OptionSet;  // Duplicate option detection.
+  SmallPtrSet<Option*, 32> OptionSet;  // Duplicate option detection.
 
   for (StringMap<Option*>::iterator I = OptMap.begin(), E = OptMap.end();
        I != E; ++I) {
