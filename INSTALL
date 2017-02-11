@@ -2,8 +2,8 @@ Requirements:
 -------------
 
   * A C++ compiler (both gcc and clang have been tested).
-  * LLVM (versions 2.9 and 3.4 have been tested, but versions 3.0, 3.1,
-          3.2, 3.3, 3.5, 3.6, 3.7, and 3.8 should also work).
+  * LLVM (versions 2.9 and 3.4 have been tested, but all versions from 2.9
+          up to and including 3.9 should work).
   * GMP
 
 Build instructions:
