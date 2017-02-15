@@ -41,7 +41,11 @@
 #if LLVM_VERSION < VERSION(3, 5)
   #include <llvm/Assembly/PrintModulePass.h>
 #endif
+#if LLVM_VERSION < VERSION(4, 0)
 #include <llvm/Bitcode/ReaderWriter.h>
+#else
+#include <llvm/Bitcode/BitcodeReader.h>
+#endif
 #if LLVM_VERSION < VERSION(3, 3)
   #include <llvm/LLVMContext.h>
 #else
@@ -431,10 +435,10 @@ int main(int argc, char *argv[])
 
     llvm::LLVMContext context;
     std::string errMsg;
-#if LLVM_VERSION < VERSION(3, 5)
-    llvm::Module *module = llvm::ParseBitcodeFile(buffer, context, &errMsg);
-#elif LLVM_VERSION == VERSION(3, 5)
     llvm::Module *module = NULL;
+#if LLVM_VERSION < VERSION(3, 5)
+    module = llvm::ParseBitcodeFile(buffer, context, &errMsg);
+#elif LLVM_VERSION == VERSION(3, 5)
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer, context);
     std::error_code ec = moduleOrError.getError();
     if (ec) {
@@ -443,7 +447,6 @@ int main(int argc, char *argv[])
         module = moduleOrError.get();
     }
 #elif LLVM_VERSION == VERSION(3, 6)
-    llvm::Module *module = NULL;
     llvm::ErrorOr<llvm::Module*> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
     std::error_code ec = moduleOrError.getError();
     if (ec) {
@@ -451,14 +454,21 @@ int main(int argc, char *argv[])
     } else {
         module = moduleOrError.get();
     }
-#else
-    llvm::Module *module = NULL;
+#elif LLVM_VERSION < VERSION(4, 0)
     llvm::ErrorOr<std::unique_ptr<llvm::Module>> moduleOrError = llvm::parseBitcodeFile(buffer->getMemBufferRef(), context);
     std::error_code ec = moduleOrError.getError();
     if (ec) {
         errMsg = ec.message();
     } else {
         module = moduleOrError->get();
+    }
+#else
+    llvm::ErrorOr<std::unique_ptr<llvm::Module>> moduleOrError = expectedToErrorOrAndEmitErrors(context, llvm::parseBitcodeFile(buffer->getMemBufferRef(), context));
+    std::error_code ec = moduleOrError.getError();
+    if (ec) {
+      errMsg = ec.message();
+    } else {
+      module = moduleOrError->get();
     }
 #endif
 

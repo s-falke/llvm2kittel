@@ -58,7 +58,11 @@ public:
     void visitLoadInst(llvm::LoadInst &I);
     void visitStoreInst(llvm::StoreInst &I);
 
+#if LLVM_VERSION < VERSION(4, 0)
     virtual const char *getPassName() const
+#else
+    virtual llvm::StringRef getPassName() const
+#endif
     {
         return "Obtain memory alias analysis results";
     }

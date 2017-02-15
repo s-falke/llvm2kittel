@@ -42,7 +42,11 @@ public:
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 
+#if LLVM_VERSION < VERSION(4, 0)
     virtual const char *getPassName() const
+#else
+    virtual llvm::StringRef getPassName() const
+#endif
     {
         return "llvm2KITTeL's mem2reg";
     }

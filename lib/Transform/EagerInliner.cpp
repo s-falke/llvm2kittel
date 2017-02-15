@@ -18,7 +18,11 @@
 #endif
 
 EagerInliner::EagerInliner()
+#if LLVM_VERSION < VERSION(4, 0)
   : llvm::Inliner(ID)
+#else
+  : llvm::LegacyInlinerBase(ID)
+#endif
 {}
 
 EagerInliner::~EagerInliner()
