@@ -3,7 +3,7 @@ Requirements:
 
   * A C++ compiler (both gcc and clang have been tested).
   * LLVM (versions 2.9 and 3.4 have been tested, but all versions from 2.9
-          up to and including 3.9 should work).
+          up to and including 4.0 should work).
   * GMP
 
 Build instructions:
