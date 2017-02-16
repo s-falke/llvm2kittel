@@ -32,7 +32,11 @@ public:
 
     bool runOnFunction(llvm::Function &function);
 
+#if LLVM_VERSION < VERSION(4, 0)
     virtual const char *getPassName() const
+#else
+    virtual llvm::StringRef getPassName() const
+#endif
     {
         return "ConstantExpr elimination pass";
     }

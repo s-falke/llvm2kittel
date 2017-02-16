@@ -18,10 +18,18 @@
   #include <llvm/IR/Function.h>
 #endif
 #include <llvm/Analysis/InlineCost.h>
+#if LLVM_VERSION < VERSION(4, 0)
 #include <llvm/Transforms/IPO/InlinerPass.h>
+#else
+#include <llvm/Transforms/IPO/Inliner.h>
+#endif
 #include "WARN_ON.h"
 
+#if LLVM_VERSION < VERSION(4, 0)
 class ExtremeInliner : public llvm::Inliner
+#else
+class ExtremeInliner : public llvm::LegacyInlinerBase
+#endif
 {
 
 public:
@@ -37,7 +45,11 @@ public:
 
     static char ID;
 
+#if LLVM_VERSION < VERSION(4, 0)
     virtual const char *getPassName() const
+#else
+    virtual llvm::StringRef getPassName() const
+#endif
     {
         return "Extreme function inliner";
     }

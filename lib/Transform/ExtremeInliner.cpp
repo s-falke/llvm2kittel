@@ -20,7 +20,11 @@
 #include "WARN_ON.h"
 
 ExtremeInliner::ExtremeInliner(llvm::Function *function, bool inlineVoids)
+#if LLVM_VERSION < VERSION(4, 0)
   : llvm::Inliner(ID),
+#else
+  : llvm::LegacyInlinerBase(ID),
+#endif
     m_function(function),
     m_inlineVoids(inlineVoids)
 {}

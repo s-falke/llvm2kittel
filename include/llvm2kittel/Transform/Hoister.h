@@ -44,7 +44,11 @@ public:
 #endif
     bool doFinalization();
 
+#if LLVM_VERSION < VERSION(4, 0)
     virtual const char *getPassName() const
+#else
+    virtual llvm::StringRef getPassName() const
+#endif
     {
         return "Selective Hoister";
     }
